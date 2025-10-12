@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DonorMedix - Save Lives by Sharing Medicines</title>
+  <link rel="stylesheet" href="browse.css">
+</head>
+<body>
+
+  <div class="bg-decoration">
+    <div class="bg-circle-1"></div>
+    <div class="bg-circle-2"></div>
+  </div>
+
+  <header>
+    <div class="header-container">
+      <!-- Logo -->
+      <div class="logo">DonorMedix</div>
+
+      <!-- Navigation -->
+        <nav class="nav">
+            <a href="Home Page.html" class="nav-link">Home</a>
+            <a href="#" class="nav-link">Browse</a>
+            <a href="#" class="nav-link nav-link-active">Donate</a>
+            <a href="#" class="nav-link">Requests</a>
+        </nav>
+
+        <div class="header-actions">
+                <button class="notification-btn">
+                    <svg class="bell-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                    </svg>
+                    <span class="notification-dot"></span>
+                </button>
+                <button class="profile-btn">Profile</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main">
+        <div class="container">
+            <div class="page-header">
+                <h1 class="page-title">Donate Medicine</h1>
+                <p class="page-description">Help others by donating unused medicines and medical supplies</p>
+            </div>
+
+            <div class="content-grid">
+                <!-- Donation Form -->
+                <div class="form-section">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">Donation Details</h2>
+                            <a href="#" class="view-examples">
+                                <svg class="info-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                View Examples
+                            </a>
+                        </div>
+
+                        <form class="donation-form">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="medicineName">Medicine/Item Name <span class="required">*</span></label>
+                                    <input type="text" id="medicineName" placeholder="e.g., Paracetamol 500mg">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="category">Category <span class="required">*</span></label>
+                                    <select id="category">
+                                        <option value="">Select category</option>
+                                        <option value="pain-relief">Pain Relief</option>
+                                        <option value="antibiotics">Antibiotics</option>
+                                        <option value="vitamins">Vitamins & Supplements</option>
+                                        <option value="first-aid">First Aid</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="description">Description <span class="required">*</span></label>
+                                <textarea id="description" rows="4" placeholder="Describe the medicine, brand, dosage, and any important details..."></textarea>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="quantity">Quantity <span class="required">*</span></label>
+                                    <input type="text" id="quantity" placeholder="e.g., 1 pack (20 tablets)">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="expiryDate">Expiry Date <span class="required">*</span></label>
+                                    <div class="input-with-icon">
+                                        <input type="text" id="expiryDate" placeholder="dd/mm/yyyy">
+                                        <svg class="input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="condition">Condition <span class="required">*</span></label>
+                                    <select id="condition">
+                                        <option value="">Select condition</option>
+                                        <option value="sealed">Sealed/Unopened</option>
+                                        <option value="opened">Opened but unused</option>
+                                        <option value="partial">Partially used</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="urgencyLevel">Urgency Level</label>
+                                    <select id="urgencyLevel">
+                                        <option value="">Select urgency</option>
+                                        <option value="low">Low</option>
+                                        <option value="medium">Medium</option>
+                                        <option value="high">High</option>
+                                        <option value="urgent">Urgent</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="pickupLocation">Pickup Location <span class="required">*</span></label>
+                                <input type="text" id="pickupLocation" placeholder="e.g., Downtown, City Center (general area)">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="contactMethod">Preferred Contact Method</label>
+                                <select id="contactMethod">
+                                    <option value="">Select contact method</option>
+                                    <option value="email">Email</option>
+                                    <option value="phone">Phone</option>
+                                    <option value="app">In-app messaging</option>
+                                </select>
+                            </div>
+
+                            <button type="submit" class="submit-btn">Submit Donation</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Sidebar -->
+                <div class="sidebar">
+                    <!-- Donation Guidelines -->
+                    <div class="card">
+                        <div class="card-header-with-icon">
+                            <svg class="header-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <h2 class="card-title">Donation Guidelines</h2>
+                        </div>
+
+                        <ul class="guidelines-list">
+                            <li class="guideline-item">
+                                <svg class="check-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                </svg>
+                                <span>Only donate medicines that are not expired or close to expiry</span>
+                            </li>
+                            <li class="guideline-item">
+                                <svg class="check-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                </svg>
+                                <span>Ensure medicines are stored properly (temperature, humidity)</span>
+                            </li>
+                            <li class="guideline-item">
+                                <svg class="check-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                </svg>
+                                <span>Include original packaging and labels when possible</span>
+                            </li>
+                            <li class="guideline-item">
+                                <svg class="x-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                                <span>Do not donate controlled substances or prescription-only medicines</span>
+                            </li>
+                            <li class="guideline-item">
+                                <svg class="x-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                                <span>Avoid donating opened liquid medicines or creams</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Community Impact -->
+                    <div class="card">
+                        <div class="card-header-with-icon">
+                            <svg class="header-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                            </svg>
+                            <h2 class="card-title">Community Impact</h2>
+                        </div>
+
+                        <div class="impact-stats">
+                            <div class="stat-item">
+                                <div class="stat-value">1,247</div>
+                                <div class="stat-label">Medicines Donated</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">892</div>
+                                <div class="stat-label">People Helped</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">$45,230</div>
+                                <div class="stat-label">Value Saved</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

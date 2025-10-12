@@ -1,9 +1,21 @@
-// ===== Smooth Scroll + External Navigation =====
+/* =========================================================
+   🌐 DonorMedix Main Script
+   Features:
+   - Smooth scrolling + page navigation
+   - Active nav highlighting
+   - Notification bell toggle
+   - Newsletter handling
+   - CTA button interaction
+   ========================================================= */
+
+/* ================================
+   🧭 NAVIGATION & SMOOTH SCROLL
+=================================== */
 document.querySelectorAll("nav a").forEach(link => {
   link.addEventListener("click", function (e) {
     const href = this.getAttribute("href");
 
-    // If link starts with '#' → scroll inside the same page
+    // Smooth scroll for same-page sections
     if (href.startsWith("#")) {
       e.preventDefault();
       const targetId = href.substring(1);
@@ -15,28 +27,44 @@ document.querySelectorAll("nav a").forEach(link => {
           behavior: "smooth"
         });
       }
-    } 
-    // If link points to another file → go to that page
+    }
+
+    // Normal navigation for other HTML files
     else if (href.endsWith(".html")) {
-      // allow normal navigation
+      e.preventDefault();
       window.location.href = href;
     }
   });
 });
 
+// Highlight the active page in navigation
+const currentPage = window.location.pathname.split("/").pop();
+document.querySelectorAll("nav a").forEach(link => {
+  const href = link.getAttribute("href");
+  if (href === currentPage) {
+    link.classList.add("nav-link-active");
+  } else {
+    link.classList.remove("nav-link-active");
+  }
+});
 
-// ===== Notification Bell Toggle =====
+
+/* ================================
+   🔔 NOTIFICATION BELL TOGGLE
+=================================== */
 const bellBtn = document.querySelector(".bell-btn");
 const notificationDot = document.querySelector(".notification-dot");
 
 if (bellBtn && notificationDot) {
   bellBtn.addEventListener("click", () => {
-    notificationDot.classList.toggle("hidden"); // toggle visibility
+    notificationDot.classList.toggle("hidden");
   });
 }
 
 
-// ===== Newsletter Form Handling =====
+/* ================================
+   📰 NEWSLETTER SUBSCRIPTION
+=================================== */
 const newsletterForm = document.querySelector(".newsletter-form");
 
 if (newsletterForm) {
@@ -47,7 +75,7 @@ if (newsletterForm) {
     const email = emailInput.value.trim();
 
     if (validateEmail(email)) {
-      alert("✅ Thank you for subscribing with " + email);
+      alert(`✅ Thank you for subscribing with ${email}`);
       emailInput.value = "";
     } else {
       alert("⚠️ Please enter a valid email address.");
@@ -55,15 +83,16 @@ if (newsletterForm) {
   });
 }
 
-
-// ===== Email Validation =====
+// Email validation helper
 function validateEmail(email) {
   const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return re.test(email.toLowerCase());
 }
 
 
-// ===== CTA Buttons =====
+/* ================================
+   🚀 CTA BUTTON ACTIONS
+=================================== */
 document.querySelectorAll(".btn-primary, .btn-secondary").forEach(btn => {
   btn.addEventListener("click", () => {
     alert("🚀 Feature coming soon!");
