@@ -1,18 +1,29 @@
-// ===== Smooth Scroll for Navigation =====
+// ===== Smooth Scroll + External Navigation =====
 document.querySelectorAll("nav a").forEach(link => {
   link.addEventListener("click", function (e) {
-    e.preventDefault();
-    const targetId = this.getAttribute("href").substring(1);
-    const targetElement = document.getElementById(targetId);
+    const href = this.getAttribute("href");
 
-    if (targetElement) {
-      window.scrollTo({
-        top: targetElement.offsetTop - 80, // adjust for header height
-        behavior: "smooth"
-      });
+    // If link starts with '#' → scroll inside the same page
+    if (href.startsWith("#")) {
+      e.preventDefault();
+      const targetId = href.substring(1);
+      const targetElement = document.getElementById(targetId);
+
+      if (targetElement) {
+        window.scrollTo({
+          top: targetElement.offsetTop - 80, // adjust for header height
+          behavior: "smooth"
+        });
+      }
+    } 
+    // If link points to another file → go to that page
+    else if (href.endsWith(".html")) {
+      // allow normal navigation
+      window.location.href = href;
     }
   });
 });
+
 
 // ===== Notification Bell Toggle =====
 const bellBtn = document.querySelector(".bell-btn");
@@ -23,6 +34,7 @@ if (bellBtn && notificationDot) {
     notificationDot.classList.toggle("hidden"); // toggle visibility
   });
 }
+
 
 // ===== Newsletter Form Handling =====
 const newsletterForm = document.querySelector(".newsletter-form");
@@ -43,11 +55,13 @@ if (newsletterForm) {
   });
 }
 
-// Email validation function
+
+// ===== Email Validation =====
 function validateEmail(email) {
   const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return re.test(email.toLowerCase());
 }
+
 
 // ===== CTA Buttons =====
 document.querySelectorAll(".btn-primary, .btn-secondary").forEach(btn => {
