@@ -3,53 +3,210 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DonorMedix</title>
-  <link rel="stylesheet" href="login.css" />
+  <title>DonorMedix - Log In</title>
+
+  <style>
+    body {
+      font-family: "Poppins", "Segoe UI", sans-serif;
+      background: linear-gradient(to right, #14b8a6, #0d9488);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      padding: 15px;
+    }
+
+    /* Compact modal */
+    .modal {
+      background: #ffffff;
+      border-radius: 14px;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+      padding: 35px 25px; /* reduced from 50px 40px */
+      width: 100%;
+      max-width: 400px;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .modal:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px; /* tighter */
+    }
+
+    .modal-header h2 {
+      color: #07403c;
+      font-size: 2rem;
+      font-weight: 1000;
+      margin: 0;
+    }
+
+    .close-btn {
+      text-decoration: none;
+      font-size: 30px;
+      color: #030303;
+      transition: color 0.3s;
+    }
+
+    .close-btn:hover {
+      color: #0d9488;
+    }
+
+    .signin-form label {
+      display: block;
+      margin-top: 10px; /* reduced from 18px */
+      font-weight: 500;
+      font-size: 0.95rem;
+      color: #158392;
+    }
+
+    .signin-form input {
+      width: 90%;
+      padding: 15px; /* reduced */
+      margin-top: 5px;
+      border: 2px solid #199a8d;
+      border-radius: 8px;
+      font-size: 15px;
+    }
+
+    .signin-form input:focus {
+      border-color: #0d9488;
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(13, 148, 136, 0.15);
+    }
+
+    .btn-login {
+      width: 100%;
+      padding: 12px;
+      margin-top: 18px; 
+      background-color: #0d9488;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      transition: background 0.3s, transform 0.2s;
+    }
+
+    .btn-login:hover {
+      background-color: #0d625b;
+      transform: scale(1.01);
+    }
+
+    .error-message {
+      color: #ef4444;
+      font-size: 15px;
+      margin-top: 8px; 
+      display: none;
+      text-align: center;
+    }
+
+    .form-links {
+      text-align: center;
+      margin-top: 18px; 
+      font-size: 14px;
+    }
+
+    .form-links a {
+      color: #0d9488;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .form-links a:hover {
+      text-decoration: underline;
+    }
+
+    .divider {
+      text-align: center;
+      margin: 18px 0; /* tighter */
+      color: #818b89;
+      font-size: 13px;
+    }
+
+    .social-login button {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid #f7faf9;
+      background: #fff;
+      padding: 8px;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 8px; /* reduced */
+      transition: background 0.3s;
+    }
+
+    .social-login img {
+      width: 18px;
+      height: 18px;
+      margin-right: 8px;
+    }
+  </style>
 </head>
+
 <body>
-
-  <!-- Overlay -->
-  <div class="overlay" id="overlay"></div>
-
-  <!-- Sign In Modal -->
   <div class="modal" id="signinModal">
     <div class="modal-header">
       <h2>Log In</h2>
-      <!-- Close button links back to homepage -->
-      <a href="Home Page.html" class="close-btn" id="closeModal">&times;</a>
+      <a href="welcome.html" class="close-btn">&times;</a>
     </div>
 
-    <form class="signin-form" action="Home Page.html" method="post">
+    <form class="signin-form" id="loginForm">
+      <label for="username">Username</label>
+      <input type="text" id="username" placeholder="Enter your username" required />
+
       <label for="email">Email Address</label>
       <input type="email" id="email" placeholder="Enter your email" required />
 
       <label for="password">Password</label>
       <input type="password" id="password" placeholder="Enter your password" required />
 
-      <!-- Sign In button redirects to homepage after login -->
-      <button type="submit" class="btn-signin">Log In</button>
+      <button type="button" class="btn-login" id="loginBtn">Login</button>
+
+      <p class="error-message" id="errorMsg">Lagay mo po .</p>
 
       <div class="form-links">
         <a href="forgot-password.html" class="forgot">Forgot your password?</a>
-        <p>Don’t have an account? <a href="login.html" class="signup">Sign Up</a></p>
+        <p>Don’t have an account? <a href="signup.html" class="signup">Sign Up</a></p>
       </div>
 
-      <div class="divider">
-        <span>Or continue with</span>
-      </div>
+      <div class="divider">Or continue with</div>
 
       <div class="social-login">
-        <button class="google-btn" type="button" onclick="window.location.href='homepage.html'">
-          <img src="https://www.svgrepo.com/show/355037/google.svg" alt="Google" />
-          Google
+        <button type="button">
+          <img src="https://www.svgrepo.com/show/355037/google.svg" alt="Google" /> Google
         </button>
-        <button class="facebook-btn" type="button" onclick="window.location.href='homepage.html'">
-          <img src="https://www.svgrepo.com/show/303145/facebook-icon-logo.svg" alt="Facebook" />
-          Facebook
+        <button type="button">
+          <img src="https://www.svgrepo.com/show/303145/facebook-icon-logo.svg" alt="Facebook" /> Facebook
         </button>
       </div>
     </form>
   </div>
 
+  <script>
+    const loginBtn = document.getElementById('loginBtn');
+    const username = document.getElementById('username');
+    const email = document.getElementById('email');
+    const password = document.getElementById('password');
+    const errorMsg = document.getElementById('errorMsg');
+
+    loginBtn.addEventListener('click', () => {
+      if (!username.value || !email.value || !password.value) {
+        errorMsg.style.display = 'block';
+      } else {
+        errorMsg.style.display = 'none';
+        window.location.href = 'Home Page.html';
+      }
+    });
+  </script>
 </body>
 </html>

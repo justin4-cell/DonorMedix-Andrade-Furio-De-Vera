@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DonorMedix - Sign Up</title>
+
+  <style>
+    /* Fade animations */
+    body.fade-in { animation: fadeIn 0.5s ease-in; }
+    body.fade-out { animation: fadeOut 0.5s ease-out; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: linear-gradient(to right, #14b8a6, #0d9488);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      color: #229f9b;
+    }
+
+    .signup-box {
+      background: #fff;
+      border-radius: 12px;
+      padding: 30px 35px;
+      box-shadow: 0 6px 20px rgba(3, 35, 32, 0.1);
+      width: 90%;
+      max-width: 400px;
+    }
+
+    .signup-box h2 {
+      text-align: center;
+      color: #0d9488;
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: 500;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 4px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 15px;
+    }
+
+    /* ✅ Show password section aligned to left */
+    .show-password {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start; /* aligns to left side */
+      margin-top: 6px;
+      font-size: 14px;
+      color: #444;
+      gap: 0px; /* small gap between checkbox and label */
+      padding-left: 6px; /* keeps it slightly indented */
+    }
+
+    .show-password input[type="checkbox"] {
+      accent-color: #0d9488;
+      cursor: pointer;
+    }
+
+    .btn-signup {
+      width: 100%;
+      padding: 12px;
+      margin-top: 18px;
+      background-color: #0d9488;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 500;
+      transition: background 0.3s;
+    }
+
+    .btn-signup:hover { background-color: #0f766e; }
+
+    .error-message {
+      color: #ef4444;
+      font-size: 14px;
+      margin-top: 10px;
+      display: none;
+      text-align: center;
+    }
+
+    .form-links {
+      text-align: center;
+      margin-top: 18px;
+      font-size: 15px;
+    }
+
+    .form-links a {
+      color: #0d9488;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .form-links a:hover { text-decoration: underline; }
+  </style>
+</head>
+
+<body class="fade-in">
+  <div class="signup-box">
+    <h2>Create Your Account</h2>
+
+    <form id="signupForm">
+      <label for="fullname">Full Name</label>
+      <input type="text" id="fullname" placeholder="Enter your full name" required />
+
+      <label for="email">Email Address</label>
+      <input type="email" id="email" placeholder="Enter your email" required />
+
+      <label for="password">Password</label>
+      <input type="password" id="password" placeholder="Create a password" required />
+      <div class="show-password">
+        <input type="checkbox" id="showPassword" />
+        <label for="showPassword">Show Password</label>
+      </div>
+
+      <label for="confirmPassword">Confirm Password</label>
+      <input type="password" id="confirmPassword" placeholder="Confirm your password" required />
+      <div class="show-password">
+        <input type="checkbox" id="showConfirmPassword" />
+        <label for="showConfirmPassword">Show Confirm Password</label>
+      </div>
+
+      <button type="button" class="btn-signup" id="signupBtn">Sign Up</button>
+
+      <p class="error-message" id="errorMsg"></p>
+
+      <div class="form-links">
+        <p>Already have an account? <a href="login.html">Log In</a></p>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    const signupBtn = document.getElementById('signupBtn');
+    const fullname = document.getElementById('fullname');
+    const email = document.getElementById('email');
+    const password = document.getElementById('password');
+    const confirmPassword = document.getElementById('confirmPassword');
+    const errorMsg = document.getElementById('errorMsg');
+    const showPassword = document.getElementById('showPassword');
+    const showConfirmPassword = document.getElementById('showConfirmPassword');
+
+    // ✅ Toggle password visibility
+    showPassword.addEventListener('change', () => {
+      password.type = showPassword.checked ? 'text' : 'password';
+    });
+
+    showConfirmPassword.addEventListener('change', () => {
+      confirmPassword.type = showConfirmPassword.checked ? 'text' : 'password';
+    });
+
+    // ✅ Sign up validation
+    signupBtn.addEventListener('click', () => {
+      const nameVal = fullname.value.trim();
+      const emailVal = email.value.trim();
+      const passVal = password.value.trim();
+      const confirmVal = confirmPassword.value.trim();
+
+      if (!nameVal || !emailVal || !passVal || !confirmVal) {
+        errorMsg.textContent = 'Please fill in all fields.';
+        errorMsg.style.display = 'block';
+        return;
+      }
+
+      if (passVal !== confirmVal) {
+        errorMsg.textContent = 'Passwords do not match.';
+        errorMsg.style.display = 'block';
+        return;
+      }
+
+      errorMsg.style.display = 'none';
+      document.body.classList.add('fade-out');
+      setTimeout(() => {
+        window.location.href = 'login.html';
+      }, 500);
+    });
+  </script>
+</body>
+</html>
