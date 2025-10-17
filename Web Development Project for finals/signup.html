@@ -6,74 +6,52 @@
   <title>DonorMedix - Sign Up</title>
 
   <style>
-    /* Fade animations */
-    body.fade-in { animation: fadeIn 0.5s ease-in; }
-    body.fade-out { animation: fadeOut 0.5s ease-out; }
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-    @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
-
     body {
       font-family: "Segoe UI", Arial, sans-serif;
-      background: linear-gradient(to right, #14b8a6, #0d9488);
+      background: linear-gradient(to right, #14b8a6, #0d847a);
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
       margin: 0;
-      color: #229f9b;
     }
 
     .signup-box {
       background: #fff;
       border-radius: 12px;
       padding: 30px 35px;
-      box-shadow: 0 6px 20px rgba(3, 35, 32, 0.1);
+      box-shadow: 0 6px 20px rgba(215, 221, 221, 0.1);
       width: 90%;
       max-width: 400px;
     }
 
     .signup-box h2 {
       text-align: center;
-      color: #0d9488;
+      color: #13736b;
       margin-bottom: 20px;
+      font-size: 30px;
+      font-weight: 1000;
     }
 
     label {
       display: block;
       margin-top: 10px;
-      font-weight: 500;
+      font-weight: 600;
+      color: #0d9488;
     }
 
     input {
-      width: 100%;
+      width: 93%;
       padding: 10px;
       margin-top: 4px;
-      border: 1px solid #ccc;
+      border: 2px solid #1e9783;
       border-radius: 8px;
       font-size: 15px;
     }
-
-    /* ✅ Show password section aligned to left */
-    .show-password {
-      display: flex;
-      align-items: center;
-      justify-content: flex-start; /* aligns to left side */
-      margin-top: 6px;
-      font-size: 14px;
-      color: #444;
-      gap: 0px; /* small gap between checkbox and label */
-      padding-left: 6px; /* keeps it slightly indented */
-    }
-
-    .show-password input[type="checkbox"] {
-      accent-color: #0d9488;
-      cursor: pointer;
-    }
-
     .btn-signup {
       width: 100%;
       padding: 12px;
-      margin-top: 18px;
+      margin-top: 20px;
       background-color: #0d9488;
       color: white;
       border: none;
@@ -84,7 +62,7 @@
       transition: background 0.3s;
     }
 
-    .btn-signup:hover { background-color: #0f766e; }
+    .btn-signup:hover { background-color: #114642; }
 
     .error-message {
       color: #ef4444;
@@ -110,7 +88,7 @@
   </style>
 </head>
 
-<body class="fade-in">
+<body>
   <div class="signup-box">
     <h2>Create Your Account</h2>
 
@@ -123,18 +101,8 @@
 
       <label for="password">Password</label>
       <input type="password" id="password" placeholder="Create a password" required />
-      <div class="show-password">
-        <input type="checkbox" id="showPassword" />
-        <label for="showPassword">Show Password</label>
-      </div>
-
       <label for="confirmPassword">Confirm Password</label>
       <input type="password" id="confirmPassword" placeholder="Confirm your password" required />
-      <div class="show-password">
-        <input type="checkbox" id="showConfirmPassword" />
-        <label for="showConfirmPassword">Show Confirm Password</label>
-      </div>
-
       <button type="button" class="btn-signup" id="signupBtn">Sign Up</button>
 
       <p class="error-message" id="errorMsg"></p>
@@ -146,48 +114,35 @@
   </div>
 
   <script>
-    const signupBtn = document.getElementById('signupBtn');
-    const fullname = document.getElementById('fullname');
-    const email = document.getElementById('email');
     const password = document.getElementById('password');
     const confirmPassword = document.getElementById('confirmPassword');
-    const errorMsg = document.getElementById('errorMsg');
     const showPassword = document.getElementById('showPassword');
     const showConfirmPassword = document.getElementById('showConfirmPassword');
+    const signupBtn = document.getElementById('signupBtn');
+    const errorMsg = document.getElementById('errorMsg');
 
-    // ✅ Toggle password visibility
+    // ✅ Toggle visibility
     showPassword.addEventListener('change', () => {
       password.type = showPassword.checked ? 'text' : 'password';
     });
-
     showConfirmPassword.addEventListener('change', () => {
       confirmPassword.type = showConfirmPassword.checked ? 'text' : 'password';
     });
 
-    // ✅ Sign up validation
+    // ✅ Form validation
     signupBtn.addEventListener('click', () => {
-      const nameVal = fullname.value.trim();
-      const emailVal = email.value.trim();
-      const passVal = password.value.trim();
-      const confirmVal = confirmPassword.value.trim();
-
-      if (!nameVal || !emailVal || !passVal || !confirmVal) {
+      if (!password.value || !confirmPassword.value) {
         errorMsg.textContent = 'Please fill in all fields.';
         errorMsg.style.display = 'block';
         return;
       }
-
-      if (passVal !== confirmVal) {
+      if (password.value !== confirmPassword.value) {
         errorMsg.textContent = 'Passwords do not match.';
         errorMsg.style.display = 'block';
         return;
       }
-
       errorMsg.style.display = 'none';
-      document.body.classList.add('fade-out');
-      setTimeout(() => {
-        window.location.href = 'login.html';
-      }, 500);
+      alert('Account created successfully!');
     });
   </script>
 </body>

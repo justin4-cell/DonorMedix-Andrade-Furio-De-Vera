@@ -8,7 +8,7 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   line-height: 1.5;
   color: #1f2937;
-  background: linear-gradient(135deg, #f8fafc 0%, #dbeafe 50%, #f8fafc 100%);
+  background: linear-gradient(135deg, #f8fafc 0%, #7ac5c3 50%, #f8fafc 100%);
   min-height: 100vh;
   position: relative;
 }
@@ -35,82 +35,135 @@ header {
   border-bottom: 1px solid rgba(229,231,235,0.5);
 }
 
-.header-container,nav,
-.header-actions {
-  display: flex;
+.header-container {
+  max-width: 70rem;
+  margin: 0 auto;
+  padding: 1rem 1.5rem;
+
+  /* Lay out the three parts: logo | nav | actions */
+  display: grid;
+  grid-template-columns: auto 1fr auto;
   align-items: center;
 }
 
-.header-container {
-  max-width: 80rem;
-  margin: 0 auto;
-  padding: 1rem 1.5rem;
-  justify-content: space-between;
-}
-
+/* ---- LOGO ---- */
 .logo {
-  font: 700 1.5rem cursive;
-  background: linear-gradient(135deg,#0d9488,#14b8a6);
+  font: 600 1.5rem cursive;
+  background: linear-gradient(135deg, #0d9488, #14b8a6);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
+/* ---- NAVIGATION ---- */
 nav {
-  gap: 2rem;
+  display: flex;
+  justify-content: center; /* centers nav links */
+  gap: 1rem;
 }
 
 nav a {
-  color: #374151;
+  position: relative;
+  color: #4c4e4e;
   text-decoration: none;
-  font-size: .9375rem;
-  transition: color .3s;
+  font-size: 0.9375rem;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: color 0.3s ease;
+  z-index: 1;
 }
 
-nav a:hover { color: #0d9488; }
+/* Background animation */
+nav a::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: #0d9488;
+  border-radius: 8px;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s ease;
+  z-index: -1;
+}
 
-.header-actions { gap: 1rem; }
+/* Hover + active states */
+nav a:hover::before {
+  transform: scaleX(1);
+}
+nav a:hover {
+  color: #ffffff;
+}
+nav a.active::before {
+  transform: scaleX(1);
+  background: #0f766e;
+}
+nav a.active {
+  color: #ffffff;
+}
 
-.bell-btn, .sign-in-btn {
+/* ---- HEADER ACTIONS (notif + login) ---- */
+.header-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 1rem; /* space between notif and login */
+}
+
+/* 🔔 Notification button */
+.bell-btn,
+.sign-in-btn {
   cursor: pointer;
   border: none;
-  border-radius: .5rem;
-  transition: background .3s;
+  border-radius: 0.5rem;
+  transition: all 0.3s ease;
 }
 
 .bell-btn {
   position: relative;
-  padding: .5rem;
+  padding: 0.5rem;
   background: transparent;
 }
-
-.bell-btn:hover { background: #f3f4f6; }
-
+.bell-btn:hover {
+  background: rgba(13, 148, 136, 0.1);
+  transform: scale(1.1);
+}
 .bell-icon {
   width: 1.25rem;
   height: 1.25rem;
   color: #4b5563;
+  transition: color 0.3s;
 }
-
+.bell-btn:hover .bell-icon {
+  color: #0d9488;
+}
 .notification-dot {
   position: absolute;
-  top: .25rem;
-  right: .25rem;
-  width: .5rem;
-  height: .5rem;
+  top: 0.25rem;
+  right: 0.25rem;
+  width: 0.5rem;
+  height: 0.5rem;
   background: #ef4444;
   border-radius: 50%;
 }
 
+/* 🔘 Sign-in button */
 .sign-in-btn {
   background: #0d9488;
   color: #fff;
-  padding: .625rem 1.5rem;
-  font: 500 .9375rem "system-ui",sans-serif;
+  padding: 0.625rem 1.5rem;
+  font: 500 0.9375rem "system-ui", sans-serif;
+  box-shadow: 0 2px 8px rgba(13, 148, 136, 0.3);
 }
-
-.sign-in-btn:hover { background: #0f766e; }
-
+.sign-in-btn:hover {
+  background: #0f766e;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(13, 148, 136, 0.4);
+}
+.sign-in-btn:active {
+  background: #115e59;
+  transform: scale(0.98);
+}
 
 /* Main Content */
 main {
@@ -137,7 +190,7 @@ main {
   }
 }
 
-@media (max-width: 767px) {
+@media (max-width: 768px) {
   nav {
     display: none;
   }
