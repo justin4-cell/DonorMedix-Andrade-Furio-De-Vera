@@ -1,0 +1,26 @@
+*{margin:0;padding:0;box-sizing:border-box;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+body{display:flex;justify-content:center;align-items:center;min-height:100vh;background:#f9fafb}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:1}
+.modal{z-index:2;background:#fff;border-radius:.75rem;padding:2rem;max-width:400px;width:100%;box-shadow:0 10px 30px rgba(0,0,0,.1);animation:fadeIn .3s ease-in-out}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem}
+.modal-header h2{font-size:1.5rem;font-weight:600;color:#111827}
+.close-btn{background:none;border:none;font-size:1.5rem;color:#6b7280;text-decoration:none;cursor:pointer;transition:color .3s}
+.close-btn:hover{color:#111827}
+.signin-form{display:flex;flex-direction:column;gap:1rem}
+.signin-form label{font-size:.9rem;font-weight:500;color:#374151}
+.signin-form input{padding:.75rem;border:1px solid #d1d5db;border-radius:.5rem;font-size:.95rem;transition:border-color .3s}
+.signin-form input:focus{outline:none;border-color:#0d9488}
+.btn-signin{background:#0d9488;color:#fff;border:none;border-radius:.5rem;padding:.75rem;font-weight:600;font-size:1rem;cursor:pointer;transition:background .3s}
+.btn-signin:hover{background:#0f766e}
+.form-links{text-align:center;font-size:.9rem}
+.form-links a{color:#0d9488;text-decoration:none;transition:color .3s}
+.form-links a:hover{color:#0f766e}
+.divider{position:relative;text-align:center;margin:1rem 0;font-size:.875rem;color:#6b7280}
+.divider::before,.divider::after{content:"";position:absolute;top:50%;width:40%;height:1px;background:#e5e7eb}
+.divider::before{left:0}.divider::after{right:0}
+.social-login{display:flex;justify-content:space-between;gap:1rem}
+.social-login button{flex:1;display:flex;align-items:center;justify-content:center;gap:.5rem;border-radius:.5rem;padding:.625rem 0;font-size:.9375rem;font-weight:500;border:1px solid #d1d5db;cursor:pointer;background:#fff;transition:background .3s,box-shadow .3s}
+.social-login button img{width:1.2rem;height:1.2rem}
+.google-btn:hover{background:#f3f4f6}
+.facebook-btn:hover{background:#e0f2fe}
