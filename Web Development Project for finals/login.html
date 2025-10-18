@@ -8,7 +8,7 @@
   <style>
     body {
       font-family: "Poppins", "Segoe UI", sans-serif;
-      background: linear-gradient(to right, #4ba69b, #14887e);
+      background: linear-gradient(to right, #6a9b95, #14887e);
       display: flex;
       justify-content: center;
       align-items: center;
@@ -22,7 +22,7 @@
       background: #ffffff;
       border-radius: 14px;
       box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-      padding: 35px 25px; 
+      padding: 35px 25px;
       width: 100%;
       max-width: 400px;
       transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -37,7 +37,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 10px; /* tighter */
+      margin-bottom: 10px;
     }
 
     .modal-header h2 {
@@ -60,7 +60,7 @@
 
     .signin-form label {
       display: block;
-      margin-top: 10px; 
+      margin-top: 10px;
       font-weight: 500;
       font-size: 0.95rem;
       color: #158392;
@@ -68,7 +68,7 @@
 
     .signin-form input {
       width: 90%;
-      padding: 15px; 
+      padding: 15px;
       margin-top: 5px;
       border: 2px solid #199a8d;
       border-radius: 8px;
@@ -81,10 +81,37 @@
       box-shadow: 0 0 0 2px rgba(13, 148, 136, 0.15);
     }
 
+    /* Password wrapper with eye */
+    .password-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .toggle-eye {
+      position: absolute;
+      right: 25px;
+      cursor: pointer;
+      width: 24px;
+      height: 24px;
+      fill: #158392;
+      transition: transform 0.4s ease, opacity 0.4s ease;
+    }
+
+    .toggle-eye:hover {
+      fill: #0d9488;
+      transform: scale(1.1);
+    }
+
+    .toggle-eye.hide {
+      opacity: 0;
+      transform: rotate(180deg) scale(0.8);
+    }
+
     .btn-login {
       width: 100%;
       padding: 12px;
-      margin-top: 18px; 
+      margin-top: 18px;
       background-color: #0d9488;
       color: white;
       border: none;
@@ -103,14 +130,14 @@
     .error-message {
       color: #ef4444;
       font-size: 15px;
-      margin-top: 8px; 
+      margin-top: 8px;
       display: none;
       text-align: center;
     }
 
     .form-links {
       text-align: center;
-      margin-top: 18px; 
+      margin-top: 18px;
       font-size: 14px;
     }
 
@@ -126,7 +153,7 @@
 
     .divider {
       text-align: center;
-      margin: 18px 0; /* tighter */
+      margin: 18px 0;
       color: #818b89;
       font-size: 13px;
     }
@@ -141,7 +168,7 @@
       padding: 8px;
       border-radius: 8px;
       cursor: pointer;
-      margin-top: 8px; /* reduced */
+      margin-top: 8px;
       transition: background 0.3s;
     }
 
@@ -168,7 +195,19 @@
       <input type="email" id="email" placeholder="Enter your email" required />
 
       <label for="password">Password</label>
-      <input type="password" id="password" placeholder="Enter your password" required />
+      <div class="password-wrapper">
+        <input type="password" id="password" placeholder="Enter your password" required />
+        
+        <!-- Open Eye -->
+        <svg id="eyeOpen" class="toggle-eye" viewBox="0 0 24 24">
+          <path d="M12 4.5C7.305 4.5 3.135 7.364 1 12c2.135 4.636 6.305 7.5 11 7.5s8.865-2.864 11-7.5C20.865 7.364 16.695 4.5 12 4.5zm0 11a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/>
+        </svg>
+
+        <!-- Closed Eye -->
+        <svg id="eyeClosed" class="toggle-eye hide" viewBox="0 0 24 24">
+          <path d="M3.27 2L2 3.27l4.12 4.13A10.944 10.944 0 0 0 1 12c2.135 4.636 6.305 7.5 11 7.5 2.01 0 3.9-.52 5.56-1.42L20.73 21 22 19.73 3.27 2zM12 17.5c-4.03 0-7.62-2.17-9.53-5.5A10.86 10.86 0 0 1 7.6 7.4l1.47 1.47A3.47 3.47 0 0 0 8.5 12c0 1.93 1.57 3.5 3.5 3.5.61 0 1.18-.15 1.67-.4l1.45 1.45c-.92.32-1.91.5-2.97.5zM12 6.5c4.03 0 7.62 2.17 9.53 5.5a10.86 10.86 0 0 1-2.73 3.6l1.45 1.45A12.932 12.932 0 0 0 23 12c-2.135-4.636-6.305-7.5-11-7.5-1.1 0-2.17.15-3.17.44l1.42 1.42c.26-.06.53-.09.8-.09z"/>
+        </svg>
+      </div>
 
       <button type="button" class="btn-login" id="loginBtn">Login</button>
 
@@ -198,7 +237,10 @@
     const email = document.getElementById('email');
     const password = document.getElementById('password');
     const errorMsg = document.getElementById('errorMsg');
+    const eyeOpen = document.getElementById('eyeOpen');
+    const eyeClosed = document.getElementById('eyeClosed');
 
+    // Form validation
     loginBtn.addEventListener('click', () => {
       if (!username.value || !email.value || !password.value) {
         errorMsg.style.display = 'block';
@@ -207,6 +249,24 @@
         window.location.href = 'Home Page.html';
       }
     });
+
+    // Password show/hide animation
+    function togglePassword() {
+      const isHidden = password.type === "password";
+      password.type = isHidden ? "text" : "password";
+
+      if (isHidden) {
+        eyeOpen.classList.add("hide");
+        setTimeout(() => eyeClosed.classList.remove("hide"), 200);
+      } else {
+        eyeClosed.classList.add("hide");
+        setTimeout(() => eyeOpen.classList.remove("hide"), 200);
+      }
+    }
+
+    // Add click listeners
+    eyeOpen.addEventListener("click", togglePassword);
+    eyeClosed.addEventListener("click", togglePassword);
   </script>
 </body>
 </html>

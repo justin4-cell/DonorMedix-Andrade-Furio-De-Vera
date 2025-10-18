@@ -40,6 +40,10 @@
       color: #0d9488;
     }
 
+    .password-container {
+      position: relative;
+    }
+
     input {
       width: 93%;
       padding: 10px;
@@ -48,6 +52,43 @@
       border-radius: 8px;
       font-size: 15px;
     }
+
+    .eye-toggle {
+      position: absolute;
+      right: 30px;
+      top: 25px;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      outline: none;
+      padding: 0;
+    }
+
+    .eye-toggle svg {
+      width: 22px;
+      height: 22px;
+      stroke: #0d9488;
+      fill: none;
+      stroke-width: 2;
+      transition: all 0.3s ease;
+    }
+
+    .eye-toggle svg .slash {
+      stroke: #0d9488;
+      stroke-width: 2;
+      stroke-linecap: round;
+      opacity: 0;
+      transform-origin: center;
+      transform: scale(0.8);
+      transition: all 0.3s ease;
+    }
+
+    .eye-toggle.active svg .slash {
+      opacity: 1;
+      transform: scale(1);
+    }
+
     .btn-signup {
       width: 100%;
       padding: 12px;
@@ -62,7 +103,9 @@
       transition: background 0.3s;
     }
 
-    .btn-signup:hover { background-color: #114642; }
+    .btn-signup:hover {
+      background-color: #114642;
+    }
 
     .error-message {
       color: #ef4444;
@@ -84,7 +127,9 @@
       font-weight: 500;
     }
 
-    .form-links a:hover { text-decoration: underline; }
+    .form-links a:hover {
+      text-decoration: underline;
+    }
   </style>
 </head>
 
@@ -100,9 +145,29 @@
       <input type="email" id="email" placeholder="Enter your email" required />
 
       <label for="password">Password</label>
-      <input type="password" id="password" placeholder="Create a password" required />
+      <div class="password-container">
+        <input type="password" id="password" placeholder="Create a password" required />
+        <button type="button" class="eye-toggle" id="togglePassword">
+          <svg viewBox="0 0 24 24">
+            <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"></path>
+            <circle cx="12" cy="12" r="3"></circle>
+            <line class="slash" x1="3" y1="3" x2="21" y2="21"></line>
+          </svg>
+        </button>
+      </div>
+
       <label for="confirmPassword">Confirm Password</label>
-      <input type="password" id="confirmPassword" placeholder="Confirm your password" required />
+      <div class="password-container">
+        <input type="password" id="confirmPassword" placeholder="Confirm your password" required />
+        <button type="button" class="eye-toggle" id="toggleConfirmPassword">
+          <svg viewBox="0 0 24 24">
+            <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"></path>
+            <circle cx="12" cy="12" r="3"></circle>
+            <line class="slash" x1="3" y1="3" x2="21" y2="21"></line>
+          </svg>
+        </button>
+      </div>
+
       <button type="button" class="btn-signup" id="signupBtn">Sign Up</button>
 
       <p class="error-message" id="errorMsg"></p>
@@ -114,35 +179,44 @@
   </div>
 
   <script>
-    const password = document.getElementById('password');
-    const confirmPassword = document.getElementById('confirmPassword');
-    const showPassword = document.getElementById('showPassword');
-    const showConfirmPassword = document.getElementById('showConfirmPassword');
-    const signupBtn = document.getElementById('signupBtn');
-    const errorMsg = document.getElementById('errorMsg');
+    const togglePassword = document.getElementById("togglePassword");
+    const toggleConfirmPassword = document.getElementById("toggleConfirmPassword");
+    const password = document.getElementById("password");
+    const confirmPassword = document.getElementById("confirmPassword");
+    const signupBtn = document.getElementById("signupBtn");
+    const errorMsg = document.getElementById("errorMsg");
 
-    // ✅ Toggle visibility
-    showPassword.addEventListener('change', () => {
-      password.type = showPassword.checked ? 'text' : 'password';
-    });
-    showConfirmPassword.addEventListener('change', () => {
-      confirmPassword.type = showConfirmPassword.checked ? 'text' : 'password';
-    });
+    // Toggle password visibility (same animation as login)
+    function toggleVisibility(input, button) {
+      const svg = button.querySelector("svg");
+      const slash = svg.querySelector(".slash");
 
-    // ✅ Form validation
-    signupBtn.addEventListener('click', () => {
+      if (input.type === "password") {
+        input.type = "text";
+        button.classList.add("active");
+      } else {
+        input.type = "password";
+        button.classList.remove("active");
+      }
+    }
+
+    togglePassword.addEventListener("click", () => toggleVisibility(password, togglePassword));
+    toggleConfirmPassword.addEventListener("click", () => toggleVisibility(confirmPassword, toggleConfirmPassword));
+
+    // Form validation
+    signupBtn.addEventListener("click", () => {
       if (!password.value || !confirmPassword.value) {
-        errorMsg.textContent = 'Please fill in all fields.';
-        errorMsg.style.display = 'block';
+        errorMsg.textContent = "Please fill in all fields.";
+        errorMsg.style.display = "block";
         return;
       }
       if (password.value !== confirmPassword.value) {
-        errorMsg.textContent = 'Passwords do not match.';
-        errorMsg.style.display = 'block';
+        errorMsg.textContent = "Passwords do not match.";
+        errorMsg.style.display = "block";
         return;
       }
-      errorMsg.style.display = 'none';
-      alert('Account created successfully!');
+      errorMsg.style.display = "none";
+      alert("Account created successfully!");
     });
   </script>
 </body>
