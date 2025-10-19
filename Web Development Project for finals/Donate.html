@@ -200,15 +200,15 @@
 
                         <div class="impact-stats">
                             <div class="stat-item">
-                                <div class="stat-value">1,247</div>
+                                <div class="stat-value">3000+</div>
                                 <div class="stat-label">Medicines Donated</div>
                             </div>
                             <div class="stat-item">
-                                <div class="stat-value">892</div>
+                                <div class="stat-value">1500+</div>
                                 <div class="stat-label">People Helped</div>
                             </div>
                             <div class="stat-item">
-                                <div class="stat-value">$45,230</div>
+                                <div class="stat-value">P45,230</div>
                                 <div class="stat-label">Value Saved</div>
                             </div>
                         </div>
@@ -217,7 +217,7 @@
             </div>
         </div>
 <style>
-/* Reset & Box Sizing */
+
 * {
   margin: 0;
   padding: 0;
@@ -233,93 +233,87 @@ body {
   position: relative;
 }
 
-/* Decorative background */
-.bg-decoration {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  pointer-events: none;
-  z-index: 0;
-}
-
-.bg-circle-1 {
-  position: absolute;
-  top: 5rem;
-  left: 2.5rem;
-  width: 24rem;
-  height: 24rem;
-  background: rgba(153, 246, 228, 0.2);
-  border-radius: 50%;
-  filter: blur(80px);
-}
-
-.bg-circle-2 {
-  position: absolute;
-  bottom: 5rem;
-  right: 2.5rem;
-  width: 24rem;
-  height: 24rem;
-  background: rgba(191, 219, 254, 0.2);
-  border-radius: 50%;
-  filter: blur(80px);
-}
-
-/* Header */
 header {
   position: relative;
   z-index: 10;
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(255,255,255,0.8);
   backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(229, 231, 235, 0.5);
+  border-bottom: 1px solid rgba(229,231,235,0.5);
 }
 
 .header-container {
-  max-width: 80rem;
+  max-width: 70rem;
   margin: 0 auto;
   padding: 1rem 1.5rem;
-  display: flex;
+
+  /* Lay out the three parts: logo | nav | actions */
+  display: grid;
+  grid-template-columns: auto 1fr auto;
   align-items: center;
-  justify-content: space-between;
 }
 
+/* ---- LOGO ---- */
 .logo {
-  font-family: cursive;
-  font-size: 1.5rem;
-  font-weight: 700;
-  background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%);
+  font: 600 1.5rem cursive;
+  background: linear-gradient(135deg, #0d9488, #14b8a6);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
+/* ---- NAVIGATION ---- */
 nav {
   display: flex;
-  align-items: center;
-  gap: 2rem;
-}
-
-nav a {
-  color: #374151;
-  text-decoration: none;
-  transition: color 0.3s;
-  font-size: 0.9375rem;
-}
-
-nav a:hover {
-  color: #0d9488;
-}
-
-.header-actions {
-  display: flex;
-  align-items: center;
+  justify-content: center; /* centers nav links */
   gap: 1rem;
 }
 
-/* Header Actions */
+nav a {
+  position: relative;
+  color: #4c4e4e;
+  text-decoration: none;
+  font-size: 0.9375rem;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: color 0.3s ease;
+  z-index: 1;
+}
+
+/* Background animation */
+nav a::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: #0c8783;
+  border-radius: 8px;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s ease;
+  z-index: -1;
+}
+
+/* Hover + active states */
+nav a:hover::before {
+  transform: scaleX(1);
+}
+nav a:hover {
+  color: #ffffff;
+}
+nav a.active::before {
+  transform: scaleX(1);
+  background: #0f766e;
+}
+nav a.active {
+  color: #ffffff;
+}
+
+/* ---- HEADER ACTIONS (notif + login) ---- */
 .header-actions {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 1rem; /* space between notif and login */
 }
 
 .notification-btn {
@@ -379,19 +373,21 @@ nav a:hover {
 .page-title {
     font-size: 32px;
     font-weight: 600;
-    color: #111827;
+    color: #0c6d70;
     margin-bottom: 0.5rem;
+    margin-left: 1rem;
 }
 
 .page-description {
-    color: #6b7280;
+    color: #767b84;
     font-size: 16px;
+    margin-left: 1rem;
 }
 
 .content-grid {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 1.5rem;
+    gap: 1rem;
 }
 
 @media (min-width: 1024px) {
@@ -404,10 +400,12 @@ nav a:hover {
 .card {
     background-color: #ffffff;
     border: 1px solid #e5e7eb;
-    border-radius: 0.5rem;
-    padding: 1.5rem;
+    border-radius: 1rem;
+    padding: 2rem;
     box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
     margin-bottom: 1.5rem;
+    margin-left: 1rem;
+    margin-right: 1.5rem;
 }
 
 .card-header {
@@ -636,6 +634,185 @@ nav a:hover {
     }
 }
 </style>
+  <footer class="footer">
+  <div class="footer-container">
+    <div class="footer-about">
+      <h2 class="footer-logo">Donor<span>Medix</span></h2>
+      <p>Connecting communities to share life-saving medicines and reduce healthcare waste.</p>
+      <div class="social-icons">
+        <a href="#"><i class="fab fa-facebook-f"></i></a>
+        <a href="#"><i class="fab fa-twitter"></i></a>
+        <a href="#"><i class="fab fa-instagram"></i></a>
+        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+      </div>
+    </div>
+
+    <div class="footer-links">
+      <div>
+        <h3>Quick Links</h3>
+        <ul>
+          <li><a href="#">How It Works</a></li>
+          <li><a href="#">Browse Medicines</a></li>
+          <li><a href="#">Donate Medicine</a></li>
+          <li><a href="#">Health Blog</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Support</h3>
+        <ul>
+          <li><a href="#">Help Center</a></li>
+          <li><a href="#">Safety Guidelines</a></li>
+          <li><a href="#">Community Guidelines</a></li>
+          <li><a href="#">Report Issue</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Legal</h3>
+        <ul>
+          <li><a href="#">Privacy Policy</a></li>
+          <li><a href="#">Terms of Service</a></li>
+          <li><a href="#">Cookie Policy</a></li>
+          <li><a href="#">Disclaimer</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <div class="footer-bottom">
+    <p>© 2025 DonorMedix. All rights reserved.</p>
+  </div>
+</footer>
+
+<style>
+.footer {
+  background-color: #0f172a;
+  color: #cbd5e1;
+  padding: 3rem 1rem 1rem;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.footer-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  max-width: 1100px;
+  margin: 0 auto;
+  gap: 2rem;
+}
+
+/* About Section */
+.footer-about {
+  flex: 1 1 250px;
+}
+
+.footer-logo {
+  font-size: 1.6rem;
+  color: #f8fafc;
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+}
+
+.footer-logo span {
+  color: #38bdf8;
+}
+
+.footer-about p {
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  margin-bottom: 1rem;
+  color: #e2e8f0;
+}
+
+/* Social Icons */
+.social-icons a {
+  color: #e2e8f0;
+  font-size: 1rem;
+  margin-right: 0.75rem;
+  transition: color 0.3s;
+}
+
+.social-icons a:hover {
+  color: #38bdf8;
+}
+
+/* Footer Links */
+.footer-links {
+  display: flex;
+  flex: 2 1 500px;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.footer-links h3 {
+  color: #f8fafc;
+  margin-bottom: 1rem;
+  font-size: 1rem;
+}
+
+.footer-links ul {
+  list-style: none;
+  padding: 0;
+}
+
+.footer-links li {
+  margin-bottom: 0.5rem;
+}
+
+.footer-links a {
+  color: #cbd5e1;
+  text-decoration: none;
+  font-size: 0.9375rem;
+  transition: color 0.3s;
+}
+
+.footer-links a:hover {
+  color: #38bdf8;
+}
+
+/* Divider */
+.footer hr {
+  border: none;
+  border-top: 1px solid #1e293b;
+  margin: 2rem 0 1rem;
+}
+
+/* Bottom Section */
+.footer-bottom {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  max-width: 1100px;
+  margin: 0 auto;
+  font-size: 0.875rem;
+  color: #94a3b8;
+}
+
+.footer-bottom a {
+  color: #38bdf8;
+  text-decoration: none;
+}
+
+.footer-bottom a:hover {
+  text-decoration: underline;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .footer-container {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .footer-bottom {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    text-align: center;
+  }
+}
+</style>
+  
 
 
     </main>
