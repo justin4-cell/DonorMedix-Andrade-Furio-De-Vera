@@ -201,42 +201,8 @@
     </form>
   </div>
 
-  <script>
-    const loginBtn = document.getElementById('loginBtn');
-    const username = document.getElementById('username');
-    const email = document.getElementById('email');
-    const password = document.getElementById('password');
-    const errorMsg = document.getElementById('errorMsg');
-    const eyeOpen = document.getElementById('eyeOpen');
-    const eyeClosed = document.getElementById('eyeClosed');
+<script type="module" src="login.js"></script>
 
-    // Form validation
-    loginBtn.addEventListener('click', () => {
-      if (!username.value || !email.value || !password.value) {
-        errorMsg.style.display = 'block';
-      } else {
-        errorMsg.style.display = 'none';
-        window.location.href = 'Home Page.html';
-      }
-    });
 
-    // Password show/hide animation
-    function togglePassword() {
-      const isHidden = password.type === "password";
-      password.type = isHidden ? "text" : "password";
-
-      if (isHidden) {
-        eyeOpen.classList.add("hide");
-        setTimeout(() => eyeClosed.classList.remove("hide"), 200);
-      } else {
-        eyeClosed.classList.add("hide");
-        setTimeout(() => eyeOpen.classList.remove("hide"), 200);
-      }
-    }
-
-    // Add click listeners
-    eyeOpen.addEventListener("click", togglePassword);
-    eyeClosed.addEventListener("click", togglePassword);
-  </script>
 </body>
 </html>
