@@ -3,221 +3,64 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DonorMedix - Sign Up</title>
-
+  <title>Sign Up | DonorMedix</title>
   <style>
     body {
-      font-family: "Segoe UI", Arial, sans-serif;
-      background: linear-gradient(to right, #14b8a6, #0d847a);
+      font-family: Arial, sans-serif;
+      background: #f8fafc;
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
-      margin: 0;
     }
-
-    .signup-box {
+    .signup-container {
       background: #fff;
+      padding: 2rem;
       border-radius: 12px;
-      padding: 30px 35px;
-      box-shadow: 0 6px 20px rgba(215, 221, 221, 0.1);
-      width: 90%;
-      max-width: 400px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      width: 320px;
     }
-
-    .signup-box h2 {
-      text-align: center;
-      color: #13736b;
-      margin-bottom: 20px;
-      font-size: 30px;
-      font-weight: 1000;
-    }
-
-    label {
-      display: block;
-      margin-top: 10px;
-      font-weight: 600;
-      color: #0d9488;
-    }
-
-    .password-container {
-      position: relative;
-    }
-
+    h2 { text-align: center; margin-bottom: 1rem; color: #0d9488; }
+    label { display: block; margin-top: 0.5rem; font-weight: bold; }
     input {
-      width: 93%;
-      padding: 10px;
-      margin-top: 4px;
-      border: 2px solid #1e9783;
-      border-radius: 8px;
-      font-size: 15px;
+      width: 100%; padding: 0.5rem;
+      margin-top: 0.25rem; border: 1px solid #ccc; border-radius: 6px;
     }
-
-    .eye-toggle {
-      position: absolute;
-      right: 30px;
-      top: 25px;
-      transform: translateY(-50%);
-      background: none;
-      border: none;
-      cursor: pointer;
-      outline: none;
-      padding: 0;
+    button {
+      width: 100%; margin-top: 1rem;
+      background-color: #0d9488; color: white;
+      border: none; padding: 0.75rem;
+      border-radius: 6px; cursor: pointer;
+      font-weight: bold;
     }
-
-    .eye-toggle svg {
-      width: 22px;
-      height: 22px;
-      stroke: #0d9488;
-      fill: none;
-      stroke-width: 2;
-      transition: all 0.3s ease;
-    }
-
-    .eye-toggle svg .slash {
-      stroke: #0d9488;
-      stroke-width: 2;
-      stroke-linecap: round;
-      opacity: 0;
-      transform-origin: center;
-      transform: scale(0.8);
-      transition: all 0.3s ease;
-    }
-
-    .eye-toggle.active svg .slash {
-      opacity: 1;
-      transform: scale(1);
-    }
-
-    .btn-signup {
-      width: 100%;
-      padding: 12px;
-      margin-top: 20px;
-      background-color: #0d9488;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 16px;
-      font-weight: 500;
-      transition: background 0.3s;
-    }
-
-    .btn-signup:hover {
-      background-color: #114642;
-    }
-
-    .error-message {
-      color: #ef4444;
-      font-size: 14px;
-      margin-top: 10px;
-      display: none;
-      text-align: center;
-    }
-
-    .form-links {
-      text-align: center;
-      margin-top: 18px;
-      font-size: 15px;
-    }
-
-    .form-links a {
-      color: #0d9488;
-      text-decoration: none;
-      font-weight: 500;
-    }
-
-    .form-links a:hover {
-      text-decoration: underline;
-    }
+    button:hover { background-color: #0f766e; }
+    p.error { color: red; text-align: center; display: none; }
+    .link { text-align: center; margin-top: 1rem; }
+    .link a { color: #0d9488; text-decoration: none; }
   </style>
 </head>
-
 <body>
-  <div class="signup-box">
-    <h2>Create Your Account</h2>
 
-    <form id="signupForm">
-      <label for="fullname">Full Name</label>
-      <input type="text" id="fullname" placeholder="Enter your full name" required />
+  <div class="signup-container">
+    <h2>Create Account</h2>
+    <label for="name">Full Name</label>
+    <input type="text" id="name" placeholder="Enter your full name" required />
 
-      <label for="email">Email Address</label>
-      <input type="email" id="email" placeholder="Enter your email" required />
+    <label for="email">Email Address</label>
+    <input type="email" id="email" placeholder="Enter your email" required />
 
-      <label for="password">Password</label>
-      <div class="password-container">
-        <input type="password" id="password" placeholder="Create a password" required />
-        <button type="button" class="eye-toggle" id="togglePassword">
-          <svg viewBox="0 0 24 24">
-            <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"></path>
-            <circle cx="12" cy="12" r="3"></circle>
-            <line class="slash" x1="3" y1="3" x2="21" y2="21"></line>
-          </svg>
-        </button>
-      </div>
+    <label for="password">Password</label>
+    <input type="password" id="password" placeholder="Enter your password" required />
 
-      <label for="confirmPassword">Confirm Password</label>
-      <div class="password-container">
-        <input type="password" id="confirmPassword" placeholder="Confirm your password" required />
-        <button type="button" class="eye-toggle" id="toggleConfirmPassword">
-          <svg viewBox="0 0 24 24">
-            <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"></path>
-            <circle cx="12" cy="12" r="3"></circle>
-            <line class="slash" x1="3" y1="3" x2="21" y2="21"></line>
-          </svg>
-        </button>
-      </div>
+    <button id="signupBtn">Sign Up</button>
+    <p class="error" id="errorMsg">Error message here</p>
 
-      <button type="button" class="btn-signup" id="signupBtn">Sign Up</button>
-
-      <p class="error-message" id="errorMsg"></p>
-
-      <div class="form-links">
-        <p>Already have an account? <a href="login.html">Log In</a></p>
-      </div>
-    </form>
+    <div class="link">
+      Already have an account? <a href="login.html">Log In</a>
+    </div>
   </div>
 
-  <script>
-    const togglePassword = document.getElementById("togglePassword");
-    const toggleConfirmPassword = document.getElementById("toggleConfirmPassword");
-    const password = document.getElementById("password");
-    const confirmPassword = document.getElementById("confirmPassword");
-    const signupBtn = document.getElementById("signupBtn");
-    const errorMsg = document.getElementById("errorMsg");
-
-    // Toggle password visibility (same animation as login)
-    function toggleVisibility(input, button) {
-      const svg = button.querySelector("svg");
-      const slash = svg.querySelector(".slash");
-
-      if (input.type === "password") {
-        input.type = "text";
-        button.classList.add("active");
-      } else {
-        input.type = "password";
-        button.classList.remove("active");
-      }
-    }
-
-    togglePassword.addEventListener("click", () => toggleVisibility(password, togglePassword));
-    toggleConfirmPassword.addEventListener("click", () => toggleVisibility(confirmPassword, toggleConfirmPassword));
-
-    // Form validation
-    signupBtn.addEventListener("click", () => {
-      if (!password.value || !confirmPassword.value) {
-        errorMsg.textContent = "Please fill in all fields.";
-        errorMsg.style.display = "block";
-        return;
-      }
-      if (password.value !== confirmPassword.value) {
-        errorMsg.textContent = "Passwords do not match.";
-        errorMsg.style.display = "block";
-        return;
-      }
-      errorMsg.style.display = "none";
-      alert("Account created successfully!");
-    });
-  </script>
+  <!-- Connect JS -->
+  <script type="module" src="signup.js"></script>
 </body>
 </html>

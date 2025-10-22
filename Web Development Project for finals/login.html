@@ -3,206 +3,155 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DonorMedix - Log In</title>
+  <title>Login | DonorMedix</title>
 
   <style>
+    * {
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+
     body {
-      font-family: "Poppins", "Segoe UI", sans-serif;
-      background: linear-gradient(to right, #6a9b95, #14887e);
+      background: linear-gradient(135deg, #e0f2fe, #bae6fd);
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
       margin: 0;
-      padding: 15px;
     }
 
-    /* Compact modal */
-    .modal {
-      background: #ffffff;
+    .login-box {
+      background: #fff;
+      padding: 35px 30px;
       border-radius: 14px;
-      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-      padding: 35px 25px;
-      width: 100%;
-      max-width: 400px;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      width: 330px;
+      text-align: center;
+      transition: transform 0.2s ease;
     }
 
-    .modal:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+    .login-box:hover {
+      transform: scale(1.02);
     }
 
-    .modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 10px;
-    }
-
-    .modal-header h2 {
-      color: #197771;
-      font-size: 2rem;
-      font-weight: 1000;
-      margin: 0;
-    }
-
-    .close-btn {
-      text-decoration: none;
-      font-size: 30px;
-      color: #0ea3a3;
-      transition: color 0.3s;
-    }
-
-    .close-btn:hover {
+    .login-box h2 {
+      margin-bottom: 20px;
       color: #0d9488;
+      font-size: 24px;
     }
 
-    .signin-form label {
-      display: block;
-      margin-top: 10px;
-      font-weight: 500;
-      font-size: 0.95rem;
-      color: #158392;
-    }
-
-    .signin-form input {
-      width: 90%;
-      padding: 15px;
-      margin-top: 5px;
-      border: 2px solid #199a8d;
-      border-radius: 8px;
-      font-size: 15px;
-    }
-
-    .signin-form input:focus {
-      border-color: #0d9488;
-      outline: none;
-      box-shadow: 0 0 0 2px rgba(13, 148, 136, 0.15);
-    }
-
-    /* Password wrapper with eye */
-    .password-wrapper {
-      position: relative;
-      display: flex;
-      align-items: center;
-    }
-
-    .toggle-eye {
-      position: absolute;
-      right: 25px;
-      cursor: pointer;
-      width: 24px;
-      height: 24px;
-      fill: #158392;
-      transition: transform 0.4s ease, opacity 0.4s ease;
-    }
-
-    .toggle-eye:hover {
-      fill: #0d9488;
-      transform: scale(1.1);
-    }
-
-    .toggle-eye.hide {
-      opacity: 0;
-      transform: rotate(180deg) scale(0.8);
-    }
-
-    .btn-login {
+    input {
       width: 100%;
       padding: 12px;
-      margin-top: 18px;
+      margin: 8px 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input:focus {
+      border-color: #0d9488;
+    }
+
+    /* ✅ Login Button */
+    #loginBtn {
+      width: 100%;
+      padding: 12px;
       background-color: #0d9488;
-      color: white;
       border: none;
+      color: white;
+      font-size: 16px;
       border-radius: 8px;
       cursor: pointer;
-      font-size: 16px;
-      font-weight: 600;
-      transition: background 0.3s, transform 0.2s;
+      transition: background-color 0.3s, transform 0.1s;
     }
 
-    .btn-login:hover {
-      background-color: #0d625b;
-      transform: scale(1.01);
+    #loginBtn:hover {
+      background-color: #15807c;
     }
 
-    .error-message {
-      color: #ef4444;
-      font-size: 15px;
-      margin-top: 8px;
+    #loginBtn:active {
+      transform: scale(0.98);
+    }
+
+    /* 🔄 Loading text */
+    #loadingText {
       display: none;
-      text-align: center;
-    }
-
-    .form-links {
-      text-align: center;
-      margin-top: 18px;
-      font-size: 14px;
-    }
-
-    .form-links a {
       color: #0d9488;
-      text-decoration: none;
-      font-weight: 500;
+      font-size: 14px;
+      margin-top: 10px;
     }
 
-    .form-links a:hover {
-      text-decoration: underline;
+    #errorMsg {
+      color: red;
+      font-size: 14px;
+      margin-top: 10px;
+      display: none;
     }
 
-    .divider {
-      text-align: center;
-      margin: 18px 0;
-      color: #818b89;
+    .note {
       font-size: 13px;
+      color: #555;
+      margin-top: 15px;
     }
 
+    /* 🔹 Sign Up Button */
+    .signup-btn {
+      margin-top: 10px;
+      background-color: #1d4ed8;
+      color: white;
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .signup-btn:hover {
+      background-color: #2563eb;
+    }
   </style>
 </head>
 
 <body>
-  <div class="modal" id="signinModal">
-    <div class="modal-header">
-      <h2>Log In</h2>
-      <a href="welcome.html" class="close-btn">&times;</a>
-    </div>
+  <div class="login-box">
+    <h2>Login to DonorMedix</h2>
 
-    <form class="signin-form" id="loginForm">
-      <label for="username">Username</label>
-      <input type="text" id="username" placeholder="Enter your username" required />
+    <input type="email" id="email" placeholder="Email" required />
+    <input type="password" id="password" placeholder="Password" required />
 
-      <label for="email">Email Address</label>
-      <input type="email" id="email" placeholder="Enter your email" required />
+    <!-- ✅ Login Button -->
+    <button id="loginBtn">Login</button>
+    <p id="loadingText">🔄 Logging in... please wait</p>
+    <div id="errorMsg"></div>
 
-      <label for="password">Password</label>
-      <div class="password-wrapper">
-        <input type="password" id="password" placeholder="Enter your password" required />
-        
-        <!-- Open Eye -->
-        <svg id="eyeOpen" class="toggle-eye" viewBox="0 0 24 24">
-          <path d="M12 4.5C7.305 4.5 3.135 7.364 1 12c2.135 4.636 6.305 7.5 11 7.5s8.865-2.864 11-7.5C20.865 7.364 16.695 4.5 12 4.5zm0 11a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/>
-        </svg>
+    <!-- 🔹 Sign Up Button -->
+    <button class="signup-btn" id="signupBtn">Create Account</button>
 
-        <!-- Closed Eye -->
-        <svg id="eyeClosed" class="toggle-eye hide" viewBox="0 0 24 24">
-          <path d="M3.27 2L2 3.27l4.12 4.13A10.944 10.944 0 0 0 1 12c2.135 4.636 6.305 7.5 11 7.5 2.01 0 3.9-.52 5.56-1.42L20.73 21 22 19.73 3.27 2zM12 17.5c-4.03 0-7.62-2.17-9.53-5.5A10.86 10.86 0 0 1 7.6 7.4l1.47 1.47A3.47 3.47 0 0 0 8.5 12c0 1.93 1.57 3.5 3.5 3.5.61 0 1.18-.15 1.67-.4l1.45 1.45c-.92.32-1.91.5-2.97.5zM12 6.5c4.03 0 7.62 2.17 9.53 5.5a10.86 10.86 0 0 1-2.73 3.6l1.45 1.45A12.932 12.932 0 0 0 23 12c-2.135-4.636-6.305-7.5-11-7.5-1.1 0-2.17.15-3.17.44l1.42 1.42c.26-.06.53-.09.8-.09z"/>
-        </svg>
-      </div>
-
-      <button type="button" class="btn-login" id="loginBtn">Login</button>
-
-      <p class="error-message" id="errorMsg">Lagay mo po .</p>
-
-      <div class="form-links">
-        <a href="forgot-password.html" class="forgot">Forgot your password?</a>
-        <p>Don’t have an account? <a href="signup.html" class="signup">Sign Up</a></p>
-      </div>
-    </form>
+    <p class="note">Welcome to DonorMedix — please log in or sign up to continue.</p>
   </div>
 
-<script type="module" src="login.js"></script>
+  <!-- ✅ Connect JS -->
+  <script type="module" src="login.js"></script>
 
+  <!-- 🔹 Redirect to signup.html -->
+  <script>
+    document.getElementById("signupBtn").addEventListener("click", () => {
+      window.location.href = "signup.html";
+    });
 
+    // Optional loading animation for Login
+    const loginBtn = document.getElementById("loginBtn");
+    const loadingText = document.getElementById("loadingText");
+
+    loginBtn.addEventListener("click", () => {
+      loadingText.style.display = "block";
+      setTimeout(() => (loadingText.style.display = "none"), 3000);
+    });
+  </script>
 </body>
 </html>

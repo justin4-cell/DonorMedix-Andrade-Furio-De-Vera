@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>DonorMedix — Medicine Requests</title>
+
+  <style>
+    :root{
+      --bg:#f6fbfa;
+      --card:#ffffff;
+      --muted:#6b7280;
+      --accent:#0f766e;
+      --accent-2:#10b981;
+      --danger:#ef4444;
+      --glass: rgba(255,255,255,0.85);
+      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
+    html,body{height:100%;margin:0;background:linear-gradient(180deg,#f8fafc 0%, #e6f7f4 100%);color:#0f172a}
+    .container{max-width:1100px;margin:28px auto;padding:20px}
+    header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:22px}
+    .brand{display:flex;align-items:center;gap:12px}
+    .logo{background:var(--accent);color:white;padding:8px 12px;border-radius:8px;font-weight:700}
+    nav a{margin-left:12px;color:var(--muted);text-decoration:none}
+    .btn{background:var(--accent);color:#fff;padding:8px 12px;border-radius:8px;border:none;cursor:pointer}
+    .btn.secondary{background:transparent;color:var(--accent);border:1px solid #d1fae5}
+    .card{background:var(--card);border-radius:10px;padding:18px;box-shadow:0 2px 8px rgba(15,23,42,0.05);margin-bottom:14px;border:1px solid rgba(15,23,42,0.03)}
+    h1{margin:0 0 8px 0;font-size:22px}
+    .sub{color:var(--muted);font-size:14px;margin-bottom:12px}
+    .controls{display:flex;gap:12px;align-items:center;margin-bottom:16px}
+    .tabs{display:flex;border-radius:8px;overflow:hidden;border:1px solid rgba(15,23,42,0.04)}
+    .tab{padding:10px 14px;background:transparent;border:none;cursor:pointer;color:var(--muted)}
+    .tab.active{background:#fff;color:var(--accent);box-shadow:inset 0 -2px 0 rgba(0,0,0,0.02)}
+    .filter{margin-left:auto;display:flex;gap:8px}
+    select,input,textarea{padding:8px 10px;border-radius:8px;border:1px solid #e6eef0;min-width:150px}
+    .list{margin-top:12px}
+    .request-row{display:flex;align-items:flex-start;gap:12px;padding:14px;border-radius:8px;border:1px solid rgba(0,0,0,0.03);background:linear-gradient(180deg,#fff,#fbffff)}
+    .request-main{flex:1}
+    .badges{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+    .badge{padding:4px 8px;border-radius:999px;font-size:12px;border:1px solid rgba(0,0,0,0.05)}
+    .badge.high{background:#fee2e2;color:var(--danger);border-color:rgba(239,68,68,0.06)}
+    .badge.medium{background:#fff7ed;color:#b45309;border-color:rgba(180,83,9,0.06)}
+    .badge.low{background:#ecfdf5;color:#065f46;border-color:rgba(6,95,70,0.06)}
+    .meta{color:var(--muted);font-size:13px;margin-top:8px;display:flex;gap:12px;align-items:center}
+    .help-btn{background:var(--accent-2);color:#fff;padding:8px 12px;border-radius:8px;border:none;cursor:pointer}
+    .muted-pill{background:#f3f4f6;color:var(--muted);padding:6px 8px;border-radius:8px;font-size:13px}
+    .right-actions{display:flex;flex-direction:column;gap:8px;align-items:flex-end}
+    .form-row{display:flex;gap:8px;flex-wrap:wrap}
+    .small{font-size:13px;color:var(--muted)}
+    /* responsive */
+    @media (max-width:820px){
+      .controls{flex-direction:column;align-items:stretch}
+      .filter{margin-left:0;justify-content:flex-end}
+      .right-actions{align-items:flex-start}
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <div class="brand">
+        <div class="logo">DonorMedix</div>
+        <div>
+          <div style="font-weight:700">Medicine Requests</div>
+          <div style="font-size:13px;color:var(--muted)">Browse requests from community members or create your own</div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;align-items:center">
+        <div id="auth-section" style="display:flex;gap:8px;align-items:center">
+          <button id="btn-profile" class="btn secondary" style="display:none"></button>
+          <button id="btn-logout" class="btn secondary" style="display:none">Logout</button>
+          <button id="btn-signin" class="btn">Sign in</button>
+        </div>
+      </div>
+    </header>
+
+    <div class="card">
+      <div class="controls">
+        <div class="tabs" role="tablist">
+          <button class="tab active" data-tab="browse">Browse Requests</button>
+          <button class="tab" data-tab="create">+ Create Request</button>
+        </div>
+
+        <div class="filter">
+          <select id="categoryFilter">
+            <option value="">All Categories</option>
+            <option>Medication</option>
+            <option>Device</option>
+            <option>Supplement</option>
+            <option>Other</option>
+          </select>
+
+          <select id="urgencyFilter">
+            <option value="">All Urgency</option>
+            <option value="high">High Priority</option>
+            <option value="medium">Medium Priority</option>
+            <option value="low">Low Priority</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="browsePanel">
+        <div id="count" class="small">Showing — requests</div>
+        <div id="requestsList" class="list" style="margin-top:12px;display:flex;flex-direction:column;gap:12px"></div>
+      </div>
+
+      <div id="createPanel" style="display:none;margin-top:12px">
+        <form id="createForm">
+          <div class="form-row" style="margin-bottom:8px">
+            <input id="title" placeholder="Request title (e.g., Insulin Pens)" required style="flex:1" />
+            <select id="category" required>
+              <option value="">Select category</option>
+              <option>Medication</option>
+              <option>Device</option>
+              <option>Supplement</option>
+              <option>Other</option>
+            </select>
+            <select id="urgency" required>
+              <option value="">Select urgency</option>
+              <option value="high">High</option>
+              <option value="medium">Medium</option>
+              <option value="low">Low</option>
+            </select>
+          </div>
+
+          <div style="margin-bottom:8px">
+            <textarea id="description" rows="4" placeholder="Detailed description, location, and any requirements" style="width:100%" required></textarea>
+          </div>
+
+          <div style="display:flex;gap:8px;align-items:center">
+            <input id="location" placeholder="Location (e.g., Downtown, City Center)" style="flex:1" />
+            <button class="btn" type="submit">Create Request</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Sign-in modal (simple) -->
+    <div id="authModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);align-items:center;justify-content:center">
+      <div style="background:white;padding:18px;border-radius:10px;min-width:320px;max-width:420px">
+        <h3 style="margin:0 0 10px 0">Sign In / Sign Up</h3>
+        <div style="display:flex;gap:8px;margin-bottom:8px">
+          <input id="authEmail" placeholder="Email" style="flex:1" />
+        </div>
+        <div style="display:flex;gap:8px;margin-bottom:14px">
+          <input id="authPassword" placeholder="Password" type="password" style="flex:1" />
+        </div>
+
+        <div style="display:flex;gap:8px;justify-content:flex-end">
+          <button id="closeAuth" class="btn secondary">Close</button>
+          <button id="signupBtn" class="btn">Sign up</button>
+          <button id="signinBtn" class="btn">Sign in</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</body>
+</html>

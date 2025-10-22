@@ -1,21 +1,22 @@
 // =============================
-// ✅ LOGIN.JS — Manual Login then Redirect
+// ✅ SIGNUP.JS — Firebase Signup with Firestore
 // =============================
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-analytics.js";
 import {
   getAuth,
-  signInWithEmailAndPassword
+  createUserWithEmailAndPassword,
 } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 import {
   getFirestore,
   doc,
-  setDoc,
-  addDoc,
-  collection
+  setDoc
 } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
+// =============================
+// 🔹 Firebase Configuration
+// =============================
 const firebaseConfig = {
   apiKey: "AIzaSyAaWN2gj3VJxT6kwOvCX4LIXkWlbt0LTHQ",
   authDomain: "donormedix.firebaseapp.com",
@@ -34,67 +35,56 @@ const analytics = getAnalytics(app);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-console.log("✅ Firebase initialized:", app.name);
-
 // =============================
 // 🔹 DOM Elements
 // =============================
-const loginBtn = document.getElementById("loginBtn");
+const signupBtn = document.getElementById("signupBtn");
+const nameField = document.getElementById("name");
 const emailField = document.getElementById("email");
 const passwordField = document.getElementById("password");
 const errorMsg = document.getElementById("errorMsg");
 
 function showError(text) {
-  if (errorMsg) {
-    errorMsg.textContent = text;
-    errorMsg.style.display = "block";
-  } else {
-    alert(text);
-  }
+  errorMsg.textContent = text;
+  errorMsg.style.display = "block";
 }
 
 // =============================
-// 🔹 Login Handler
+// 🔹 Signup Handler
 // =============================
-loginBtn?.addEventListener("click", async (e) => {
-  e.preventDefault(); // ✅ prevent reload
+signupBtn?.addEventListener("click", async (e) => {
+  e.preventDefault(); // prevent form reload
 
-  const email = emailField?.value.trim();
-  const password = passwordField?.value.trim();
+  const name = nameField.value.trim();
+  const email = emailField.value.trim();
+  const password = passwordField.value.trim();
 
-  if (!email || !password) {
-    showError("Please enter both email and password.");
+  if (!name || !email || !password) {
+    showError("Please fill in all fields.");
     return;
   }
 
   try {
-    // 🔹 Sign in with Firebase
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    // 🔹 Create User in Firebase Auth
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
-    console.log("✅ Logged in as:", user.email);
+    console.log("✅ Account created:", user.email);
 
-    // 🔹 Save login info to Firestore
+    // 🔹 Save user info to Firestore
     await setDoc(doc(db, "users", user.uid), {
+      name: name,
       email: user.email,
-      lastLogin: new Date().toISOString(),
-    }, { merge: true });
-
-    await addDoc(collection(db, "login_history"), {
-      uid: user.uid,
-      email: user.email,
-      timestamp: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
     });
 
-    alert("✅ Login successful!");
-    // ✅ Redirect after successful login
-    window.location.href = "Home Page.html";
+    alert("✅ Account created successfully!");
+    
+    // 🔹 Redirect to Home Page
+    window.location.replace("Login.html"); 
+    // ✅ replace() prevents user from going back to signup page with back button
 
   } catch (err) {
-    console.error("❌ Login failed:", err);
-    if (err.code === "auth/invalid-credential") {
-      showError("Invalid email or password. Please check your credentials.");
-    } else {
-      showError(err.message);
-    }
+    console.error("Signup failed:", err);
+    showError(err.message);
   }
 });
