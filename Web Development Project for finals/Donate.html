@@ -6,36 +6,22 @@
   <title>DonorMedix - Save Lives by Sharing Medicines</title>
 </head>
 <body>
-
-  <div class="bg-decoration">
-    <div class="bg-circle-1"></div>
-    <div class="bg-circle-2"></div>
-  </div>
-
   <header>
     <div class="header-container">
-      <!-- Logo -->
       <div class="logo">DonorMedix</div>
 
-      <!-- Navigation -->
-        <nav class="nav">
-            <a href="Home Page.html" class="nav-link">Home</a>
-            <a href="browse.html" class="nav-link">Browse</a>
-            <a href="#" class="nav-link nav-link-active">Donate</a>
-            <a href="Request.html" class="nav-link">Requests</a>
-        </nav>
+      <nav class="nav">
+        <a href="Home Page.html" class="nav-link">Home</a>
+        <a href=" browse.html" class="nav-link">Browse</a>
+        <a href="Donate.html" class="active">Donate</a>
+        <a href="Request.html" class="nav-link">Requests</a>
+      </nav>
 
-        <div class="header-actions">
-                <button class="notification-btn">
-                    <svg class="bell-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
-                    </svg>
-                    <span class="notification-dot"></span>
-                </button>
-                <button class="profile-btn">Profile</button>
-            </div>
-        </div>
-    </header>
+      <div class="header-actions">
+        <button class="sign-in-btn" onclick="window.location.href='profile.html'"> Profile</button>
+      </div>
+    </div>
+  </header>
 
     <!-- Main Content -->
     <main class="main">
@@ -128,6 +114,12 @@
                                 <label for="pickupLocation">Pickup Location <span class="required">*</span></label>
                                 <input type="text" id="pickupLocation" placeholder="e.g., Downtown, City Center (general area)">
                             </div>
+                            <div class="form-group">
+                                <label for="medicinePhoto">Upload Photo <span class="optional">(optional)</span></label>
+                                <input type="file" id="medicinePhoto" accept="image/*">
+                                <small class="hint">Upload a clear image of the medicine packaging or label</small>
+                            </div>
+
 
                             <div class="form-group">
                                 <label for="contactMethod">Preferred Contact Method</label>
@@ -216,6 +208,57 @@
                 </div>
             </div>
         </div>
+        <footer class="footer">
+  <div class="footer-container">
+    <div class="footer-about">
+      <h2 class="footer-logo">Donor<span>Medix</span></h2>
+      <p>Connecting communities to share life-saving medicines and reduce healthcare waste.</p>
+      <div class="social-icons">
+        <a href="#"><i class="fab fa-facebook-f"></i></a>
+        <a href="#"><i class="fab fa-twitter"></i></a>
+        <a href="#"><i class="fab fa-instagram"></i></a>
+        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+      </div>
+    </div>
+
+    <div class="footer-links">
+      <div>
+        <h3>Quick Links</h3>
+        <ul>
+          <li><a href="#">How It Works</a></li>
+          <li><a href="#">Browse Medicines</a></li>
+          <li><a href="#">Donate Medicine</a></li>
+          <li><a href="#">Health Blog</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Support</h3>
+        <ul>
+          <li><a href="#">Help Center</a></li>
+          <li><a href="#">Safety Guidelines</a></li>
+          <li><a href="#">Community Guidelines</a></li>
+          <li><a href="#">Report Issue</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Legal</h3>
+        <ul>
+          <li><a href="#">Privacy Policy</a></li>
+          <li><a href="#">Terms of Service</a></li>
+          <li><a href="#">Cookie Policy</a></li>
+          <li><a href="#">Disclaimer</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <div class="footer-bottom">
+    <p>© 2025 DonorMedix. All rights reserved.</p>
+  </div>
+</footer>
+        
 <style>
 
 * {
@@ -316,49 +359,22 @@ nav a.active {
   gap: 1rem; /* space between notif and login */
 }
 
-.notification-btn {
-    position: relative;
-    padding: 0.5rem;
-    background: none;
-    border: none;
-    cursor: pointer;
-    border-radius: 9999px;
-    transition: background-color 0.2s;
+.sign-in-btn {
+  background: #0d9488;
+  color: #fff;
+  padding: 0.625rem 1.5rem;
+  font: 500 0.9375rem "system-ui", sans-serif;
+  box-shadow: 0 2px 8px rgba(13, 148, 136, 0.3);
+  border-radius: 10px;
 }
-
-.notification-btn:hover {
-    background-color: #f3f4f6;
+.sign-in-btn:hover {
+  background: #0f766e;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(13, 148, 136, 0.4);
 }
-
-.bell-icon {
-    width: 20px;
-    height: 20px;
-    color: #374151;
-}
-
-.notification-dot {
-    position: absolute;
-    top: 4px;
-    right: 4px;
-    width: 8px;
-    height: 8px;
-    background-color: #ef4444;
-    border-radius: 50%;
-}
-
-.profile-btn {
-    background-color: #138980c8;
-    color: #ffffff;
-    border: none;
-    padding: 0.5rem 1.5rem;
-    border-radius: 0.375rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
-
-.profile-btn:hover {
-    background-color: #0f766e;
+.sign-in-btn:active {
+  background: #115e59;
+  transform: scale(0.98);
 }
 
 /* Main Content */
@@ -634,57 +650,6 @@ nav a.active {
     }
 }
 </style>
-  <footer class="footer">
-  <div class="footer-container">
-    <div class="footer-about">
-      <h2 class="footer-logo">Donor<span>Medix</span></h2>
-      <p>Connecting communities to share life-saving medicines and reduce healthcare waste.</p>
-      <div class="social-icons">
-        <a href="#"><i class="fab fa-facebook-f"></i></a>
-        <a href="#"><i class="fab fa-twitter"></i></a>
-        <a href="#"><i class="fab fa-instagram"></i></a>
-        <a href="#"><i class="fab fa-linkedin-in"></i></a>
-      </div>
-    </div>
-
-    <div class="footer-links">
-      <div>
-        <h3>Quick Links</h3>
-        <ul>
-          <li><a href="#">How It Works</a></li>
-          <li><a href="#">Browse Medicines</a></li>
-          <li><a href="#">Donate Medicine</a></li>
-          <li><a href="#">Health Blog</a></li>
-        </ul>
-      </div>
-      <div>
-        <h3>Support</h3>
-        <ul>
-          <li><a href="#">Help Center</a></li>
-          <li><a href="#">Safety Guidelines</a></li>
-          <li><a href="#">Community Guidelines</a></li>
-          <li><a href="#">Report Issue</a></li>
-        </ul>
-      </div>
-      <div>
-        <h3>Legal</h3>
-        <ul>
-          <li><a href="#">Privacy Policy</a></li>
-          <li><a href="#">Terms of Service</a></li>
-          <li><a href="#">Cookie Policy</a></li>
-          <li><a href="#">Disclaimer</a></li>
-        </ul>
-      </div>
-    </div>
-  </div>
-
-  <hr>
-
-  <div class="footer-bottom">
-    <p>© 2025 DonorMedix. All rights reserved.</p>
-  </div>
-</footer>
-
 <style>
 .footer {
   background-color: #0f172a;
@@ -812,9 +777,7 @@ nav a.active {
   }
 }
 </style>
-  
-
-
     </main>
+    <script type="module" src="donate.js"></script>
 </body>
 </html>

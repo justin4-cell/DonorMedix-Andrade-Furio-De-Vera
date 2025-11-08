@@ -56,50 +56,110 @@ header {
 }
 
 /* ---- NAVIGATION ---- */
+/* ===== NAVIGATION BAR ===== */
 nav {
   display: flex;
-  justify-content: center; /* centers nav links */
+  justify-content: center;
+  align-items: center;
   gap: 1rem;
 }
 
+/* --- NAV LINKS --- */
 nav a {
   position: relative;
   color: #4c4e4e;
   text-decoration: none;
   font-size: 0.9375rem;
-  padding: 0.5rem 1rem;
+  font-weight: 500;
+  padding: 0.5rem 1.2rem;
   border-radius: 8px;
   overflow: hidden;
-  transition: color 0.3s ease;
+  transition: color 0.3s ease, transform 0.2s ease;
   z-index: 1;
 }
 
-/* Background animation */
+/* --- BACKGROUND FILL (HOVER/ACTIVE) --- */
 nav a::before {
   content: "";
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
+  width: 100%;       /* ensures perfect alignment */
+  height: 100%;      /* matches padding area exactly */
   background: #0c8783;
-  border-radius: 8px;
+  border-radius: inherit; /* matches link’s rounded edges */
   transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 0.3s ease;
+  transform-origin: center; /* balanced animation */
+  transition: transform 0.3s ease-in-out;
   z-index: -1;
 }
 
-/* Hover + active states */
+/* --- HOVER EFFECT --- */
 nav a:hover::before {
   transform: scaleX(1);
 }
 nav a:hover {
   color: #ffffff;
+  transform: translateY(-1px); /* optional subtle hover lift */
 }
+
+/* --- ACTIVE LINK --- */
 nav a.active::before {
   transform: scaleX(1);
   background: #0f766e;
 }
+
 nav a.active {
   color: #ffffff;
+  font-weight: 600;
+  transform: none;
+}
+
+/* --- HEADER ACTIONS --- */
+.header-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+
+.notification-wrapper {
+  position: relative;
+}
+
+.notification-badge {
+  position: absolute;
+  top: -5px;
+  right: -7px;
+  background: #f87171;
+  color: #fff;
+  font-size: 0.75rem;
+  border-radius: 50%;
+  padding: 2px 6px;
+}
+
+
+/* --- HEADER ACTIONS (notification + login) --- */
+.header-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+
+.notification-wrapper {
+  position: relative;
+}
+
+.notification-badge {
+  position: absolute;
+  top: -5px;
+  right: -7px;
+  background: #f87171;
+  color: #fff;
+  font-size: 0.75rem;
+  border-radius: 50%;
+  padding: 2px 6px;
 }
 
 /* ---- HEADER ACTIONS (notif + login) ---- */
@@ -352,10 +412,17 @@ main {
 
 /* How It Works Section */
 .how-it-works-section {
-  padding: 4rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* centers horizontally */
+  justify-content: center; /* centers vertically */
   text-align: center;
+  padding: 4rem 1rem;
   background: transparent;
+  min-height: 100vh; /* makes it full screen height */
+  box-sizing: border-box;
 }
+
 
 .section-title {
   font-size: 2rem;
@@ -378,7 +445,7 @@ main {
 }
 
 .step {
-  background: linear-gradient(135deg, #116a9a, #4cbd99); /* keeps cards visible on any bg */
+  background: linear-gradient(135deg, #c3d0d6, #a7d1ce); /* keeps cards visible on any bg */
   padding: 1.5rem;
   text-align: center;
   border-radius: 10px;

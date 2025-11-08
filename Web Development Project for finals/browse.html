@@ -1,183 +1,75 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DonorMedix - Browse Medicines</title>
-  <link rel="stylesheet" href="browse.css" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Browse Available Medicines</title>
+  <link rel="stylesheet" href="browse.css">
+
 </head>
 <body>
-
   <header>
     <div class="header-container">
       <div class="logo">DonorMedix</div>
 
       <nav class="nav">
         <a href="Home Page.html" class="nav-link">Home</a>
-        <a href="#" class="nav-link nav-link-active">Browse</a>
+        <a href=" browse.html" class="active">Browse</a>
         <a href="Donate.html" class="nav-link">Donate</a>
         <a href="Request.html" class="nav-link">Requests</a>
       </nav>
 
       <div class="header-actions">
-        <div class="notification-wrapper">
-          <svg class="bell-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
-            <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
-          </svg>
-          <span class="notification-badge">4</span>
-        </div>
-        <button class="btn-profile">Profile</button>
+        <button class="sign-in-btn" onclick="window.location.href='profile.html'"> Profile</button>
       </div>
     </div>
   </header>
 
-  <main class="main-content">
+
+  <main class="page">
     <div class="page-header">
       <h1>Browse Available Medicines</h1>
       <p>Find donated medicines and supplies from your community.</p>
     </div>
 
-    <!-- Search -->
-    <div class="search-section">
-      <div class="search-wrapper">
-        <div class="search-input-wrapper">
-          <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="11" cy="11" r="8"/>
-            <path d="m21 21-4.3-4.3"/>
-          </svg>
-          <input type="text" class="search-input" placeholder="Search for medicines, medical supplies..." />
+    <form class="search" action="#" method="get">
+      <input class="input" name="q" placeholder="Search for medicines, medical supplies…" />
+      <button class="btn-search" type="submit">Search</button>
+    </form>
         </div>
-        <button class="btn-search">Search</button>
-      </div>
-    </div>
+      </article>
 
-    <p class="results-count">Showing 10 available items</p>
-
-    <!-- Medicine Grid -->
-    <div class="medicine-grid">
-
-      <!-- 🩺 1. Paracetamol -->
-      <div class="medicine-card">
-        <img src="https://images.unsplash.com/photo-1616526629520-109a2e4c813f" alt="Paracetamol 500mg" />
-        <div class="medicine-content">
-          <h3>Paracetamol 500mg</h3>
-          <p>Unopened pack of 20 tablets. Pain and fever relief.</p>
-          <p><strong>Expires:</strong> 3/15/2025</p>
-          <p><strong>Location:</strong> Downtown</p>
-          <p>Donated by <strong>Sarah Johnson</strong></p>
+          
+      <!-- Skeleton placeholders (design-only; shown when parent gets .loading) -->
+      <article class="card skeleton" aria-hidden="true">
+        <div class="card__media shimmer"></div>
+        <div class="card__body">
+          <div class="title shimmer"></div>
+          <p class="muted shimmer" style="width:90%;height:12px;margin-top:8px"></p>
+          <div class="meta" style="margin-top:16px">
+            <div class="meta-item"><div class="shimmer" style="width:60% ; height:12px; border-radius:8px"></div></div>
+            <div class="meta-item"><div class="shimmer" style="width:40% ; height:12px; border-radius:8px"></div></div>
+          </div>
         </div>
-      </div>
+      </article>
 
-      <!-- 💊 2. Vitamin D3 -->
-      <div class="medicine-card">
-        <img src="https://images.unsplash.com/photo-1712217624538-acb689745b8f" alt="Vitamin D3 Supplements" />
-        <div class="medicine-content">
-          <h3>Vitamin D3 Supplements</h3>
-          <p>Bottle of 60 capsules, 1000 IU each. Supports bone health.</p>
-          <p><strong>Expires:</strong> 8/20/2025</p>
-          <p><strong>Location:</strong> Medical District</p>
-          <p>Donated by <strong>Dr. Michael Chen</strong></p>
+      <article class="card skeleton" aria-hidden="true">
+        <div class="card__media shimmer"></div>
+        <div class="card__body">
+          <div class="title shimmer"></div>
+          <p class="muted shimmer" style="width:85%;height:12px;margin-top:8px"></p>
+          <div class="meta" style="margin-top:16px">
+            <div class="meta-item"><div class="shimmer" style="width:62% ; height:12px; border-radius:8px"></div></div>
+            <div class="meta-item"><div class="shimmer" style="width:45% ; height:12px; border-radius:8px"></div></div>
+          </div>
         </div>
-      </div>
+      </article>
 
-      <!-- 🩹 3. First Aid Kit -->
-      <div class="medicine-card">
-        <img src="https://images.unsplash.com/photo-1566889035559-b14ef9d4c365" alt="First Aid Kit" />
-        <div class="medicine-content">
-          <h3>First Aid Kit</h3>
-          <p>Complete first aid kit with bandages and antiseptic.</p>
-          <p><strong>Expires:</strong> 1/10/2026</p>
-          <p><strong>Location:</strong> Northside</p>
-          <p>Donated by <strong>Emma Wilson</strong></p>
-        </div>
-      </div>
+      <!-- Sentinel (hook for infinite scroll JS later) -->
+      <div id="infinite-sentinel" style="grid-column:1 / -1; height:1px"></div>
 
-      <!-- 💉 4. Insulin Vials -->
-      <div class="medicine-card">
-        <img src="https://images.unsplash.com/photo-1580281657521-6e0b64cdedcb" alt="Insulin Vials" />
-        <div class="medicine-content">
-          <h3>Insulin Vials</h3>
-          <p>Pack of 3 sealed insulin vials for diabetic patients.</p>
-          <p><strong>Expires:</strong> 5/12/2026</p>
-          <p><strong>Location:</strong> Central Clinic</p>
-          <p>Donated by <strong>Dr. Anna Cruz</strong></p>
-        </div>
-      </div>
-
-      <!-- 💧 5. Oral Rehydration Salts -->
-      <div class="medicine-card">
-        <img src="https://images.unsplash.com/photo-1616587894404-0cb62f4c8dbf" alt="ORS Pack" />
-        <div class="medicine-content">
-          <h3>Oral Rehydration Salts</h3>
-          <p>Box of 10 sachets. Helps restore lost electrolytes.</p>
-          <p><strong>Expires:</strong> 12/08/2025</p>
-          <p><strong>Location:</strong> Eastside</p>
-          <p>Donated by <strong>John Miller</strong></p>
-        </div>
-      </div>
-
-      <!-- 💗 6. Blood Pressure Monitor -->
-      <div class="medicine-card">
-        <img src="https://images.unsplash.com/photo-1604503468506-9b57b4d44661" alt="BP Monitor" />
-        <div class="medicine-content">
-          <h3>Blood Pressure Monitor</h3>
-          <p>Digital arm monitor, good working condition.</p>
-          <p><strong>Expires:</strong> —</p>
-          <p><strong>Location:</strong> Health Center</p>
-          <p>Donated by <strong>Luis Garcia</strong></p>
-        </div>
-      </div>
-
-      <!-- 🧴 7. Alcohol Disinfectant -->
-      <div class="medicine-card">
-        <img src="https://images.unsplash.com/photo-1583947582886-f37bca75a212" alt="Alcohol Disinfectant" />
-        <div class="medicine-content">
-          <h3>70% Isopropyl Alcohol</h3>
-          <p>3 unopened 500ml bottles for disinfection.</p>
-          <p><strong>Expires:</strong> 7/23/2026</p>
-          <p><strong>Location:</strong> West Zone</p>
-          <p>Donated by <strong>Maria Lopez</strong></p>
-        </div>
-      </div>
-
-      <!-- 🩸 8. Glucose Test Strips -->
-      <div class="medicine-card">
-        <img src="https://images.unsplash.com/photo-1588776814546-ec2b0b8f3f72" alt="Glucose Test Strips" />
-        <div class="medicine-content">
-          <h3>Glucose Test Strips</h3>
-          <p>Box of 50 test strips, compatible with most glucometers.</p>
-          <p><strong>Expires:</strong> 2/11/2026</p>
-          <p><strong>Location:</strong> South Health Unit</p>
-          <p>Donated by <strong>Mark Rivera</strong></p>
-        </div>
-      </div>
-
-      <!-- 🩺 9. Cough Syrup -->
-      <div class="medicine-card">
-        <img src="https://images.unsplash.com/photo-1628191018503-02a177d9a70c" alt="Cough Syrup" />
-        <div class="medicine-content">
-          <h3>Cough Syrup 120ml</h3>
-          <p>For dry cough. Unopened sealed bottle.</p>
-          <p><strong>Expires:</strong> 6/9/2025</p>
-          <p><strong>Location:</strong> Riverside</p>
-          <p>Donated by <strong>Ella Martinez</strong></p>
-        </div>
-      </div>
-
-      <!-- 🧠 10. Multivitamins -->
-      <div class="medicine-card">
-        <img src="https://images.unsplash.com/photo-1606813902915-3ca24506aa00" alt="Multivitamins" />
-        <div class="medicine-content">
-          <h3>Multivitamins</h3>
-          <p>Bottle of 100 capsules for daily health support.</p>
-          <p><strong>Expires:</strong> 10/17/2026</p>
-          <p><strong>Location:</strong> City Pharmacy</p>
-          <p>Donated by <strong>Kevin Santos</strong></p>
-        </div>
-      </div>
-
-    </div>
+    </section>
+    
   </main>
   <footer class="footer">
   <div class="footer-container">
@@ -229,134 +121,5 @@
     <p>© 2025 DonorMedix. All rights reserved.</p>
   </div>
 </footer>
-
-<style>
-.footer {
-  background-color: #0f172a;
-  color: #cbd5e1;
-  padding: 3rem 1rem 1rem;
-  font-family: 'Segoe UI', sans-serif;
-}
-
-.footer-container {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  max-width: 1100px;
-  margin: 0 auto;
-  gap: 2rem;
-}
-
-/* About Section */
-.footer-about {
-  flex: 1 1 250px;
-}
-
-.footer-logo {
-  font-size: 1.6rem;
-  color: #f8fafc;
-  margin-bottom: 0.5rem;
-  font-weight: 700;
-}
-
-.footer-logo span {
-  color: #38bdf8;
-}
-
-.footer-about p {
-  font-size: 0.9375rem;
-  line-height: 1.6;
-  margin-bottom: 1rem;
-  color: #e2e8f0;
-}
-
-/* Social Icons */
-.social-icons a {
-  color: #e2e8f0;
-  font-size: 1rem;
-  margin-right: 0.75rem;
-  transition: color 0.3s;
-}
-
-.social-icons a:hover {
-  color: #38bdf8;
-}
-
-/* Footer Links */
-.footer-links {
-  display: flex;
-  flex: 2 1 500px;
-  justify-content: space-between;
-  flex-wrap: wrap;
-}
-
-.footer-links h3 {
-  color: #f8fafc;
-  margin-bottom: 1rem;
-  font-size: 1rem;
-}
-
-.footer-links ul {
-  list-style: none;
-  padding: 0;
-}
-
-.footer-links li {
-  margin-bottom: 0.5rem;
-}
-
-.footer-links a {
-  color: #cbd5e1;
-  text-decoration: none;
-  font-size: 0.9375rem;
-  transition: color 0.3s;
-}
-
-.footer-links a:hover {
-  color: #38bdf8;
-}
-
-/* Divider */
-.footer hr {
-  border: none;
-  border-top: 1px solid #1e293b;
-  margin: 2rem 0 1rem;
-}
-
-/* Bottom Section */
-.footer-bottom {
-  display: flex;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  max-width: 1100px;
-  margin: 0 auto;
-  font-size: 0.875rem;
-  color: #94a3b8;
-}
-
-.footer-bottom a {
-  color: #38bdf8;
-  text-decoration: none;
-}
-
-.footer-bottom a:hover {
-  text-decoration: underline;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .footer-container {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  .footer-bottom {
-    flex-direction: column;
-    align-items: center;
-    gap: 0.5rem;
-    text-align: center;
-  }
-}
-</style>
-  
 </body>
 </html>
