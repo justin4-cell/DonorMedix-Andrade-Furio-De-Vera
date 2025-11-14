@@ -1,178 +1,289 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="emerald">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>DonorMedix · Medicine Requests</title>
-<style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  :root{
-    --brand:#0f766e; --brand-2:#0d9488; --muted:#6b7280; --line:#e5e7eb;
-    --bg:#f8fafc; --card:#ffffff; --shadow:0 2px 10px rgba(0,0,0,0.05); --radius:14px;
-  }
-  body {
-    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
-    line-height:1.5;color:#1f2937;
-    background:linear-gradient(135deg,#d5dadf 0%,#7ac5c3 50%,#f8fafc 100%);
-    min-height:100vh;position:relative;
-  }
-  header {
-    position: sticky; top: 0; z-index: 20; background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(12px); border-bottom: 1px solid rgba(229,231,235,0.5);
-  }
-  .header-container {
-    max-width: 70rem; margin: 0 auto; padding: 1rem 1.5rem;
-    display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: .75rem;
-  }
-  .logo {
-    font: 600 1.5rem cursive; background: linear-gradient(135deg,#0d9488,#14b8a6);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-  }
-  nav { display:flex; justify-content:center; gap:1rem; }
-  nav a {
-    position:relative; color:#4c4e4e; text-decoration:none; font-size:.9375rem;
-    padding:.5rem 1rem; border-radius:8px; overflow:hidden; transition:color .3s; z-index:1;
-  }
-  nav a::before{content:""; position:absolute; inset:0; background:#0c8783; border-radius:8px;
-    transform:scaleX(0); transform-origin:left; transition:.3s; z-index:-1}
-  nav a:hover::before{transform:scaleX(1)} nav a:hover{color:#fff}
-  nav a.active::before{transform:scaleX(1); background:#0f766e} nav a.active{color:#fff; font-weight:600}
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DonorMedix · Medicine Requests</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    :root{
+      /* Brand */
+      --brand:#10b981; --brand-2:#059669;
+      --ink:#0f172a; --muted:#64748b; --line:#e2e8f0;
+      --bg:#f8fafc; --card:#ffffff; --shadow:0 8px 22px rgba(2,6,23,.06);
+      --radius:14px; --danger:#ef4444; --danger-2:#dc2626;
 
-  /* Buttons (Back = same size as Profile) */
-  .header-actions{display:flex; gap:.5rem; align-items:center}
-  .sign-in-btn,
-  .btn-back{
-    padding:.625rem 1rem; font:600 .9375rem system-ui,sans-serif; line-height:1;
-    border-radius:10px; display:inline-flex; align-items:center; justify-content:center; cursor:pointer;
-  }
-  .sign-in-btn{background:#0d9488; color:#fff; border:1px solid #0d9488}
-  .sign-in-btn:hover{background:#0f766e; transform:translateY(-2px)}
-  .btn-back{background:#fff; color:#0f766e; border:1px solid #cfe8e6}
-  .btn-back:hover{background:#e8fbf5}
+      /* Page background hooks (change via JS or body[data-bg]) */
+      --page-bg-url: url('images/requests-bg.jpg');
+      --page-bg-overlay: linear-gradient(to bottom, rgba(15,23,42,.55), rgba(15,23,42,.35));
+    }
 
-  .container{max-width:1100px; margin:0 auto; padding:1rem 1.5rem 2rem; display:flex; flex-direction:column; align-items:center}
-  .page-header{text-align:center; margin:.75rem 0 1rem}
-  .page-header h1{font-size:2rem; color:#0f766e; font-weight:700}
-  .page-header .sub{color:#000; font-size:1rem}
+    /* Background image with overlay */
+    body{
+      font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+      line-height:1.5;color:var(--ink);min-height:100vh;position:relative;background:#0b1220;
+    }
+    body::before{
+      content:"";position:fixed;inset:0;z-index:-1;
+      background: var(--page-bg-overlay), var(--page-bg-url) center / cover no-repeat fixed;
+      filter:saturate(1.05) contrast(1.02);
+    }
 
-  .panel{
-    width:100%; max-width:1200px; margin:0 auto; padding:1.25rem;
-    background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow);
-    display:flex; flex-direction:column; gap:1rem;
-  }
+    /* NAV: #0f172a bg, white text, hover white like Home */
+    header.site{position:sticky;top:0;z-index:30;background:#0f172a;border-bottom:1px solid #0b1220;box-shadow:0 2px 10px rgba(2,6,23,.25)}
+    .header-container{max-width:72rem;margin:0 auto;padding:.85rem 1.25rem;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:.75rem}
+    .logo{font:900 1.3rem/1 system-ui,ui-sans-serif;color:#fff;letter-spacing:.2px}
+    nav.nav{display:flex;justify-content:center;gap:.5rem;flex-wrap:wrap}
+    .nav-link{
+      display:inline-flex;align-items:center;gap:.5rem;color:#fff;text-decoration:none;
+      font-weight:800;font-size:.95rem;padding:.5rem .65rem;border-radius:10px;transition:all .15s
+    }
+    .nav-link svg{width:18px;height:18px}
+    .nav-link:hover{background:#ffffff;color:#0f172a;transform:translateY(-1px)}
+    .nav-link.active{background:#ffffff;color:#0f172a}
+    .header-actions{display:flex;gap:.5rem;align-items:center}
+    .bell-btn{border:none;background:transparent;color:#fff;padding:.5rem;border-radius:10px;cursor:pointer;position:relative}
+    .bell-btn:hover{background:rgba(255,255,255,.12)}
+    .bell-btn svg{width:20px;height:20px}
+    .sign-in-btn{
+      padding:.6rem .95rem;font:800 .9375rem system-ui;line-height:1;border-radius:10px;
+      display:inline-flex;align-items:center;justify-content:center;cursor:pointer;
+      background:#fff;color:#0f172a;border:1px solid #fff
+    }
+    .sign-in-btn:hover{transform:translateY(-1px)}
 
-  /* Tabs — fixed size on hover (no jiggle) */
-  .panel__tabs{display:flex; align-items:center; gap:.5rem; flex-wrap:wrap}
-  .tab{
-    display:inline-flex; align-items:center; gap:.5rem;
-    padding:.6rem 1.1rem; border-radius:.75rem;
-    border:2px solid transparent;
-    background:#f0fdfa; color:#0f766e; font-weight:700; cursor:pointer;
-    transition:background .15s ease, color .15s ease, border-color .15s ease;
-    user-select:none;
-  }
-  .tab svg{width:18px; height:18px}
-  .tab:hover{ background:#e6fffb; color:#0f766e; }
-  .tab--active{ background:#0f766e; color:#fff; border-color:#0f766e; }
-  .tab--ghost{margin-left:auto; background:transparent; color:#6b7280; border-color:transparent; cursor:default}
+    /* Hero band (kept light for readability) */
+    .hero{width:100%;background:linear-gradient(180deg,#f0fdf4 0%, #ffffff 100%);border-bottom:1px solid var(--line);box-shadow:0 10px 30px rgba(16,185,129,.08)}
+    .hero-inner{max-width:1100px;margin:0 auto;padding:1.1rem 1.5rem 1rem;text-align:center}
+    .hero h1{font-size:2rem;color:#0f172a} /* same as nav bg color as requested in earlier pages */
+    .hero p{color:#0f172a;margin-top:.25rem}
 
-  .filters{display:flex; gap:1rem; flex-wrap:wrap}
-  .results-meta{color:var(--muted); font-size:.95rem}
-  .browse-list{display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:1.25rem; margin-top:.5rem}
-  .browse-card{background:#fff; border-radius:1rem; box-shadow:0 2px 8px rgba(0,0,0,.05); overflow:hidden; display:flex; flex-direction:column; transition:transform .2s}
-  .browse-card:hover{transform:translateY(-3px)}
-  .browse-card-image img{width:100%; height:180px; object-fit:cover}
-  .browse-card-content{padding:1rem; font-size:.95rem; color:#374151}
-  .browse-card-content h3{color:#0f766e; font-size:1.1rem; margin-bottom:.4rem}
-  .sign-in-btn.small{padding:.5rem .8rem; font-weight:700; border-radius:10px}
+    /* Page container */
+    .container{max-width:1100px;margin:0 auto;padding:1rem 1.5rem 2rem;display:flex;flex-direction:column;gap:1rem}
 
-  /* Create form design */
-  .form-grid{display:grid; grid-template-columns:1fr 1fr; gap:12px 16px}
-  .form-card{background:#fff; border:1px solid var(--line); border-radius:12px; padding:14px; display:flex; gap:10px; align-items:flex-start}
-  .fc-icon{width:28px; height:28px; border-radius:8px; display:grid; place-items:center; background:#ecfdf5; border:1px solid #cbeee3; color:#0d9488; flex:0 0 28px}
-  .fc-body{flex:1}
-  .fc-body label{font-weight:800; color:#0f172a; display:block; margin:2px 0 6px}
-  .field{display:flex; align-items:center; gap:10px; border:1px solid var(--line); border-radius:12px; padding:10px 12px; background:#fff}
-  .field:focus-within{border-color:#0ec6aa; box-shadow:0 0 0 3px rgba(16,185,129,.18)}
-  .field input[type=text], .field textarea, .field select{border:none; outline:none; background:transparent; width:100%; font-size:.95rem; color:#111827}
-  textarea{min-height:100px; resize:vertical}
-  .loc-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:10px}
-  @media (max-width:720px){ .form-grid{grid-template-columns:1fr} .loc-grid{grid-template-columns:1fr} }
-  .btn-primary{background:#0d9488; color:#fff; border:1px solid #0d9488; border-radius:12px; padding:.7rem 1.2rem; font-weight:800; cursor:pointer; transition:.2s}
-  .btn-primary:hover{background:#0f766e; transform:translateY(-1px)}
-  .muted{color:var(--muted); font-size:.9rem}
-</style>
+    /* Switcher */
+    .switcher{margin:.4rem auto .8rem;display:flex;gap:.5rem;flex-wrap:wrap;justify-content:center}
+    .pill{padding:.62rem 1.05rem;border-radius:999px;border:1px solid #bbf7d0;background:#ecfdf5;color:#065f46;font-weight:800;cursor:pointer;transition:all .15s}
+    .pill:hover{background:#d1fae5;transform:translateY(-1px)}
+    .pill.active{background:var(--brand-2);color:#fff;border-color:var(--brand-2)}
+
+    /* Panels */
+    .panel{width:100%;margin:0 auto 1rem;padding:1.25rem;background:#ffffff;border-radius:var(--radius);box-shadow:var(--shadow);display:flex;flex-direction:column;gap:1rem;border:1px solid var(--line)}
+    .panel h2{color:var(--brand-2);font-size:1.25rem}
+
+    /* --- Pretty Selects with icons --- */
+    .filters{display:flex;gap:.75rem;flex-wrap:wrap}
+    .select-wrap{
+      display:flex;align-items:center;gap:.5rem;background:#fff;border:1px solid #e2e8f0;
+      border-radius:12px;padding:.35rem .6rem .35rem .5rem;box-shadow:0 6px 20px rgba(2,6,23,.05);position:relative
+    }
+    .select-icon{width:22px;height:22px;display:grid;place-items:center;color:#0f172a}
+    .select{
+      appearance:none;-webkit-appearance:none;-moz-appearance:none;border:none;background:transparent;
+      padding:.55rem 2rem .55rem .25rem;font-weight:800;color:#0f172a;cursor:pointer;outline:0
+    }
+    .select-wrap:focus-within{border-color:#86efac;box-shadow:0 0 0 3px rgba(16,185,129,.18)}
+    .select-wrap::after{
+      content:"";position:absolute;right:.6rem;width:10px;height:10px;pointer-events:none;transform:rotate(45deg);
+      border-right:2px solid #0f172a;border-bottom:2px solid #0f172a;opacity:.7
+    }
+    .results-meta{color:var(--muted);font-size:.95rem}
+
+    /* Cards */
+    .browse-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.25rem;margin-top:.2rem}
+    .browse-card{background:#ffffff;border:1px solid var(--line);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;transition:transform .18s, box-shadow .18s}
+    .browse-card:hover{transform:translateY(-3px);box-shadow:0 16px 30px rgba(2,6,23,.08)}
+    .browse-card-image{position:relative}
+    .browse-card-image img{width:100%;height:180px;object-fit:cover;display:block}
+    .badgebar{position:absolute;top:10px;left:10px;display:flex;gap:6px}
+    .badge{font:800 .72rem/1 system-ui;padding:.35rem .55rem;border-radius:999px;background:#ffffff;border:1px solid #e2e8f0}
+    .badge--cat{color:#065f46}
+    .badge--urg-high{color:#b91c1c;background:#fee2e2;border-color:#fecaca}
+    .badge--urg-medium{color:#92400e;background:#ffedd5;border-color:#fed7aa}
+    .badge--urg-low{color:#065f46;background:#d1fae5;border-color:#a7f3d0}
+    .status-chip{position:absolute;bottom:10px;right:10px;font:900 .7rem/1 system-ui;background:var(--brand-2);color:#fff;padding:.4rem .6rem;border-radius:10px}
+
+    .browse-card-content{padding:1rem;font-size:.95rem;color:#334155;display:flex;flex-direction:column;gap:.45rem}
+    .browse-card-content h3{color:#0f766e;font-size:1.08rem;margin-bottom:.05rem}
+    .meta{display:flex;flex-wrap:wrap;gap:.5rem;color:#64748b;font-size:.88rem}
+    .meta span{display:inline-flex;gap:.35rem;align-items:center}
+
+    .card-actions{display:flex;align-items:center;justify-content:space-between;gap:.5rem;margin-top:.4rem;flex-wrap:wrap}
+    .btn{padding:.55rem .9rem;border-radius:10px;font-weight:800;border:1px solid transparent;cursor:pointer}
+    .btn-primary{background:var(--brand-2);color:#fff;border-color:var(--brand-2)}
+    .btn-primary:hover{background:#0e7a60}
+    .btn-ghost{background:#fff;color:var(--brand-2);border:1px dashed #bbf7d0}
+    .btn-ghost:hover{background:#ecfdf5}
+    .btn-danger{background:#fff;color:var(--danger);border:1px solid #fecaca}
+    .btn-danger:hover{background:#fff1f2;border-color:#fca5a5}
+
+    /* Create form */
+    .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 16px}
+    .form-card{background:transparent;border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;gap:10px;align-items:flex-start}
+    .fc-icon{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;background:#ecfdf5;border:1px solid #bbf7d0;color:#047857;flex:0 0 28px}
+    .fc-body{flex:1}
+    .fc-body label{font-weight:900;color:#0f172a;display:block;margin:2px 0 6px}
+    .field{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:#fff}
+    .field:focus-within{border-color:#86efac;box-shadow:0 0 0 3px rgba(16,185,129,.18)}
+    .field input[type=text], .field textarea, .field select{border:none;outline:none;background:transparent;width:100%;font-size:.95rem;color:#111827}
+    textarea{min-height:100px;resize:vertical}
+    .loc-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+    @media (max-width:720px){ .form-grid{grid-template-columns:1fr} .loc-grid{grid-template-columns:1fr} }
+    .muted{color:var(--muted);font-size:.9rem}
+    .upload-wrap{display:flex;align-items:center;gap:10px}
+    .thumb{width:72px;height:72px;border-radius:12px;border:1px solid var(--line);overflow:hidden;display:grid;place-items:center;background:#f8fafc}
+    .thumb img{width:100%;height:100%;object-fit:cover}
+
+    .hidden{display:none!important}
+
+    /* Footer (matches earlier pages) */
+    .footer{background-color:#0f172a;color:#cbd5e1;padding:3rem 1rem 1rem}
+    .footer-container{display:flex;flex-wrap:wrap;justify-content:space-between;max-width:1100px;margin:0 auto;gap:2rem}
+    .footer-about{flex:1 1 250px}
+    .footer-logo{font-size:1.6rem;color:#f8fafc;margin-bottom:.5rem;font-weight:700}
+    .footer-logo span{color:#38bdf8}
+    .footer-about p{font-size:.9375rem;line-height:1.6;margin-bottom:1rem;color:#e2e8f0}
+    .social-icons{display:flex;gap:.75rem}
+    .footer-links{display:flex;flex:2 1 500px;justify-content:space-between;flex-wrap:wrap}
+    .footer-links h3{color:#f8fafc;margin-bottom:1rem;font-size:1rem}
+    .footer-links ul{list-style:none;padding:0}
+    .footer-links li{margin-bottom:.5rem}
+    .footer-links a{color:#cbd5e1;text-decoration:none;font-size:.9375rem;transition:color .3s}
+    .footer-links a:hover{color:#38bdf8}
+    .footer hr{border:none;border-top:1px solid #1e293b;margin:2rem 0 1rem}
+    .footer-bottom{display:flex;justify-content:space-between;flex-wrap:wrap;max-width:1100px;margin:0 auto;font-size:.875rem;color:#94a3b8}
+    @media(max-width:768px){
+      .header-container{grid-template-columns:1fr auto;gap:.75rem}
+      nav.nav{order:3;justify-content:flex-start}
+      .footer-container{flex-direction:column;align-items:flex-start}
+      .footer-bottom{flex-direction:column;align-items:center;gap:.5rem;text-align:center}
+    }
+  </style>
 </head>
-<body>
-  <header>
+<body data-bg="images/requests-bg.jpg"><!-- change this or use setPageBackground() -->
+
+  <!-- NAV -->
+  <header class="site">
     <div class="header-container">
       <div class="logo">DonorMedix</div>
+
       <nav class="nav">
-        <a href="Home Page.html" class="nav-link">Home</a>
-        <a href="browse.html" class="nav-link">Browse</a>
-        <a href="Donate.html" class="nav-link">Donate</a>
-        <a href="Request.html" class="active">Requests</a>
+        <a href="Home Page.html" class="nav-link" title="Home">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3 2 12h3v8h6v-5h2v5h6v-8h3L12 3z"/></svg>
+          Home
+        </a>
+        <a href="browse.html" class="nav-link" title="Browse">
+          <!-- Search icon -->
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M10.5 3a7.5 7.5 0 1 1 0 15c-1.8 0-3.45-.63-4.74-1.69L3.7 18.87a1 1 0 0 1-1.41-1.41l2.06-2.06A7.47 7.47 0 0 1 3 10.5 7.5 7.5 0 0 1 10.5 3zm0 2a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11zM20.3 20.3a1 1 0 0 1-1.41 0l-3.28-3.28a1 1 0 1 1 1.41-1.41l3.28 3.28a1 1 0 0 1 0 1.41z"/></svg>
+          Browse
+        </a>
+        <a href="Donate.html" class="nav-link" title="Donate">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35 10.55 20.03C5.4 15.36 2 12.28 2 8.5 2 6 4 4 6.5 4c1.54 0 3.04.99 3.57 2.36h.86C14.46 4.99 15.96 4 17.5 4 20 4 22 6 22 8.5c0 3.78-3.4 6.86-8.55 11.53L12 21.35z"/></svg>
+          Donate
+        </a>
+        <a href="Request.html" class="nav-link active" title="Requests">
+          <!-- Clipboard/request icon -->
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 2h6a2 2 0 0 1 2 2h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2-2Zm0 2v2h6V4H9Z"/></svg>
+          Requests
+        </a>
       </nav>
+
       <div class="header-actions">
-        <button class="btn-back" id="backBtn" type="button">← Back</button>
-        <button class="sign-in-btn" onclick="window.location.href='profile.html'">Profile</button>
+        <!-- NOTIFICATION BELL (JS will add badge + modal) -->
+        <button class="bell-btn" aria-label="Notifications" title="Notifications">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 22a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22Zm6-6V11a6 6 0 1 0-12 0v5l-2 2v1h16v-1l-2-2Z"/></svg>
+        </button>
+        <!-- PROFILE / SIGN IN (your one-JS will turn this into NAME + modal) -->
+        <button class="sign-in-btn">Sign In</button>
       </div>
     </div>
   </header>
 
-  <main class="container">
-    <header class="page-header">
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-inner">
       <h1>Medicine Requests</h1>
-      <p class="sub">Browse requests from community members or create your own</p>
-    </header>
+      <p>Browse community requests, see your own, or create a new one</p>
+    </div>
+  </section>
 
-    <!-- Browse -->
-    <section class="panel" id="browsePanel">
-      <div class="panel__tabs" role="tablist">
-        <button class="tab tab--active" data-tab="browse" role="tab" aria-selected="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="8"></circle><path d="M21 21l-4.3-4.3"></path></svg>
-          Browse Requests
-        </button>
-        <button class="tab" data-tab="create" role="tab" aria-selected="false">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14M5 12h14"></path></svg>
-          Create Request
-        </button>
-        <span class="tab tab--ghost" aria-hidden="true">💡 Tips: verify expiry dates & packaging</span>
-      </div>
+  <main class="container">
+    <!-- Switcher -->
+    <div class="switcher" role="tablist" aria-label="Request sections">
+      <button class="pill active" data-view="community" aria-selected="true">Community Requests</button>
+      <button class="pill" data-view="mine" aria-selected="false">My Requests</button>
+      <button class="pill" data-view="create" aria-selected="false">Create Request</button>
+    </div>
 
+    <!-- COMMUNITY -->
+    <section class="panel" id="panel-community">
+      <h2>Community Requests</h2>
+
+      <!-- Pretty filters with icons -->
       <div class="filters">
-        <select id="categoryFilter">
-          <option value="">All Categories</option>
-          <option value="Pain Relief">Pain Relief</option>
-          <option value="Antibiotic">Antibiotic</option>
-          <option value="Cough">Cough</option>
-          <option value="Other">Other</option>
-        </select>
+        <!-- Category -->
+        <div class="select-wrap" title="Filter by category">
+          <span class="select-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+              <path d="M10 3H5a2 2 0 0 0-2 2v5l9.59 9.59a2 2 0 0 0 2.82 0l4.18-4.18a2 2 0 0 0 0-2.82L10 3Zm-5 2h4.59l9 9L19 14.59l-9-9H5Zm3 1.5A1.5 1.5 0 1 1 6.5 8 1.5 1.5 0 0 1 8 6.5Z"/>
+            </svg>
+          </span>
+          <select id="categoryFilter" class="select" aria-label="Category">
+            <option value="">All Categories</option>
+            <option value="Pain Relief">Pain Relief</option>
+            <option value="Antibiotic">Antibiotic</option>
+            <option value="Cough">Cough</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
 
-        <select id="urgencyFilter">
-          <option value="">All Urgency</option>
-          <option value="high">High</option>
-          <option value="medium">Medium</option>
-          <option value="low">Low</option>
-        </select>
+        <!-- Urgency -->
+        <div class="select-wrap" title="Filter by urgency">
+          <span class="select-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+              <path d="M13.5 2.5s2 2 2 5c0 1.5-.5 2.5-1 3 0 0 3-1 3-4.5 2.5 2 3 5 2 7.5-1.5 3.5-5 5.5-8.5 5.5S4 17.5 4 14c0-3.5 2.5-6.5 6-7.5-.5 1-.5 2.5 0 3.5 1-1 2.5-3.5 3.5-7.5Z"/>
+            </svg>
+          </span>
+          <select id="urgencyFilter" class="select" aria-label="Urgency">
+            <option value="">All Urgency</option>
+            <option value="high">High</option>
+            <option value="medium">Medium</option>
+            <option value="low">Low</option>
+          </select>
+        </div>
       </div>
 
       <div class="results-meta" id="count">Showing 0 requests</div>
       <div class="browse-list" id="requestsList"></div>
+      <p class="muted">💡 Tip: Verify expiry dates & packaging before donating.</p>
     </section>
 
-    <!-- Create -->
-    <section class="panel" id="createPanel" style="display:none">
-      <h2 style="color:#0f766e">Create a New Request</h2>
+    <!-- MINE -->
+    <section class="panel hidden" id="panel-mine">
+      <h2>My Requests</h2>
+      <div id="myAuthHint" class="muted">Sign in to see requests you created.</div>
+      <div class="results-meta" id="myCount">Showing 0 of your requests</div>
+      <div class="browse-list" id="myRequestsList"></div>
+    </section>
+
+    <!-- CREATE -->
+    <section class="panel hidden" id="panel-create">
+      <h2>Create a New Request</h2>
       <form id="createForm" class="form-grid">
         <div class="form-card" style="grid-column:1/-1">
+          <div class="fc-icon">💊</div>
           <div class="fc-body">
             <label for="title">Medicine Name</label>
-            <div class="field"><input type="text" id="title" placeholder="Enter medicine name" required></div>
+            <div class="field">
+              <input type="text" id="title" list="medicinesList" placeholder="Type or choose a medicine" required autocomplete="off">
+              <datalist id="medicinesList"></datalist>
+            </div>
+            <div class="muted" style="margin-top:6px">Choosing a medicine will auto-set the Category (you can still change it).</div>
           </div>
         </div>
 
         <div class="form-card" style="grid-column:1/-1">
+          <div class="fc-icon">📝</div>
           <div class="fc-body">
             <label for="description">Description</label>
             <div class="field" style="align-items:flex-start">
@@ -211,7 +322,21 @@
           </div>
         </div>
 
-        <!-- PSGC Cascader -->
+        <!-- Image Upload via Cloudinary -->
+        <div class="form-card" style="grid-column:1/-1">
+          <div class="fc-icon">🖼️</div>
+          <div class="fc-body">
+            <label>Photo (optional)</label>
+            <div class="upload-wrap">
+              <div class="thumb" id="thumb"><span class="muted">No image</span></div>
+              <button type="button" class="btn btn-ghost" id="btnUpload">Choose File</button>
+              <input type="file" id="fileInput" accept="image/*" style="display:none" />
+              <button type="button" class="btn btn-ghost" id="btnRemove" style="display:none">Remove</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- PSGC location -->
         <div class="form-card" style="grid-column:1/-1">
           <div class="fc-icon">📍</div>
           <div class="fc-body">
@@ -229,391 +354,86 @@
           </div>
         </div>
 
-        <div style="grid-column:1/-1; display:flex; gap:8px">
-          <button type="submit" class="btn-primary">Submit Request</button>
-          <button type="button" class="btn-back" id="backBtnBottom">← Back</button>
+        <div style="grid-column:1/-1;display:flex;gap:8px">
+          <button type="submit" class="btn btn-primary">Submit Request</button>
+          <button type="button" class="btn btn-ghost" id="backBtnBottom">Back</button>
         </div>
       </form>
     </section>
   </main>
 
-  <!-- App Script -->
-  <script type="module">
-    /* ========= Utilities ========= */
-    var PSGC_BASE = "https://psgc.gitlab.io/api";
-    function nowStr(){ var d=new Date(); return d.toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"}); }
-    function timeAgo(ts){
-      if(!ts) return "";
-      var diff=(Date.now()-ts)/1000;
-      if(diff<60) return String(Math.floor(diff))+"s ago";
-      if(diff<3600) return String(Math.floor(diff/60))+"m ago";
-      if(diff<86400) return String(Math.floor(diff/3600))+"h ago";
-      return String(Math.floor(diff/86400))+"d ago";
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer-container">
+      <div class="footer-about">
+        <h2 class="footer-logo">Donor<span>Medix</span></h2>
+        <p>Connecting communities to share life-saving medicines and reduce healthcare waste.</p>
+        <div class="social-icons">
+          <a href="#" aria-label="Facebook" title="Facebook">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M22 12.07C22 6.48 17.52 2 11.93 2S1.86 6.48 1.86 12.07C1.86 17 5.31 21.06 10 22v-7H7v-3h3V9.5c0-3 1.79-4.67 4.53-4.67 1.31 0 2.68.23 2.68.23v3h-1.51c-1.49 0-1.96.93-1.96 1.89V12h3.34l-.53 3H16v7c4.69-.94 8.14-5 8.14-9.93z" fill="#cbd5e1"/></svg>
+          </a>
+          <a href="#" aria-label="X" title="X">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M18.36 3H21l-6.52 7.45L22 21h-6.09l-4.77-5.74L5.67 21H3l7.12-8.14L2 3h6.18l4.33 5.23L18.36 3z" fill="#cbd5e1"/></svg>
+          </a>
+          <a href="#" aria-label="Instagram" title="Instagram">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M7 2h10a5 5 0 015 5v10a5 5 0 01-5 5H7a5 5 0 01-5-5V7a5 5 0 015-5zm5 5a5 5 0 100 10 5 5 0 000-10zm6.5-.9a1.1 1.1 0 100 2.2 1.1 1.1 0 000-2.2z" stroke="#cbd5e1" stroke-width="2" fill="none"/></svg>
+          </a>
+          <a href="#" aria-label="LinkedIn" title="LinkedIn">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4.98 3.5a2.5 2.5 0 110 5 2.5 2.5 0 010-5zM3 8.98h4v12H3v-12zM14.5 9c-2.33 0-3.5 1.28-3.5 1.28V9H7v12h4v-6.5s0-2.5 2.5-2.5 2.5 2.3 2.5 2.3V21h4v-7c0-4.55-3.67-5-5.5-5z" fill="#cbd5e1"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <div class="footer-links">
+        <div>
+          <h3>Quick Links</h3>
+          <ul>
+            <li><a href="#">How It Works</a></li>
+            <li><a href="browse.html">Browse Medicines</a></li>
+            <li><a href="Donate.html">Donate Medicine</a></li>
+            <li><a href="#">Health Blog</a></li>
+          </ul>
+        </div>
+        <div>
+          <h3>Support</h3>
+          <ul>
+            <li><a href="#">Help Center</a></li>
+            <li><a href="#">Safety Guidelines</a></li>
+            <li><a href="#">Community Guidelines</a></li>
+            <li><a href="#">Report Issue</a></li>
+          </ul>
+        </div>
+        <div>
+          <h3>Legal</h3>
+          <ul>
+            <li><a href="#">Privacy Policy</a></li>
+            <li><a href="#">Terms of Service</a></li>
+            <li><a href="#">Cookie Policy</a></li>
+            <li><a href="#">Disclaimer</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <hr />
+    <div class="footer-bottom"><p>© 2025 DonorMedix. All rights reserved.</p></div>
+  </footer>
+
+  <!-- Cloudinary (for optional image upload in create form) -->
+  <script src="https://widget.cloudinary.com/v2.0/global/all.js"></script>
+
+  <!-- Background helper: change bg at runtime -->
+  <script>
+    function setPageBackground(url){
+      document.documentElement.style.setProperty('--page-bg-url', `url('${url}')`);
     }
-    function keyFor(uid,kind){ return "dmx_"+kind+"_"+uid; }
-    function getArr(uid,kind){ try{ return JSON.parse(localStorage.getItem(keyFor(uid,kind))||"[]"); }catch(e){ return []; } }
-    function setArr(uid,kind,arr){ localStorage.setItem(keyFor(uid,kind), JSON.stringify(arr)); }
-
-    function fetchJson(url){
-      return fetch(url).then(function(r){
-        if(!r.ok) throw new Error("HTTP "+r.status+" for "+url);
-        return r.json();
-      });
-    }
-    function getRegions(){ return fetchJson(PSGC_BASE+"/regions/"); }
-    function getProvincesByRegion(regionCode){
-      return fetchJson(PSGC_BASE+"/regions/"+regionCode+"/provinces/")["catch"](function(){
-        return fetchJson(PSGC_BASE+"/provinces/").then(function(all){ return all.filter(function(p){ return p.regionCode===regionCode; }); });
-      });
-    }
-    function getCitiesMunsByProvince(provCode){
-      return fetchJson(PSGC_BASE+"/provinces/"+provCode+"/cities-municipalities/")["catch"](function(){
-        return fetchJson(PSGC_BASE+"/provinces/"+provCode+"/").then(function(prov){
-          return fetchJson(PSGC_BASE+"/regions/"+prov.regionCode+"/cities-municipalities/").then(function(rc){
-            return rc.filter(function(x){ return x.provinceCode===provCode; });
-          });
-        });
-      });
-    }
-    function getBarangaysByCityMun(cm){
-      var code=cm.code||cm.cityCode||cm.municipalityCode;
-      return fetchJson(PSGC_BASE+"/cities/"+code+"/barangays/")["catch"](function(){
-        return fetchJson(PSGC_BASE+"/municipalities/"+code+"/barangays/")["catch"](function(){
-          return fetchJson(PSGC_BASE+"/barangays/").then(function(all){
-            return all.filter(function(b){ return b.cityCode===code || b.municipalityCode===code; });
-          });
-        });
-      });
-    }
-    function opt(text,value){ var o=document.createElement("option"); o.textContent=text; o.value=value; return o; }
-    function locationFromSelects(selRegion, selProvince, selCityMun, selBarangay){
-      var rn = selRegion && selRegion.selectedOptions[0] ? selRegion.selectedOptions[0].textContent : "";
-      var pn = selProvince && selProvince.selectedOptions[0] ? selProvince.selectedOptions[0].textContent : "";
-      var cn = selCityMun && selCityMun.selectedOptions[0] ? selCityMun.selectedOptions[0].textContent : "";
-      var bn = selBarangay && selBarangay.selectedOptions[0] ? selBarangay.selectedOptions[0].textContent : "";
-      var parts=[rn,pn,cn,bn].filter(function(x){return !!x;});
-      return parts.join(" · ");
-    }
-
-    /* ========= Firebase ========= */
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
-
-    var firebaseConfig = {
-      apiKey: "AIzaSyAaWN2gj3VJxT6kwOvCX4LIXkWlbt0LTHQ",
-      authDomain: "donormedix.firebaseapp.com",
-      projectId: "donormedix",
-      storageBucket: "donormedix.appspot.com",
-      messagingSenderId: "627472172279",
-      appId: "1:627472172279:web:9bf645b54d33075a0d7ff2",
-      measurementId: "G-NTNPR4FPT7"
-    };
-
-    /* ========= Main Init ========= */
-    window.addEventListener("DOMContentLoaded", function(){
-      // Back buttons
-      function goBack(){
-        try{
-          var ref=document.referrer||"";
-          var sameOrigin = ref && new URL(ref, location.href).origin===location.origin;
-          if (sameOrigin && history.length>1) { history.back(); }
-          else { location.href="profile.html"; }
-        }catch(e){ location.href="profile.html"; }
-      }
-      var backBtn = document.getElementById("backBtn");
-      if (backBtn) backBtn.addEventListener("click", goBack);
-      var backBtnBottom = document.getElementById("backBtnBottom");
-      if (backBtnBottom) backBtnBottom.addEventListener("click", goBack);
-
-      // Tabs
-      var browsePanel = document.getElementById("browsePanel");
-      var createPanel = document.getElementById("createPanel");
-      var tabButtons = document.querySelectorAll(".panel__tabs > button.tab[data-tab]");
-      Array.prototype.forEach.call(tabButtons, function(btn){
-        btn.addEventListener("click", function(){
-          Array.prototype.forEach.call(tabButtons, function(x){ x.classList.remove("tab--active"); });
-          btn.classList.add("tab--active");
-          var name = btn.getAttribute("data-tab");
-          if (name==="browse"){ if(browsePanel) browsePanel.style.display=""; if(createPanel) createPanel.style.display="none"; }
-          else { if(browsePanel) browsePanel.style.display="none"; if(createPanel) createPanel.style.display=""; }
-        });
-      });
-
-      // PSGC selects
-      var selRegion   = document.getElementById("selRegion");
-      var selProvince = document.getElementById("selProvince");
-      var selCityMun  = document.getElementById("selCityMun");
-      var selBarangay = document.getElementById("selBarangay");
-      var locationText= document.getElementById("locationText");
-
-      var profileSavedLocation = (function(){
-        try{ var c=JSON.parse(localStorage.getItem("userProfile")||"{}"); return c.location || ""; }catch(e){ return ""; }
-      })();
-
-      function initPSGC(savedText){
-        if (!selRegion || !selProvince || !selCityMun || !selBarangay) return;
-        selRegion.innerHTML="";   selRegion.appendChild(opt("Select Region…",""));
-        selProvince.innerHTML=""; selProvince.appendChild(opt("Select Province…","")); selProvince.disabled=true;
-        selCityMun.innerHTML="";  selCityMun.appendChild(opt("Select City/Municipality…","")); selCityMun.disabled=true;
-        selBarangay.innerHTML=""; selBarangay.appendChild(opt("Select Barangay…","")); selBarangay.disabled=true;
-
-        getRegions().then(function(regions){
-          regions.sort(function(a,b){
-            var an=a.regionName||a.name, bn=b.regionName||b.name;
-            return an.localeCompare(bn);
-          });
-          regions.forEach(function(r){
-            var name = r.regionName ? r.regionName : r.name;
-            selRegion.appendChild(opt(name, r.code));
-          });
-
-          if (savedText){
-            var parts = savedText.split(" · ").map(function(s){ return (s||"").trim(); }).filter(function(s){ return !!s; });
-            var r = parts[0], p = parts[1], c = parts[2], b = parts[3];
-            if (r){
-              var ro = Array.prototype.find.call(selRegion.options, function(o){ return o.textContent===r; });
-              if (ro){ selRegion.value = ro.value; onRegionChange(false).then(function(){
-                if (p){
-                  var po = Array.prototype.find.call(selProvince.options, function(o){ return o.textContent===p; });
-                  if (po){ selProvince.value = po.value; onProvinceChange(false).then(function(){
-                    if (c){
-                      var co = Array.prototype.find.call(selCityMun.options, function(o){ return o.textContent===c; });
-                      if (co){ selCityMun.value = co.value; onCityMunChange(false).then(function(){
-                        if (b){
-                          var bo = Array.prototype.find.call(selBarangay.options, function(o){ return o.textContent===b; });
-                          if (bo){ selBarangay.value = bo.value; }
-                        }
-                      }); }
-                    }
-                  }); }
-                }
-              }); }
-            }
-          }
-        })["catch"](function(e){ console.warn("PSGC init failed:", e); });
-      }
-
-      function onRegionChange(clearLower){
-        if (clearLower===undefined) clearLower=true;
-        if (!selRegion || !selProvince || !selCityMun || !selBarangay) return Promise.resolve();
-        var regionCode = selRegion.value;
-        if (!regionCode){
-          if (clearLower){
-            selProvince.innerHTML=""; selProvince.appendChild(opt("Select Province…","")); selProvince.disabled=true;
-            selCityMun.innerHTML="";  selCityMun.appendChild(opt("Select City/Municipality…","")); selCityMun.disabled=true;
-            selBarangay.innerHTML=""; selBarangay.appendChild(opt("Select Barangay…","")); selBarangay.disabled=true;
-          }
-          return Promise.resolve();
-        }
-        selProvince.disabled=false;
-        selProvince.innerHTML=""; selProvince.appendChild(opt("Loading provinces…",""));
-        return getProvincesByRegion(regionCode).then(function(provs){
-          selProvince.innerHTML=""; selProvince.appendChild(opt("Select Province…",""));
-          provs.sort(function(a,b){ return a.name.localeCompare(b.name); }).forEach(function(p){ selProvince.appendChild(opt(p.name, p.code)); });
-          selCityMun.innerHTML=""; selCityMun.appendChild(opt("Select City/Municipality…","")); selCityMun.disabled=true;
-          selBarangay.innerHTML=""; selBarangay.appendChild(opt("Select Barangay…","")); selBarangay.disabled=true;
-        })["catch"](function(e){ console.warn("Provinces load error:", e); });
-      }
-
-      function onProvinceChange(clearLower){
-        if (clearLower===undefined) clearLower=true;
-        if (!selProvince || !selCityMun || !selBarangay) return Promise.resolve();
-        var code = selProvince.value;
-        if (!code){
-          if (clearLower){
-            selCityMun.innerHTML=""; selCityMun.appendChild(opt("Select City/Municipality…","")); selCityMun.disabled=true;
-            selBarangay.innerHTML=""; selBarangay.appendChild(opt("Select Barangay…","")); selBarangay.disabled=true;
-          }
-          return Promise.resolve();
-        }
-        selCityMun.disabled=false;
-        selCityMun.innerHTML=""; selCityMun.appendChild(opt("Loading…",""));
-        return getCitiesMunsByProvince(code).then(function(cms){
-          selCityMun.innerHTML=""; selCityMun.appendChild(opt("Select City/Municipality…",""));
-          cms.sort(function(a,b){ return a.name.localeCompare(b.name); }).forEach(function(c){ selCityMun.appendChild(opt(c.name, c.code)); });
-          selBarangay.innerHTML=""; selBarangay.appendChild(opt("Select Barangay…","")); selBarangay.disabled=true;
-        })["catch"](function(e){ console.warn("Cities load error:", e); });
-      }
-
-      function onCityMunChange(clearLower){
-        if (clearLower===undefined) clearLower=true;
-        if (!selCityMun || !selBarangay) return Promise.resolve();
-        var code = selCityMun.value;
-        if (!code){
-          if (clearLower){
-            selBarangay.innerHTML=""; selBarangay.appendChild(opt("Select Barangay…","")); selBarangay.disabled=true;
-          }
-          return Promise.resolve();
-        }
-        selBarangay.disabled=false;
-        selBarangay.innerHTML=""; selBarangay.appendChild(opt("Loading barangays…",""));
-        var cm = { code: code };
-        return getBarangaysByCityMun(cm).then(function(brgys){
-          selBarangay.innerHTML=""; selBarangay.appendChild(opt("Select Barangay…",""));
-          brgys.sort(function(a,b){ return a.name.localeCompare(b.name); }).forEach(function(b){ selBarangay.appendChild(opt(b.name, b.code)); });
-        })["catch"](function(e){ console.warn("Barangays load error:", e); });
-      }
-
-      if (selRegion) selRegion.addEventListener("change", function(){ onRegionChange(true); });
-      if (selProvince) selProvince.addEventListener("change", function(){ onProvinceChange(true); });
-      if (selCityMun) selCityMun.addEventListener("change", function(){ onCityMunChange(true); });
-      initPSGC(profileSavedLocation);
-
-      /* Firebase init */
-      var app = initializeApp(firebaseConfig);
-      var db  = getFirestore(app);
-      var auth= getAuth(app);
-
-      /* DOM for list & filters */
-      var requestsList   = document.getElementById("requestsList");
-      var countEl        = document.getElementById("count");
-      var categoryFilter = document.getElementById("categoryFilter");
-      var urgencyFilter  = document.getElementById("urgencyFilter");
-      var createForm     = document.getElementById("createForm");
-
-      function renderRequestCard(data, id){
-        var card = document.createElement("div");
-        card.className="browse-card";
-
-        var imgWrap = document.createElement("div");
-        imgWrap.className="browse-card-image";
-        imgWrap.innerHTML = '<img src="https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?q=80&w=1200&auto=format&fit=crop" alt="Medicine">';
-
-        var body = document.createElement("div");
-        body.className="browse-card-content";
-
-        var h = document.createElement("h3");
-        h.textContent = data.title || "Request";
-        body.appendChild(h);
-
-        var p1 = document.createElement("p");
-        p1.textContent = data.description || "";
-        body.appendChild(p1);
-
-        var p2 = document.createElement("p");
-        p2.innerHTML = "Category: <strong>"+(data.category||"Other")+"</strong> · Urgency: <strong>"+(data.urgency||"-")+"</strong>";
-        body.appendChild(p2);
-
-        var p3 = document.createElement("p");
-        p3.textContent = "📍 " + (data.location || "—") + " · ⏱ " + (data._when || "");
-        body.appendChild(p3);
-
-        var btn = document.createElement("button");
-        btn.className="sign-in-btn small";
-        btn.textContent = data.status === "matched" ? "Matched" : "Help";
-        btn.disabled = data.status === "matched";
-        btn.style.marginTop="8px";
-        btn.addEventListener("click", function(){
-          if (!auth.currentUser){ alert("Please sign in to help with a request."); return; }
-          updateDoc(doc(db,"requests",id), { status:"matched", matchedBy:auth.currentUser.uid, matchedAt:serverTimestamp() })["catch"](function(e){
-            console.error(e); alert("Failed to mark matched.");
-          });
-        });
-        body.appendChild(btn);
-
-        card.appendChild(imgWrap);
-        card.appendChild(body);
-        return card;
-      }
-
-      function renderList(docs){
-        if (!requestsList || !countEl) return;
-        var cat = categoryFilter ? categoryFilter.value : "";
-        var urg = urgencyFilter ? urgencyFilter.value : "";
-        requestsList.innerHTML="";
-        var filtered = docs.filter(function(d){
-          if (cat && d.data.category !== cat) return false;
-          if (urg && d.data.urgency  !== urg) return false;
-          return true;
-        });
-        countEl.textContent = "Showing " + filtered.length + " active request" + (filtered.length!==1?"s":"");
-        filtered.forEach(function(item){ requestsList.appendChild(renderRequestCard(item.data, item.id)); });
-      }
-
-      var unsubscribe = null;
-      function startListener(){
-        if (!db || !requestsList || !countEl) return;
-        if (unsubscribe) unsubscribe();
-        var qy = query(collection(db,"requests"), orderBy("createdAt","desc"));
-        unsubscribe = onSnapshot(qy, function(snapshot){
-          var docs=[];
-          snapshot.forEach(function(s){
-            var d = s.data();
-            var ms = d.createdAt && d.createdAt.toMillis ? d.createdAt.toMillis() : Date.now();
-            d._when = timeAgo(ms);
-            docs.push({ id:s.id, data:d });
-          });
-          renderList(docs);
-        }, function(err){
-          console.error("Listener error:", err);
-          if (requestsList) requestsList.innerHTML = "<p>⚠️ Failed to load requests.</p>";
-        });
-      }
-      startListener();
-      if (categoryFilter) categoryFilter.addEventListener("change", startListener);
-      if (urgencyFilter)  urgencyFilter.addEventListener("change", startListener);
-
-      // Create form (bind once after auth resolves)
-      var submitBound = false;
-      onAuthStateChanged(auth, function(){
-        if (!createForm || submitBound) return;
-        submitBound = true;
-        createForm.addEventListener("submit", function(e){
-          e.preventDefault();
-          if (!auth.currentUser){ alert("You must be signed in to create a request."); return; }
-
-          var titleEl = document.getElementById("title");
-          var descriptionEl = document.getElementById("description");
-          var categoryEl = document.getElementById("category");
-          var urgencyEl  = document.getElementById("urgency");
-
-          var title = titleEl ? (titleEl.value||"").trim() : "";
-          var description = descriptionEl ? (descriptionEl.value||"").trim() : "";
-          var category = categoryEl ? categoryEl.value : "Other";
-          var urgency  = urgencyEl ? urgencyEl.value : "medium";
-          if (!title || !description){ alert("Please complete the form."); return; }
-
-          // build location
-          var casc = locationFromSelects(selRegion, selProvince, selCityMun, selBarangay);
-          var finalLocation = casc || (locationText && locationText.value ? locationText.value.trim() : "");
-          if (!finalLocation && profileSavedLocation) finalLocation = profileSavedLocation;
-
-          addDoc(collection(db,"requests"), {
-            title: title,
-            description: description,
-            category: category,
-            urgency: urgency,
-            location: finalLocation || null,
-            requesterId: auth.currentUser.uid,
-            requesterName: auth.currentUser.email || null,
-            status: "open",
-            createdAt: serverTimestamp()
-          }).then(function(){
-            // Bridge to Profile activity + counters via localStorage
-            var arr = getArr(auth.currentUser.uid,"requests");
-            arr.unshift({
-              id:String(Date.now()), title:title,
-              subtitle: description, date: nowStr(),
-              status:"pending", statusClass:"status--reserved", emoji:"📝"
-            });
-            setArr(auth.currentUser.uid,"requests",arr);
-
-            var qKey = "dmx_activity_queue_"+auth.currentUser.uid;
-            var q;
-            try{ q = JSON.parse(localStorage.getItem(qKey)||"[]"); }catch(e){ q = []; }
-            q.unshift({ text:"Request created", sub:title, kind:"post", ts:Date.now() });
-            localStorage.setItem(qKey, JSON.stringify(q));
-
-            // switch back to profile
-            location.href = "profile.html#section-requests";
-          })["catch"](function(err){
-            console.error(err);
-            alert("Failed to create request: " + (err.message || err));
-          });
-        });
-      });
-    });
+    (function(){
+      const attr = document.body?.dataset?.bg;
+      if(attr) setPageBackground(attr);
+    })();
   </script>
+
+  <!-- Your Requests logic (filters, listing, create…) -->
+  <script type="module" src="request.js"></script>
+
 </body>
 </html>

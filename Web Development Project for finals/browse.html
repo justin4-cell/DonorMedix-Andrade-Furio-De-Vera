@@ -3,123 +3,342 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Browse Available Medicines</title>
-  <link rel="stylesheet" href="browse.css">
+  <title>DonorMedix · Browse Available Medicines</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    :root{
+      --ink:#0f172a; --muted:#64748b; --line:#e2e8f0;
+      --bg:#f8fafc; --card:#ffffff;
+      --shadow:0 8px 22px rgba(2,6,23,.06);
+      --radius:16px;
+      --pill:#ecfdf5; --pill-border:#a7f3d0; --pill-ink:#065f46;
+      --like-bg:#ecfdf5; --like-border:#a7f3d0; --like-ink:#065f46;
+      --like-active-bg:#10b981; --like-active-ink:#ffffff;
+    }
+    body{
+      font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+      line-height:1.55;color:var(--ink);
+      background:linear-gradient(180deg,#ecfeff 0%, #f8fafc 100%);min-height:100vh
+    }
 
+    /* HEADER / NAV */
+    header.site{
+      position:sticky;top:0;z-index:30;background:#0f172a;
+      border-bottom:1px solid rgba(226,232,240,.15);
+      box-shadow:0 2px 10px rgba(2,6,23,.25)
+    }
+    .header-container{
+      max-width:72rem;margin:0 auto;padding:.9rem 1.25rem;
+      display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:.9rem
+    }
+    .logo{font:800 1.35rem ui-rounded,system-ui,sans-serif;letter-spacing:.2px;color:#fff}
+
+    nav.nav{
+      display:flex;justify-content:center;gap:.5rem;flex-wrap:wrap
+    }
+    .nav-link{
+      display:inline-flex;align-items:center;gap:.5rem;
+      color:#fff;text-decoration:none;font-weight:800;
+      padding:.5rem .7rem;border-radius:10px;transition:all .15s
+    }
+    .nav-link svg{width:18px;height:18px;fill:currentColor;transition:color .15s}
+    /* ✅ Hover: white pill + dark text (same feel as Home) */
+    .nav-link:hover{
+      background:#ffffff;color:#0f172a;transform:translateY(-1px)
+    }
+    .nav-link.active{
+      background:rgba(255,255,255,.16);
+      color:#ffffff;
+    }
+
+    .header-actions{display:flex;gap:.5rem;align-items:center}
+    /* ✅ Bell exactly like Home */
+    .bell-btn{
+      position:relative;border:none;background:transparent;color:#fff;
+      padding:.55rem;border-radius:10px;cursor:pointer;transition:background .15s
+    }
+    .bell-btn:hover{background:rgba(255,255,255,.12)}
+    .bell-icon{width:22px;height:22px;display:block}
+    .badge{
+      position:absolute;top:-4px;right:-4px;background:#ef4444;color:#fff;
+      border:2px solid #0f172a;border-radius:999px;padding:1px 6px;font-size:.72rem;
+      font-weight:900;line-height:1;display:none;min-width:18px;text-align:center
+    }
+    /* ✅ Sign-in button exactly like Home (white pill, dark text) */
+    .sign-in-btn{
+      padding:.6rem .95rem;font:800 .9375rem system-ui,sans-serif;border-radius:10px;
+      display:inline-flex;align-items:center;justify-content:center;cursor:pointer;
+      background:#ffffff;color:#0f172a;border:1px solid #e2e8f0;transition:transform .15s
+    }
+    .sign-in-btn:hover{transform:translateY(-1px)}
+
+    /* Responsive nav alignment */
+    @media(max-width:720px){
+      .header-container{
+        grid-template-columns:1fr auto; /* logo | actions */
+        grid-template-rows:auto auto;   /* nav on its own row */
+      }
+      .logo{grid-column:1/2;grid-row:1}
+      .header-actions{grid-column:2/3;grid-row:1;justify-self:end}
+      nav.nav{grid-column:1/3;grid-row:2;justify-content:center;margin-top:.5rem}
+    }
+
+    /* HERO */
+    .hero{
+      width:100%;background:linear-gradient(180deg,#f0fdf4 0%, #ffffff 100%);
+      border-bottom:1px solid var(--line);box-shadow:0 10px 30px rgba(16,185,129,.08)
+    }
+    .hero-inner{max-width:1100px;margin:0 auto;padding:1.1rem 1.5rem 1rem;text-align:center}
+    /* Title color = same as nav background */
+    .hero h1{font-size:2rem;color:#0f172a}
+    .hero p{color:#0f172a;margin-top:.25rem;opacity:.9}
+
+    /* PAGE */
+    .page{max-width:1100px;margin:0 auto;padding:1rem 1.5rem 2rem}
+    .search{display:flex;gap:.5rem;margin:0 0 1rem;flex-wrap:wrap}
+    .input{
+      flex:1;min-width:220px;padding:.7rem .9rem;border:1px solid var(--line);border-radius:12px;
+      font-size:.95rem;background:#fff;color:#0f172a
+    }
+    .input::placeholder{color:#6b7280}
+    .input:focus{outline:none;border-color:#94a3b8;box-shadow:0 0 0 3px rgba(15,23,42,.15)}
+    .btn-search{
+      display:inline-flex;align-items:center;gap:.5rem;
+      padding:.7rem 1rem;border-radius:12px;border:1px solid #0f172a;
+      background:#0f172a;color:#fff;font-weight:800;cursor:pointer
+    }
+    .btn-search svg{width:18px;height:18px}
+    .btn-search:hover{filter:brightness(1.06)}
+
+    /* GRID + CARD */
+    .browse-grid{display:grid;grid-template-columns:1fr;gap:1rem}
+    @media(min-width:640px){.browse-grid{grid-template-columns:repeat(2,1fr)}}
+    @media(min-width:1024px){.browse-grid{grid-template-columns:repeat(3,1fr)}}
+
+    .card{
+      background:var(--card);border:1px solid var(--line);border-radius:16px;
+      box-shadow:0 16px 32px rgba(2,6,23,.06), 0 4px 12px rgba(2,6,23,.04);
+      overflow:hidden;display:flex;flex-direction:column;transition:transform .15s, box-shadow .15s
+    }
+    .card:hover{transform:translateY(-2px);box-shadow:0 20px 42px rgba(2,6,23,.10)}
+    .card__media{width:100%;aspect-ratio:4/3;background:#f8fafc;display:grid;place-items:center;overflow:hidden}
+    .card__media img{width:100%;height:100%;object-fit:cover}
+    .card__body{padding:1rem;display:flex;flex-direction:column;gap:.6rem}
+    .title{font-weight:900;margin:0;color:#0f172a;font-size:1.1rem;letter-spacing:.2px}
+    .muted{color:var(--muted);font-size:.92rem}
+    .desc{color:#0f172a;font-size:.94rem;line-height:1.5;opacity:.95}
+    .badge{display:inline-block;padding:.25rem .55rem;border-radius:999px;background:#ecfdf5;color:#065f46;font-size:.75rem;font-weight:800;border:1px solid #a7f3d0}
+
+    .row{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center}
+    .kv{display:flex;gap:.35rem;align-items:center}
+    .kv strong{font-weight:900;color:#0f172a;font-size:.88rem}
+
+    .donor{display:flex;align-items:center;gap:.6rem;margin-top:.15rem}
+    .avatar{width:34px;height:34px;border-radius:999px;display:grid;place-items:center;overflow:hidden;background:#dcfce7;color:#065f46;font-weight:900;border:1px solid #bbf7d0;font-size:.8rem}
+    .avatar img{width:100%;height:100%;object-fit:cover;display:block}
+    .donor .name{font-weight:900;color:#0f172a;font-size:.95rem}
+    .donor .sub{font-size:.82rem;color:var(--muted)}
+
+    .actions{display:flex;gap:.5rem;margin-top:.25rem;flex-wrap:wrap}
+    .btn{padding:.55rem .85rem;border-radius:10px;border:1px solid var(--line);background:#fff;cursor:pointer;font-weight:800;display:inline-flex;align-items:center;gap:.45rem;font-size:.9rem}
+    .btn:hover{background:#f8fafc}
+    .btn-message{border-color:#a7f3d0}
+    .btn-like{background:var(--like-bg);border-color:var(--like-border);color:var(--like-ink)}
+    .btn-like.active{background:var(--like-active-bg);color:var(--like-active-ink);border-color:var(--like-active-bg)}
+    .like-count{font-weight:900}
+
+    /* Skeleton (optional) */
+    .skeleton .shimmer{position:relative;overflow:hidden}
+    .skeleton .shimmer::after{content:"";position:absolute;inset:0;transform:translateX(-100%);background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.6),rgba(255,255,255,0));animation:shimmer 1.2s infinite}
+    @keyframes shimmer{100%{transform:translateX(100%)}}
+
+    /* TOAST */
+    .toast{
+      position:fixed; top:78px; left:50%; transform:translateX(-50%);
+      background:#065f46; color:#ecfdf5; border:1px solid #34d399;
+      padding:.6rem .9rem; border-radius:10px; box-shadow:var(--shadow);
+      z-index:50; font-weight:700; display:none; min-width:240px; text-align:center
+    }
+    .toast.show{display:block}
+
+    /* FOOTER */
+    .footer{background-color:#0f172a;color:#cbd5e1;padding:3rem 1rem 1rem;margin-top:2rem}
+    .footer-container{display:flex;flex-wrap:wrap;justify-content:space-between;max-width:1100px;margin:0 auto;gap:2.5rem}
+    .footer-about{flex:1 1 250px}
+    .footer-logo{font-size:1.6rem;color:#f8fafc;margin-bottom:.5rem;font-weight:800}
+    .footer-logo span{color:#38bdf8}
+    .footer-about p{font-size:.9375rem;line-height:1.6;margin-bottom:1rem;color:#e2e8f0}
+    .social-icons{display:flex;gap:.75rem}
+    .footer-links{display:flex;flex:2 1 500px;justify-content:space-between;flex-wrap:wrap}
+    .footer-links h3{color:#f8fafc;margin-bottom:1rem;font-size:1rem}
+    .footer-links ul{list-style:none;padding:0}
+    .footer-links li{margin-bottom:.5rem}
+    .footer-links a{color:#cbd5e1;text-decoration:none;font-size:.9375rem;transition:color .3s}
+    .footer-links a:hover{color:#38bdf8}
+    .footer hr{border:none;border-top:1px solid #1e293b;margin:2rem 0 1rem}
+    .footer-bottom{display:flex;justify-content:space-between;flex-wrap:wrap;max-width:1100px;margin:0 auto;font-size:.875rem;color:#94a3b8}
+    @media(max-width:768px){
+      .footer-container{flex-direction:column;align-items:flex-start}
+      .footer-bottom{flex-direction:column;align-items:center;gap:.5rem;text-align:center}
+    }
+  </style>
 </head>
 <body>
-  <header>
+  <!-- NAV -->
+  <header class="site">
     <div class="header-container">
       <div class="logo">DonorMedix</div>
 
       <nav class="nav">
-        <a href="Home Page.html" class="nav-link">Home</a>
-        <a href=" browse.html" class="active">Browse</a>
-        <a href="Donate.html" class="nav-link">Donate</a>
-        <a href="Request.html" class="nav-link">Requests</a>
+        <a href="home.html" class="nav-link">
+          <svg viewBox="0 0 24 24"><path d="M12 3 2 12h3v8h6v-5h2v5h6v-8h3L12 3z"/></svg>
+          Home
+        </a>
+
+        <!-- Browse icon -> GRID/LIST -->
+        <a href="browse.html" class="nav-link active">
+          <svg viewBox="0 0 24 24">
+            <path d="M3 3h8v8H3V3Zm0 10h8v8H3v-8Zm10-10h8v8h-8V3Zm0 10h8v8h-8v-8Z"/>
+          </svg>
+          Browse
+        </a>
+
+        <a href="Donate.html" class="nav-link">
+          <svg viewBox="0 0 24 24"><path d="M12 21.35 10.55 20.03C5.4 15.36 2 12.28 2 8.5A4.5 4.5 0 0 1 6.5 4c1.76 0 3.41.81 4.5 2.09A6 6 0 0 1 22 8.5c0 3.78-3.4 6.86-8.55 11.53L12 21.35z"/></svg>
+          Donate
+        </a>
+
+        <!-- Request icon -> clipboard with plus -->
+        <a href="Request.html" class="nav-link">
+          <svg viewBox="0 0 24 24">
+            <path d="M9 3h6a2 2 0 0 1 2 2h1a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h1a2 2 0 0 1 2-2Zm0 2a1 1 0 0 0-1 1H7v2h10V6h-1a1 1 0 0 0-1-1H9Zm3 5a1 1 0 0 1 1 1v2h2a1 1 0 1 1 0 2h-2v2a1 1 0 1 1-2 0v-2H9a1 1 0 1 1 0-2h2v-2a1 1 0 0 1 1-1Z"/>
+          </svg>
+          Requests
+        </a>
       </nav>
 
       <div class="header-actions">
-        <button class="sign-in-btn" onclick="window.location.href='profile.html'"> Profile</button>
+        <!-- 🔔 Notification icon with badge (same look as Home) -->
+        <button class="bell-btn" ...>...</button>
+        <button class="sign-in-btn">Sign In</button>
+
       </div>
     </div>
   </header>
 
-
-  <main class="page">
-    <div class="page-header">
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-inner">
       <h1>Browse Available Medicines</h1>
       <p>Find donated medicines and supplies from your community.</p>
     </div>
+  </section>
 
-    <form class="search" action="#" method="get">
-      <input class="input" name="q" placeholder="Search for medicines, medical supplies…" />
-      <button class="btn-search" type="submit">Search</button>
+  <main class="page">
+    <form class="search" id="searchForm" action="#">
+      <input class="input" id="q" name="q" placeholder="Search for medicines, medical supplies…" />
+      <button class="btn-search" type="submit">
+        <svg viewBox="0 0 24 24"><path d="M21 21 15.5 15.5m-5 2.5a7 7 0 1 1 0-14 7 7 0 0 1 0 14Z"/></svg>
+        Search
+      </button>
     </form>
-        </div>
-      </article>
 
-          
-      <!-- Skeleton placeholders (design-only; shown when parent gets .loading) -->
-      <article class="card skeleton" aria-hidden="true">
-        <div class="card__media shimmer"></div>
+    <section id="browseList" class="browse-grid">
+      <!-- Example card -->
+      <article class="card">
+        <div class="card__media">
+          <img src="https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?q=80&w=1200" alt="Paracetamol 500mg" />
+        </div>
         <div class="card__body">
-          <div class="title shimmer"></div>
-          <p class="muted shimmer" style="width:90%;height:12px;margin-top:8px"></p>
-          <div class="meta" style="margin-top:16px">
-            <div class="meta-item"><div class="shimmer" style="width:60% ; height:12px; border-radius:8px"></div></div>
-            <div class="meta-item"><div class="shimmer" style="width:40% ; height:12px; border-radius:8px"></div></div>
+          <h3 class="title">Paracetamol 500mg</h3>
+          <p class="muted">Tablets · 20 pcs · Exp: 2026-03</p>
+          <div class="row">
+            <span class="badge">Pain Relief</span>
+            <span class="muted">Quezon City</span>
+          </div>
+          <p class="desc">Unopened blister packs from recent purchase. Willing to meet at the barangay hall.</p>
+          <div class="donor">
+            <div class="avatar">JD</div>
+            <div>
+              <div class="name">Juan Dela Cruz</div>
+              <div class="sub">Donor · Verified</div>
+            </div>
+          </div>
+          <div class="actions">
+            <button class="btn btn-message">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h16v10H7l-3 3V4z"/></svg>
+              Message
+            </button>
+            <button class="btn btn-like" onclick="this.classList.toggle('active')">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5A4.5 4.5 0 0 1 6.5 4c1.76 0 3.41.81 4.5 2.09A6 6 0 0 1 22 8.5c0 3.78-3.4 6.86-8.55 11.53L12 21.35z"/></svg>
+              <span class="like-count">Save</span>
+            </button>
           </div>
         </div>
       </article>
-
-      <article class="card skeleton" aria-hidden="true">
-        <div class="card__media shimmer"></div>
-        <div class="card__body">
-          <div class="title shimmer"></div>
-          <p class="muted shimmer" style="width:85%;height:12px;margin-top:8px"></p>
-          <div class="meta" style="margin-top:16px">
-            <div class="meta-item"><div class="shimmer" style="width:62% ; height:12px; border-radius:8px"></div></div>
-            <div class="meta-item"><div class="shimmer" style="width:45% ; height:12px; border-radius:8px"></div></div>
-          </div>
-        </div>
-      </article>
-
-      <!-- Sentinel (hook for infinite scroll JS later) -->
-      <div id="infinite-sentinel" style="grid-column:1 / -1; height:1px"></div>
-
     </section>
-    
+
+    <!-- Unified toast -->
+    <div id="toast" class="toast">Donation posted successfully!</div>
   </main>
+
+  <!-- FOOTER -->
   <footer class="footer">
-  <div class="footer-container">
-    <div class="footer-about">
-      <h2 class="footer-logo">Donor<span>Medix</span></h2>
-      <p>Connecting communities to share life-saving medicines and reduce healthcare waste.</p>
-      <div class="social-icons">
-        <a href="#"><i class="fab fa-facebook-f"></i></a>
-        <a href="#"><i class="fab fa-twitter"></i></a>
-        <a href="#"><i class="fab fa-instagram"></i></a>
-        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+    <div class="footer-container">
+      <div class="footer-about">
+        <h2 class="footer-logo">Donor<span>Medix</span></h2>
+        <p>Connecting communities to share life-saving medicines and reduce healthcare waste.</p>
+        <div class="social-icons">
+          <a href="#" aria-label="Facebook" title="Facebook">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M22 12.07C22 6.48 17.52 2 11.93 2S1.86 6.48 1.86 12.07C1.86 17 5.31 21.06 10 22v-7h-3v-3h3V9.5c0-3 1.79-4.67 4.53-4.67 1.31 0 2.68.23 2.68.23v3h-1.51c-1.49 0-1.96.93-1.96 1.89V12h3.34l-.53 3H16v7c4.69-.94 8.14-5 8.14-9.93z" fill="#cbd5e1"/></svg>
+          </a>
+          <a href="#" aria-label="X" title="X">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M18.36 3H21l-6.52 7.45L22 21h-6.09l-4.77-5.74L5.67 21H3l7.12-8.14L2 3h6.18l4.33 5.23L18.36 3z" fill="#cbd5e1"/></svg>
+          </a>
+          <a href="#" aria-label="Instagram" title="Instagram">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5zm5 5a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm6.5-.9a1.1 1.1 0 1 0 0 2.2 1.1 1.1 0 0 0 0-2.2z" stroke="#cbd5e1" stroke-width="2" fill="none"/></svg>
+          </a>
+          <a href="#" aria-label="LinkedIn" title="LinkedIn">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path fill="#cbd5e1" d="M6.94 7.5A2.44 2.44 0 1 1 7 2.63a2.44 2.44 0 0 1-.06 4.87ZM3.5 8.87h3.88V21H3.5V8.87Zm6.31 0h3.72v1.66h.05c.52-.98 1.78-2.02 3.67-2.02 3.92 0 4.64 2.58 4.64 5.93V21H18.7v-5.38c0-1.28-.03-2.91-1.78-2.91-1.78 0-2.05 1.39-2.05 2.82V21H9.81V8.87Z"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <div class="footer-links">
+        <div>
+          <h3>Quick Links</h3>
+          <ul>
+            <li><a href="#">How It Works</a></li>
+            <li><a href="browse.html">Browse Medicines</a></li>
+            <li><a href="Donate.html">Donate Medicine</a></li>
+            <li><a href="#">Health Blog</a></li>
+          </ul>
+        </div>
+        <div>
+          <h3>Support</h3>
+          <ul>
+            <li><a href="#">Help Center</a></li>
+            <li><a href="#">Safety Guidelines</a></li>
+            <li><a href="#">Community Guidelines</a></li>
+            <li><a href="#">Report Issue</a></li>
+          </ul>
+        </div>
+        <div>
+          <h3>Legal</h3>
+          <ul>
+            <li><a href="#">Privacy Policy</a></li>
+            <li><a href="#">Terms of Service</a></li>
+            <li><a href="#">Cookie Policy</a></li>
+            <li><a href="#">Disclaimer</a></li>
+          </ul>
+        </div>
       </div>
     </div>
+    <hr />
+    <div class="footer-bottom"><p>© 2025 DonorMedix. All rights reserved.</p></div>
+  </footer>
 
-    <div class="footer-links">
-      <div>
-        <h3>Quick Links</h3>
-        <ul>
-          <li><a href="#">How It Works</a></li>
-          <li><a href="#">Browse Medicines</a></li>
-          <li><a href="#">Donate Medicine</a></li>
-          <li><a href="#">Health Blog</a></li>
-        </ul>
-      </div>
-      <div>
-        <h3>Support</h3>
-        <ul>
-          <li><a href="#">Help Center</a></li>
-          <li><a href="#">Safety Guidelines</a></li>
-          <li><a href="#">Community Guidelines</a></li>
-          <li><a href="#">Report Issue</a></li>
-        </ul>
-      </div>
-      <div>
-        <h3>Legal</h3>
-        <ul>
-          <li><a href="#">Privacy Policy</a></li>
-          <li><a href="#">Terms of Service</a></li>
-          <li><a href="#">Cookie Policy</a></li>
-          <li><a href="#">Disclaimer</a></li>
-        </ul>
-      </div>
-    </div>
-  </div>
-
-  <hr>
-
-  <div class="footer-bottom">
-    <p>© 2025 DonorMedix. All rights reserved.</p>
-  </div>
-</footer>
+  <!-- Minimal demo for bell badge (remove when wired to Firebase) -->
+  <script type= "module" src+="browse.js"></script>
 </body>
 </html>

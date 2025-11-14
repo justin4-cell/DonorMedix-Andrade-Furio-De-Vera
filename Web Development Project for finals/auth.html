@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DonorMedix | Login & Sign Up</title>
+  <style>
+    :root{
+      --primary:#0f172a;
+      --bg1:#eef2ff;
+      --bg2:#e2e8f0;
+      --text:#0f172a;
+      --muted:#616c7c;
+      --white:#ffffff;
+      --radius:16px;
+    }
+    * { box-sizing: border-box; font-family: system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; }
+    html, body { height: 100%; }
+    body {
+      margin:0; color:var(--text);
+      background: linear-gradient(135deg, var(--bg1), var(--bg2));
+      display:flex; align-items:center; justify-content:center; padding:24px;
+    }
+    .auth-card{
+      width:100%; max-width:440px; background:var(--white);
+      border-radius:var(--radius); padding:28px 24px;
+      box-shadow:0 18px 40px rgba(0,0,0,.12);
+    }
+    .brand{ display:flex; align-items:center; justify-content:center; gap:12px;
+      font-weight:900; letter-spacing:.2px; color:var(--primary); margin-bottom:12px; font-size:28px; }
+    .tabs{ display:flex; align-items:center; justify-content:center; gap:8px; margin:6px auto 20px; }
+    .tabs-left{ display:flex; gap:8px; }
+    .tab-btn{ background:transparent; border:none; padding:10px 16px; border-radius:12px; font-weight:700; cursor:pointer; color:var(--muted); }
+    .tab-btn:hover{ color:var(--primary); }
+    .tab-btn[aria-selected="true"]{ background:var(--primary); color:#fff; }
+    .tab-btn.secondary{ border:1px solid #e5e7eb; background:#ffffff; color:var(--primary); }
+
+    h2{ text-align:center; color:var(--primary); margin:2px 0 8px; }
+    label{ display:block; font-weight:600; margin-top:12px; }
+    .field{ margin-top:6px; }
+    .input-wrap{ position:relative; }
+    input{ width:100%; padding:12px 44px 12px 12px; border:1px solid #cbd5e1; border-radius:12px; font-size:14px; outline:none; transition:border-color .2s; }
+    input:focus{ border-color:var(--primary); }
+    .toggle-pass{ position:absolute; right:8px; top:50%; transform:translateY(-50%); border:none; background:transparent; cursor:pointer; padding:6px; border-radius:8px; color:var(--primary); }
+    .toggle-pass:focus{ outline:2px dashed var(--primary); outline-offset:2px; }
+
+    .actions{ display:grid; grid-template-columns:1fr; gap:10px; margin-top:16px; }
+    .btn{ width:100%; padding:12px; background:var(--primary); color:#fff; border:none; border-radius:12px; font-weight:800; cursor:pointer; transition:opacity .2s, transform .06s; text-align:center; }
+    .btn:hover{ opacity:.95; }
+    .btn:active{ transform:scale(.99); }
+
+    .row{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:10px; }
+    .link, .note{ font-size:13px; color:var(--muted); }
+    .link a{ color:var(--primary); text-decoration:none; font-weight:700; }
+    .err{ color:#dc2626; text-align:center; min-height:18px; margin-top:8px; font-size:14px; display:none; }
+    .hidden{ display:none !important; }
+  </style>
+</head>
+<body>
+  <article class="auth-card" role="main" aria-labelledby="authTabs">
+    <div class="brand" aria-label="DonorMedix">
+      <span>DonorMedix</span>
+    </div>
+
+    <div class="tabs" id="authTabs" role="tablist" aria-label="Authentication tabs">
+      <div class="tabs-left">
+        <button class="tab-btn" id="tab-login" role="tab" aria-controls="panel-login" aria-selected="true">Login</button>
+        <button class="tab-btn" id="tab-signup" role="tab" aria-controls="panel-signup" aria-selected="false">Sign Up</button>
+      </div>
+      <a class="tab-btn secondary" href="admin.html" id="adminBtnTop" aria-label="Admin Area">Admin</a>
+    </div>
+
+    <!-- LOGIN PANEL -->
+    <section id="panel-login" role="tabpanel" aria-labelledby="tab-login">
+      <h2>Login to DonorMedix</h2>
+      <form id="loginForm" novalidate>
+        <label for="loginEmail">Email Address</label>
+        <div class="field">
+          <input type="email" id="loginEmail" name="email" placeholder="eg. username@gmail.com" required>
+        </div>
+
+        <label for="loginPassword">Password</label>
+        <div class="field input-wrap">
+          <input type="password" id="loginPassword" name="password" placeholder="Your password" required>
+          <button type="button" class="toggle-pass" aria-label="Show password" data-target="loginPassword"></button>
+        </div>
+
+        <div class="row">
+          <span class="link">&nbsp;</span>
+          <a href="forgot.html" class="link">Forgot password?</a>
+        </div>
+
+        <div class="actions" role="group" aria-label="Login actions" style="grid-template-columns:1fr;">
+          <button class="btn" type="submit" id="loginBtn">Login</button>
+        </div>
+        
+        <p id="loadingText" class="note" style="display:none">Logging in... please wait</p>
+        <p class="err" id="loginErr" role="alert">&nbsp;</p>
+        <p class="note" style="text-align:center; margin-top:10px;">Welcome to DonorMedix — please log in or sign up to continue.</p>
+      </form>
+    </section>
+
+    <!-- SIGNUP PANEL -->
+    <section id="panel-signup" role="tabpanel" aria-labelledby="tab-signup" class="hidden">
+      <h2>Create New Account</h2>
+      <form id="signupForm" novalidate>
+        <label for="name">Full Name</label>
+        <div class="field"><input type="text" id="name" name="name" placeholder="eg. Juan Dela Cruz" required></div>
+
+        <label for="signupEmail">Email Address</label>
+        <div class="field"><input type="email" id="signupEmail" name="email" placeholder="eg. username@gmail.com" required></div>
+
+        <label for="signupPassword">Password</label>
+        <div class="field input-wrap">
+          <input type="password" id="signupPassword" name="password" placeholder="8+ characters" minlength="8" required>
+          <button type="button" class="toggle-pass" aria-label="Show password" data-target="signupPassword"></button>
+        </div>
+        <p class="note">Use at least 8 characters with a mix of letters and numbers.</p>
+
+        <div class="actions" role="group" aria-label="Signup actions" style="grid-template-columns:1fr;">
+          <button class="btn" type="submit" id="signupBtn">Create Account</button>
+        </div>
+
+        <p class="err" id="signupErr" role="alert">&nbsp;</p>
+        <p class="link" style="text-align:center">Already have an account? <a href="#" id="toLogin">Log In</a></p>
+      </form>
+    </section>
+  </article>
+
+  <!-- Connect the combined module -->
+  <script type="module" src="auth.js"></script>
+
+  <!-- Minimal tab switching (the module doesn't manage tabs) -->
+  <script>
+    const tabLogin = document.getElementById('tab-login');
+    const tabSignup = document.getElementById('tab-signup');
+    const panelLogin = document.getElementById('panel-login');
+    const panelSignup = document.getElementById('panel-signup');
+    function selectTab(which){
+      const isLogin = which === 'login';
+      tabLogin.setAttribute('aria-selected', String(isLogin));
+      tabSignup.setAttribute('aria-selected', String(!isLogin));
+      panelLogin.classList.toggle('hidden', !isLogin);
+      panelSignup.classList.toggle('hidden', isLogin);
+    }
+    tabLogin.addEventListener('click', () => selectTab('login'));
+    tabSignup.addEventListener('click', () => selectTab('signup'));
+    document.getElementById('toLogin')?.addEventListener('click', (e)=>{ e.preventDefault(); selectTab('login'); });
+  </script>
+</body>
+</html>

@@ -6,158 +6,215 @@
 <title>DonorMedix · Profile</title>
 <style>
   :root{
-    --bg:#f7f8fa; --card:#ffffff; --text:#0f172a; --muted:#6b7280; --line:#e6e8ee;
-    --brand:#10b981; --brand-700:#059669; --accent:#f59e0b; --danger:#ef4444; --badge:#eaf7f3;
-    --shadow:0 1px 2px rgba(16,24,40,.06), 0 8px 24px rgba(16,24,40,.06);
-    --radius:14px;
+    /* Match Requests page theme */
+    --brand:#10b981; --brand-2:#059669;
+    --ink:#0f172a; --muted:#64748b; --line:#e2e8f0;
+    --bg:#f8fafc; --card:#ffffff; --shadow:0 8px 22px rgba(2,6,23,.06);
+    --radius:14px; --danger:#ef4444; --danger-2:#dc2626;
   }
   *{margin:0;padding:0;box-sizing:border-box}
   body{
     font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
-    line-height:1.5;color:#1f2937;
-    background:linear-gradient(135deg,#d5dadf 0%,#7ac5c3 50%,#f8fafc 100%);
-    min-height:100vh;position:relative;
+    line-height:1.5;color:var(--ink);
+    background:linear-gradient(180deg,#5fe2a0da 0%, #bed1c7 100%);
+    min-height:100vh;
   }
 
-  header{position:sticky;top:0;z-index:10;background:rgba(255,255,255,0.85);
-    backdrop-filter:blur(12px);border-bottom:1px solid rgba(229,231,235,0.5)}
-  .header-container{max-width:70rem;margin:0 auto;padding:1rem 1.5rem;display:grid;
-    grid-template-columns:auto 1fr auto;align-items:center}
-  .logo{font:600 1.5rem cursive;background:linear-gradient(135deg,#0d9488,#14b8a6);
+  /* Top Navbar (same look as Requests) */
+  header.site{position:sticky;top:0;z-index:40;background:#fff;border-bottom:1px solid rgba(226,232,240,.85);box-shadow:0 2px 10px rgba(2,6,23,.05)}
+  .header-container{max-width:72rem;margin:0 auto;padding:.85rem 1.25rem;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:.75rem}
+  .logo{font:700 1.4rem ui-rounded, system-ui, sans-serif;letter-spacing:.2px;background:linear-gradient(135deg,var(--brand-2),#14b8a6);
     -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
   nav{display:flex;justify-content:center;gap:1rem}
-  nav a{position:relative;color:#4c4e4e;text-decoration:none;font-size:.9375rem;
-    padding:.5rem 1rem;border-radius:8px;overflow:hidden;transition:color .3s;z-index:1}
-  nav a::before{content:"";position:absolute;inset:0;background:#0c8783;border-radius:8px;
-    transform:scaleX(0);transform-origin:left;transition:transform .3s;z-index:-1}
-  nav a:hover::before{transform:scaleX(1)}
-  nav a:hover{color:#fff}
-  nav a.active::before{transform:scaleX(1);background:#0f766e}
-  nav a.active{color:#fff;font-weight:600}
-  .sign-in-btn{background:#0d9488;color:#fff;padding:.625rem 1.5rem;font:500 .9375rem system-ui,sans-serif;border-radius:10px;cursor:pointer}
-  .sign-in-btn:hover{background:#0f766e;transform:translateY(-2px)}
-  .header-actions{display:flex;gap:.5rem}
-  .btn-back{background:#fff;color:#0f766e;border:1px solid #cfe8e6;border-radius:10px;padding:.5rem .9rem;cursor:pointer}
-  .btn-back:hover{background:#e8fbf5}
+  nav a{position:relative;color:#111827;text-decoration:none;font-size:.95rem;padding:.5rem .6rem;border-radius:8px;transition:all .15s}
+  nav a:hover{background:#f1f5f9}
+  nav a.active{color:var(--brand-2);font-weight:700}
 
-  .container{max-width:1080px;margin:24px auto;padding:0 16px}
+  .header-actions{display:flex;gap:.5rem;align-items:center;position:relative}
+  .sign-in-btn{padding:.6rem .95rem;font:600 .9375rem system-ui,sans-serif;line-height:1;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;background:var(--brand-2);color:#fff;border:1px solid var(--brand-2)}
+  .sign-in-btn:hover{background:#047857;transform:translateY(-1px)}
 
-  /* Profile header */
-  .profile{
-    background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
-    box-shadow:var(--shadow);padding:18px;display:grid;grid-template-columns:auto 1fr auto;gap:16px;align-items:start
-  }
-  .profile-actions{display:flex;gap:8px;align-items:center}
-  .chip-btn{
-    display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:10px;
-    border:1px solid #0f766e1a;background:#0f766e;color:#fff;font-weight:700;cursor:pointer
-  }
-  .chip-btn.secondary{background:#0d9488}
+  /* Notification bell (trigger) */
+  .bell{position:relative;border:1px dashed #bbf7d0;background:#fff;color:var(--brand-2);border-radius:10px;padding:.5rem .75rem;cursor:pointer}
+  .bell:hover{background:#ecfdf5}
+  .badge{position:absolute;top:-6px;right:-6px;background:#ef4444;color:#fff;border-radius:999px;font:900 .68rem/1 system-ui;padding:.18rem .4rem;min-width:18px;text-align:center}
   .hidden{display:none !important}
 
-  .avatar{width:72px;height:72px;border-radius:999px;background:linear-gradient(135deg,#c0f1e5,#8fe0ce);
-    display:grid;place-items:center;overflow:hidden;border:2px solid #d9efe9;cursor:pointer}
+  /* Top announcement bar */
+  .announce{position:sticky;top:56px;z-index:35;background:#ecfdf5;border-bottom:1px solid #bbf7d0;color:#065f46;font-weight:700;display:none}
+  .announce.show{display:block}
+  .announce-inner{max-width:72rem;margin:0 auto;padding:8px 16px;display:flex;gap:10px;align-items:center;justify-content:space-between}
+  .announce button{border:1px dashed #bbf7d0;background:#fff;color:#0f766e;border-radius:999px;padding:4px 10px;cursor:pointer}
+
+  .container{max-width:1080px;margin:18px auto;padding:0 16px}
+
+  /* Profile card */
+  .profile{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;display:grid;grid-template-columns:auto 1fr auto;gap:16px;align-items:start}
+  .avatar{width:72px;height:72px;border-radius:999px;background:#f8fafc;display:grid;place-items:center;overflow:hidden;border:2px solid #e2e8f0;cursor:pointer}
   .avatar img{width:100%;height:100%;object-fit:cover}
   .name{font-size:1.4rem;font-weight:800}
   .location{color:var(--muted);margin-top:2px}
   .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:8px}
-  .badge{background:#eef2f7;border:1px solid #dde3ea;border-radius:999px;padding:4px 8px;font-weight:700;font-size:.78rem;color:#334155;display:inline-flex;align-items:center;gap:6px}
-  .badge--verified{background:var(--badge);border-color:#c7efe3;color:#0f766e}
-  .stars{display:inline-flex;gap:2px;vertical-align:middle}
-  .stars svg{width:14px;height:14px;color:#fbbf24}
-  .muted{color:#6b7280}
   .bio{margin:10px 0 14px;color:#334155}
   .metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center;margin-top:8px}
   .metrics .n{color:#0f8a78;font-weight:800;font-size:1.4rem}
   .metrics .label{color:#6b7280;font-size:.9rem}
-  @media (max-width:720px){
-    .profile{grid-template-columns:1fr;align-items:stretch}
-    .metrics{grid-template-columns:1fr 1fr}
-    .profile-actions{justify-content:flex-start;margin-top:6px}
-  }
+  @media (max-width:720px){.profile{grid-template-columns:1fr}.metrics{grid-template-columns:1fr 1fr}}
 
   /* Tabs */
   .tabs{margin-top:16px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
   .tab-bar{display:flex;gap:4px;padding:10px 12px;border-bottom:1px solid var(--line);flex-wrap:wrap}
-  .tab{display:inline-flex;align-items:center;gap:8px;padding:10px 12px;border-radius:10px;border:1px solid transparent;font-weight:700;color:#0f172a;background:transparent;cursor:pointer}
+  .tab{display:inline-flex;align-items:center;gap:8px;padding:10px 12px;border-radius:10px;border:1px solid transparent;font-weight:800;color:#0f172a;background:transparent;cursor:pointer}
   .tab--active{background:#f1fbf7;border-color:#cbeee3;color:#0d9488}
   .sections{display:grid;gap:16px;padding:14px}
   .card{background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);padding:16px}
   .card h3{margin:0 0 12px;font-size:1.05rem}
   .activity{display:grid;gap:12px}
   .act{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start}
-  .icon{width:32px;height:32px;border-radius:8px;display:grid;place-items:center;background:#f3f4f6;border:1px solid #e5e7eb}
-  .icon.star{background:#fff7ed;border-color:#fde68a}
-  .icon.post{background:#ecfeff;border-color:#c4f1f6}
-  .icon.done{background:#ecfdf5;border-color:#bbf7d0}
+  .icon{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;background:#ecfdf5;border:1px solid #bbf7d0;color:#047857}
 
-  /* Lists */
+  /* Lists + chips */
   .toolbar{display:flex;justify-content:space-between;align-items:center;margin:6px 0 10px}
-  .add-btn{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:10px;border:1px solid #0f766e1a;background:#0f766e;color:#fff;font-weight:700;cursor:pointer}
-  .add-btn svg{width:16px;height:16px}
+  .add-btn{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:10px;border:1px solid #0f766e1a;background:var(--brand-2);color:#fff;font-weight:800;cursor:pointer}
   .donation-list,.request-list{display:grid;gap:12px}
   .donation-card,.request-card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center}
   .thumb{width:64px;height:64px;border-radius:12px;background:#f3f4f6;display:grid;place-items:center;border:1px solid #e5e7eb;overflow:hidden}
-  .thumb img{width:100%;height:100%;object-fit:cover}
   .item-title{font-weight:800}
   .item-sub{color:#6b7280}
   .item-date{color:#6b7280;font-size:.9rem;margin-top:4px}
-  .status{border-radius:999px;padding:6px 10px;font-weight:700;font-size:.78rem;text-transform:lowercase;border:1px solid}
+  .status{border-radius:999px;padding:6px 10px;font-weight:800;font-size:.78rem;text-transform:lowercase;border:1px solid}
   .status--donated{background:#dcfce7;color:#166534;border-color:#bbf7d0}
-  .status--available{background:#eef2ff;color:#3730a3;border-color:#dbe2ff}
+  .status--available{background:#eef2ff;color:#30a36f;border-color:#dbe2ff}
   .status--reserved{background:#fef3c7;color:#92400e;border-color:#fde68a}
-
   .btn-del{border:1px solid #e5e7eb;background:#fff;color:#ef4444;border-radius:10px;padding:8px 10px;cursor:pointer}
   .btn-del:hover{background:#fff1f1}
 
-  @media (max-width:720px){
-    .donation-card,.request-card{grid-template-columns:1fr auto;grid-template-areas:"title status" "thumb status"}
-    .donation-card .thumb,.request-card .thumb{grid-area:thumb}
+  /* Open button */
+  .btn-open{border:1px dashed #bbf7d0;background:#fff;color:#0f766e;border-radius:10px;padding:8px 10px;cursor:pointer}
+  .btn-open:hover{background:#ecfdf5}
+
+  /* ===========================
+     SETTINGS — polished design
+     =========================== */
+  #section-settings .settings-form{display:grid; gap:28px;}
+  #section-settings fieldset{border:none; margin:0; padding:0}
+  #section-settings legend{
+    display:flex; align-items:center; gap:10px;
+    font-weight:800; font-size:1.05rem; color:#0f172a; margin-bottom:14px;
   }
-
-  /* floating back (mobile) */
-  .fab-back{position:fixed;left:16px;bottom:16px;z-index:60;display:none;background:#fff;color:#0f766e;border:1px solid #cfe8e6;border-radius:10px;padding:.55rem .9rem}
-  @media (max-width:960px){.fab-back{display:inline-flex}}
-
-  /* Toggle base */
-  .toggle{position:relative;width:44px;height:24px;border-radius:999px;background:#e5e7eb;cursor:pointer;flex-shrink:0;transition:.2s}
-  .toggle::before{content:"";position:absolute;left:3px;top:3px;width:18px;height:18px;background:#fff;border-radius:50%;transition:.2s}
-  .toggle.active{background:#10b981}
-  .toggle.active::before{transform:translateX(20px)}
-
-  /* Settings polish */
-  #section-settings .settings-form{gap:28px}
-  #section-settings fieldset{border:none;margin:0;padding:0}
-  #section-settings legend{display:flex;align-items:center;gap:10px;font-weight:800;font-size:1.05rem;color:#0f172a;margin-bottom:14px}
-  #section-settings legend .lg-icon{width:28px;height:28px;border-radius:10px;display:inline-grid;place-items:center;background:#ecfdf5;border:1px solid #cbeee3;color:#0d9488}
-  #section-settings .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px 18px}
+  #section-settings .lg-icon{
+    width:28px; height:28px; border-radius:10px; display:inline-grid; place-items:center;
+    background:#ecfdf5; border:1px solid #cbeee3; color:#0d9488; box-shadow:0 1px 2px rgba(2,6,23,.04);
+  }
+  #section-settings .grid-2{display:grid; grid-template-columns:1fr 1fr; gap:14px 18px}
   @media (max-width:720px){#section-settings .grid-2{grid-template-columns:1fr}}
-  #section-settings label{font-weight:700;color:#0f172a;margin:2px 0 6px}
-  #section-settings .field{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:10px}
-  #section-settings .field:focus-within{border-color:#0ec6aa; box-shadow:0 0 0 3px rgba(16,185,129,.18)}
-  #section-settings .f-icon{width:18px;height:18px;color:#0d9488;opacity:.9;flex:0 0 18px}
+  #section-settings label{font-weight:800; color:#0f172a; margin:2px 0 6px}
+  #section-settings .field{
+    background:#fff; border:1px solid var(--line); border-radius:12px;
+    padding:10px 12px; display:flex; align-items:center; gap:10px;
+    transition:border-color .15s ease, box-shadow .15s ease;
+  }
+  #section-settings .field:focus-within{border-color:#86efac; box-shadow:0 0 0 3px rgba(16,185,129,.18)}
+  #section-settings .f-icon{width:18px; height:18px; color:#0d9488; opacity:.9; flex:0 0 18px}
   #section-settings input[type=text],
   #section-settings input[type=email],
-  #section-settings textarea{border:none;outline:none;width:100%;background:transparent;font-size:.95rem;color:#111827}
+  #section-settings textarea{
+    border:none; outline:none; width:100%; background:transparent; font-size:.95rem; color:#111827;
+  }
   #section-settings textarea{min-height:100px}
-  #section-settings .hint{color:#6b7280;font-size:.85rem;margin-top:6px}
-  #section-settings .toggle-row{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:14px}
-  #section-settings .toggle-row .tr-left{display:flex;align-items:center;gap:12px}
-  #section-settings .toggle-row .tr-icon{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;background:#f1fbf7;border:1px solid #cbeee3;color:#0d9488}
-  #section-settings .toggle{box-shadow:inset 0 0 0 1px rgba(16,24,40,.06)}
-  #section-settings .toggle.active{box-shadow:none}
-  #section-settings .section-note{background:#f8fafc;border:1px dashed #e5e7eb;color:#475569;padding:10px 12px;border-radius:10px;font-size:.9rem}
+  #section-settings .hint{color:#6b7280; font-size:.85rem; margin-top:6px}
+  #section-settings .loc-grid, #section-settings .prof-grid{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+  @media (max-width:720px){#section-settings .loc-grid, #section-settings .prof-grid{grid-template-columns:1fr}}
+  #section-settings .loc-grid select, #section-settings .prof-grid select{
+    width:100%; border:1px solid #e5e7eb; border-radius:10px; padding:10px 12px; font-size:.95rem; background:#fff;
+  }
+  #section-settings .loc-grid select:disabled{background:#f9fafb; color:#9ca3af}
+  #section-settings .toggle-row{
+    background:#fff; border:1px solid var(--line); border-radius:12px;
+    padding:12px 14px; display:flex; align-items:center; justify-content:space-between; gap:14px;
+    box-shadow:0 1px 2px rgba(2,6,23,.02);
+  }
+  #section-settings .toggle-row + .toggle-row{margin-top:10px}
+  #section-settings .tr-left{display:flex; align-items:center; gap:12px}
+  #section-settings .tr-icon{
+    width:28px; height:28px; border-radius:8px; display:grid; place-items:center; background:#f1fbf7; border:1px solid #cbeee3; color:#0d9488;
+  }
+  #section-settings .toggle{
+    position:relative; width:44px; height:24px; border-radius:999px;
+    background:#e5e7eb; cursor:pointer; flex-shrink:0; transition:.2s; box-shadow:inset 0 0 0 1px rgba(16,24,40,.06);
+  }
+  #section-settings .toggle::before{
+    content:""; position:absolute; left:3px; top:3px; width:18px; height:18px; background:#fff; border-radius:50%; transition:.2s; box-shadow:0 1px 2px rgba(0,0,0,.06);
+  }
+  #section-settings .toggle.active{background:var(--brand); box-shadow:none}
+  #section-settings .toggle.active::before{transform:translateX(20px)}
+  #section-settings .section-note{
+    background:#f8fafc; border:1px dashed #e5e7eb; color:#475569; padding:10px 12px; border-radius:10px; font-size:.9rem;
+  }
+  #section-settings #profCustomWrap{background:#fcfdfd; border:1px dashed #dbeafe}
 
-  /* Location and profession selects */
-  .loc-grid,.prof-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-  @media (max-width:720px){.loc-grid,.prof-grid{grid-template-columns:1fr}}
-  .loc-grid select,.prof-grid select{width:100%;border:1px solid #e5e7eb;border-radius:10px;padding:10px 12px;font-size:.95rem;background:#fff}
-  .loc-grid select:disabled{background:#f9fafb;color:#9ca3af}
+  /* ===== Simple Notification Modal ===== */
+  .nm-wrap{position:fixed;inset:0;display:none;z-index:70}
+  .nm-wrap.open{display:block}
+  .nm-backdrop{position:absolute;inset:0;background:rgba(15,23,42,.45);backdrop-filter:blur(2px)}
+  .nm-card{
+    position:relative; margin:6vh auto 0; width:min(720px,92vw);
+    background:#fff; border:1px solid var(--line); border-radius:14px; box-shadow:var(--shadow);
+    display:flex; flex-direction:column; max-height:88vh; overflow:hidden;
+    animation:pop .16s ease-out;
+  }
+  @keyframes pop{from{transform:translateY(8px);opacity:.6} to{transform:translateY(0);opacity:1}}
+  .nm-head{
+    display:grid; grid-template-columns:1fr auto auto; gap:10px; align-items:center;
+    padding:12px 14px; border-bottom:1px solid var(--line); background:#f8fafc;
+  }
+  .nm-head h3{font-size:1.05rem; font-weight:800; color:#0f172a}
+  .nm-tabs{display:inline-flex; gap:6px; background:#fff; padding:4px; border:1px solid var(--line); border-radius:999px}
+  .nm-tab{padding:6px 12px; border-radius:999px; border:0; background:transparent; cursor:pointer; font-weight:800; color:#0f172a}
+  .nm-tab.active{background:#ecfdf5; color:#0d9488; box-shadow:inset 0 0 0 1px #bbf7d0}
+  .nm-close{
+    border:1px dashed #bbf7d0; background:#fff; color:#0f766e; border-radius:10px; padding:6px 10px; cursor:pointer
+  }
+  .nm-body{overflow:auto; max-height:60vh}
+  .nm-pane .dd-item{padding:12px 14px; border-bottom:1px solid var(--line)}
+  .nm-pane .dd-empty{padding:16px; color:#64748b; text-align:center}
+  .nm-foot{
+    display:flex; justify-content:space-between; align-items:center; gap:10px;
+    padding:10px 12px; border-top:1px solid var(--line); background:#fff
+  }
+  .nm-clear{
+    background:#fff; border:1px dashed #cfe8e6; color:#0f766e; border-radius:10px; padding:8px 12px; font-weight:800; cursor:pointer
+  }
+  .nm-dismiss{background:var(--brand-2); border:1px solid var(--brand-2); color:#fff; border-radius:10px; padding:8px 12px; font-weight:800; cursor:pointer}
+
+  .footer {background-color: #0f172a;color: #cbd5e1;padding: 3rem 1rem 1rem;font-family: 'Segoe UI', sans-serif;}
+  .footer-container {display: flex;flex-wrap: wrap;justify-content: space-between;max-width: 1100px;margin: 0 auto;gap: 2rem;}
+  .footer-about {flex: 1 1 250px;}
+  .footer-logo {font-size: 1.6rem;color: #f8fafc;margin-bottom: 0.5rem;font-weight: 700;}
+  .footer-logo span {color: #38bdf8;}
+  .footer-about p {font-size: 0.9375rem;line-height: 1.6;margin-bottom: 1rem;color: #e2e8f0;}
+  .social-icons a {color: #e2e8f0;font-size: 1rem;margin-right: 0.75rem;transition: color 0.3s;}
+  .social-icons a:hover {color: #38bdf8;}
+  .footer-links {display: flex;flex: 2 1 500px;justify-content: space-between;flex-wrap: wrap;}
+  .footer-links h3 {color: #f8fafc;margin-bottom: 1rem;font-size: 1rem;}
+  .footer-links ul { list-style: none;padding: 0;}
+  .footer-links li { margin-bottom: 0.5rem;}
+  .footer-links a {color: #cbd5e1;text-decoration: none;font-size: 0.9375rem;transition: color 0.3s;}
+  .footer-links a:hover {color: #38bdf8;}
+  .footer hr {border: none;border-top: 1px solid #1e293b;margin: 2rem 0 1rem;}
+  .footer-bottom {display: flex;justify-content: space-between;flex-wrap: wrap;max-width: 1100px;margin: 0 auto;font-size: 0.875rem;color: #94a3b8;}
+  .footer-bottom a {color: #38bdf8;text-decoration: none;}
+  .footer-bottom a:hover {text-decoration: underline;}
+  @media (max-width: 768px) {
+    .footer-container {flex-direction: column;align-items: flex-start;}
+    .footer-bottom {flex-direction: column;align-items: center;gap: 0.5rem;text-align: center;}
+  }
 </style>
 </head>
 
 <body>
-  <header>
+  <!-- Sticky site nav -->
+  <header class="site">
     <div class="header-container">
       <div class="logo">DonorMedix</div>
       <nav class="nav">
@@ -167,8 +224,43 @@
         <a href="Request.html" class="nav-link">Requests</a>
       </nav>
       <div class="header-actions">
-        <button class="btn-back" id="backBtn" type="button">← Back</button>
+        <!-- 🔔 Notification bell -->
+        <button id="btnBell" class="bell" type="button" aria-haspopup="dialog" aria-controls="notifModal">🔔</button>
+        <div id="bellBadge" class="badge hidden">0</div>
+
+        <!-- SIMPLE NOTIFICATION MODAL -->
+        <div id="notifModal" class="nm-wrap" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="nmTitle">
+          <div class="nm-backdrop" data-nm-close></div>
+          <div class="nm-card">
+            <div class="nm-head">
+              <h3 id="nmTitle">Notifications</h3>
+              <div class="nm-tabs">
+                <button class="nm-tab active" data-tab="msg" aria-selected="true">Messages</button>
+                <button class="nm-tab" data-tab="act" aria-selected="false">Activity</button>
+              </div>
+              <button class="nm-close" type="button" title="Close" data-nm-close>✕</button>
+            </div>
+            <div class="nm-body">
+              <div id="dd-msg" class="nm-pane"></div>
+              <div id="dd-act" class="nm-pane hidden"></div>
+            </div>
+            <div class="nm-foot">
+              <button class="nm-clear" id="nmMarkAll" type="button">Mark all as read</button>
+              <button class="nm-dismiss" data-nm-close type="button">Close</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Keep only Profile button (no Back on upper right) -->
         <button class="sign-in-btn" onclick="window.location.href='profile.html'">Profile</button>
+      </div>
+    </div>
+
+    <!-- Top announce bar -->
+    <div id="announce" class="announce">
+      <div class="announce-inner">
+        <div id="announceText">New message</div>
+        <button id="announceClose" type="button">Dismiss</button>
       </div>
     </div>
   </header>
@@ -182,54 +274,32 @@
 
       <!-- Col 2 -->
       <div>
-        <div class="name">Sarah Johnson</div>
-        <!-- Profession under name -->
+        <div class="name" id="nameDisplay">Anonymous User</div>
         <div class="location" id="professionLine">Add your profession</div>
 
         <div class="row">
-          <span class="badge badge--verified">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 2 3-.3 1.3 2.7 2.7 1.3-.3 3 2 2.4-2 2.4.3 3-2.7 1.3-1.3 2.7-3-.3-2.4 2-2.4-2-3 .3-1.3-2.7-2.7-1.3.3-3L2 12l2-2.4-.3-3 2.7-1.3L8.7 3.7l3 .3L12 2z"/></svg>
-            Verified
-          </span>
-          <span class="badge">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="#b45309"><path d="M12 2l3.1 6.3 7 1-5 4.9 1.2 7L12 18.8 5.7 21.2 6.9 14.2 2 9.3l7-1z"/></svg>
-            Bronze Donor
-          </span>
-
-          <span class="stars" aria-label="4.8 out of 5 stars">
-            <svg viewBox="0 0 24 24" fill="#fbbf24"><path d="M12 .8l3 6 6.6 1-4.8 4.6 1.2 6.6L12 16.9 6 19.1l1.2-6.6L2.4 7.8 9 6.8z"/></svg>
-            <svg viewBox="0 0 24 24" fill="#fbbf24"><path d="M12 .8l3 6 6.6 1-4.8 4.6 1.2 6.6L12 16.9 6 19.1l1.2 6.6L2.4 7.8 9 6.8z"/></svg>
-            <svg viewBox="0 0 24 24" fill="#fbbf24"><path d="M12 .8l3 6 6.6 1-4.8 4.6 1.2 6.6L12 16.9 6 19.1l1.2 6.6L2.4 7.8 9 6.8z"/></svg>
-            <svg viewBox="0 0 24 24" fill="#fbbf24"><path d="M12 .8l3 6 6.6 1-4.8 4.6 1.2 6.6L12 16.9 6 19.1l1.2 6.6L2.4 7.8 9 6.8z"/></svg>
-            <svg viewBox="0 0 24 24"><defs><linearGradient id="half" x1="0" x2="1"><stop offset="50%" stop-color="#fbbf24"/><stop offset="50%" stop-color="#e5e7eb"/></linearGradient></defs><path d="M12 .8l3 6 6.6 1-4.8 4.6 1.2 6.6L12 16.9 6 19.1l1.2 6.6L2.4 7.8 9 6.8z" fill="url(#half)"/></svg>
-          </span>
-
-          <!-- UPDATED: dynamic header summary -->
           <span class="muted">
-            <span id="ratingDisplay">(4.8)</span>
-            Member since <span id="sinceDisplay">2023</span>
+            <span id="ratingDisplay">(0.0)</span>
+            Member since <span id="sinceDisplay">—</span>
             <span class="muted"> · </span>
-            <span id="donationsDisplay">12</span> donations
+            <span id="donationsDisplay">0</span> donations
           </span>
         </div>
 
-        <p class="bio">
-          Healthcare professional passionate about helping others access essential medicines.
-          I regularly donate unused medical supplies to support our community.
-        </p>
+        <p class="bio" id="bioPreview">Default</p>
 
         <div class="metrics" aria-label="User metrics">
-          <div><div class="n" id="mDonations">12</div><div class="label">Total Donations</div></div>
-          <div><div class="n" id="mRequests">3</div><div class="label">Total Requests</div></div>
-          <div><div class="n" id="mRating">4.8</div><div class="label">Average Rating</div></div>
+          <div><div class="n" id="mDonations">0</div><div class="label">Total Donations</div></div>
+          <div><div class="n" id="mRequests">0</div><div class="label">Total Requests</div></div>
+          <div><div class="n" id="mRating">0.0</div><div class="label">Average Rating</div></div>
         </div>
       </div>
 
-      <!-- Col 3: UPPER RIGHT actions -->
+      <!-- Col 3: inline edit controls -->
       <div class="profile-actions">
         <input id="uploadPic" type="file" accept="image/*" class="hidden" />
-        <button id="editProfileBtn" class="chip-btn" type="button">✏️ Edit</button>
-        <button id="saveProfileBtn" class="chip-btn secondary hidden" type="button">💾 Save</button>
+        <button id="editProfileBtn" class="sign-in-btn" type="button"> Edit</button>
+        <button id="saveProfileBtn" class="sign-in-btn hidden" type="button" style="background:#0bc367;border-color:#0ea5e9">Save</button>
       </div>
     </section>
 
@@ -252,27 +322,21 @@
         <div class="card tab-panel" id="section-donations" style="display:none">
           <div class="toolbar">
             <h3 style="margin:0">My Donations</h3>
-            <button class="add-btn" id="btnAddDonation" type="button">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
-              Add Donation
-            </button>
+            <button class="add-btn" id="btnAddDonation" type="button">＋ Add Donation</button>
           </div>
           <div class="donation-list" id="donationsList"></div>
         </div>
 
-        <!-- Requests -->
+        <!-- Requests (real-time) -->
         <div class="card tab-panel" id="section-requests" style="display:none">
           <div class="toolbar">
             <h3 style="margin:0">My Requests</h3>
-            <button class="add-btn" id="btnNewRequest" type="button">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
-              New Request
-            </button>
+            <button class="add-btn" id="btnNewRequest" type="button">＋ New Request</button>
           </div>
           <div class="request-list" id="requestsList"></div>
         </div>
 
-        <!-- Settings (Profile Info + Privacy + Location + Profession Categories) -->
+        <!-- SETTINGS (FULL + FUNCTIONS KEPT) -->
         <div class="card tab-panel" id="section-settings" style="display:none">
           <form class="settings-form">
             <fieldset>
@@ -282,7 +346,7 @@
                   <label for="name">Full Name</label>
                   <div class="field">
                     <svg class="f-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-5 0-8 2.5-8 5v1h16v-1c0-2.5-3-5-8-5Z"/></svg>
-                    <input type="text" id="name" value="Sarah Johnson" disabled>
+                    <input type="text" id="name" value="" disabled>
                   </div>
                 </div>
 
@@ -311,14 +375,14 @@
                   <label for="email">Email</label>
                   <div class="field">
                     <svg class="f-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v12H4z"/><path d="m22 6-10 7L2 6"/></svg>
-                    <input type="email" id="email" value="sarah.johnson@email.com" disabled>
+                    <input type="email" id="email" value="" disabled>
                   </div>
                 </div>
                 <div>
                   <label for="phone">Phone</label>
                   <div class="field">
                     <svg class="f-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.86 19.86 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.86 19.86 0 0 1 2.12 4.2 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.89.3 1.76.54 2.6a2 2 0 0 1-.45 2L8.09 9.91a16 16 0 0 0 6 6l1.59-1.11a2 2 0 0 1 2-.15 12.29 12.29 0 0 0 2.6.54A2 2 0 0 1 22 16.92Z"/></svg>
-                    <input type="text" id="phone" value="+1 (555) 123-4567" disabled>
+                    <input type="text" id="phone" value="" disabled>
                   </div>
                 </div>
 
@@ -349,16 +413,17 @@
                   <label for="bio">Bio</label>
                   <div class="field">
                     <svg class="f-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h16M4 10h16M4 16h10"/></svg>
-                    <textarea id="bio" disabled>Default</textarea>
+                    <textarea id="bio" disabled></textarea>
                   </div>
                 </div>
               </div>
             </fieldset>
 
             <fieldset>
-              <legend> Privacy Settings</legend>
+              <legend><span class="lg-icon">🔒</span> Privacy Settings</legend>
               <div class="toggle-row">
                 <div class="tr-left">
+                  <div class="tr-icon">📍</div>
                   <div>
                     <div style="font-weight:700">Show Location</div>
                     <small class="muted">Display your general location to other users</small>
@@ -366,8 +431,9 @@
                 </div>
                 <div class="toggle" id="toggleLocation" role="switch" aria-checked="false" tabindex="0"></div>
               </div>
-              <div class="toggle-row" style="margin-top:10px">
+              <div class="toggle-row">
                 <div class="tr-left">
+                  <div class="tr-icon">🌐</div>
                   <div>
                     <div style="font-weight:700">Public Profile</div>
                     <small class="muted">Allow others to view your donation activity</small>
@@ -385,33 +451,63 @@
     </section>
   </main>
 
-  <button class="fab-back" id="backFab" type="button">← Back</button>
+  <footer class="footer">
+  <div class="footer-container">
+    <div class="footer-about">
+      <h2 class="footer-logo">Donor<span>Medix</span></h2>
+      <p>Connecting communities to share life-saving medicines and reduce healthcare waste.</p>
+      <div class="social-icons">
+        <a href="#"><i class="fab fa-facebook-f"></i></a>
+        <a href="#"><i class="fab fa-twitter"></i></a>
+        <a href="#"><i class="fab fa-instagram"></i></a>
+        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+      </div>
+    </div>
 
-  <!-- Cloudinary Upload Widget -->
+    <div class="footer-links">
+      <div>
+        <h3>Quick Links</h3>
+        <ul>
+          <li><a href="#">How It Works</a></li>
+          <li><a href="#">Browse Medicines</a></li>
+          <li><a href="#">Donate Medicine</a></li>
+          <li><a href="#">Health Blog</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Support</h3>
+        <ul>
+          <li><a href="#">Help Center</a></li>
+          <li><a href="#">Safety Guidelines</a></li>
+          <li><a href="#">Community Guidelines</a></li>
+          <li><a href="#">Report Issue</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Legal</h3>
+        <ul>
+          <li><a href="#">Privacy Policy</a></li>
+          <li><a href="#">Terms of Service</a></li>
+          <li><a href="#">Cookie Policy</a></li>
+          <li><a href="#">Disclaimer</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <div class="footer-bottom">
+    <p>© 2025 DonorMedix. All rights reserved.</p>
+  </div>
+</footer>
+
+  <!-- Cloudinary -->
   <script src="https://widget.cloudinary.com/v2.0/global/all.js"></script>
 
   <!-- JS (ESM) -->
   <script type="module">
-    /* ---------- Back Buttons ---------- */
-    const goBack = () => {
-      try{
-        const ref = document.referrer || "";
-        const sameOrigin = ref && new URL(ref, location.href).origin === location.origin;
-        if (sameOrigin && history.length > 1) history.back();
-        else location.href = "Home Page.html";
-      }catch(_){ location.href = "Home Page.html"; }
-    };
-    document.getElementById('backBtn')?.addEventListener('click', goBack);
-    document.getElementById('backFab')?.addEventListener('click', goBack);
-
-    /* ---------- Active Nav ---------- */
-    const path = (location.pathname || '').split('/').pop().toLowerCase();
-    document.querySelectorAll('.nav-link').forEach(a=>{
-      const href = a.getAttribute('href')?.toLowerCase().trim();
-      if(href && path && href === path){ a.classList.add('active'); }
-    });
-
-    /* ---------- Tabs ---------- */
+    /* ---------- Tab logic ---------- */
     const tabs = document.querySelectorAll('.tab');
     const panels = document.querySelectorAll('.tab-panel');
     function showTab(id){
@@ -422,82 +518,53 @@
     tabs.forEach(t => t.addEventListener('click', ()=> showTab(t.dataset.target)));
     showTab('section-overview');
 
-    /* ---------- Helpers ---------- */
-    const $ = (s)=>document.querySelector(s);
-    const nowStr = ()=>{
-      const d = new Date();
-      return d.toLocaleDateString(undefined, {month:'short', day:'numeric', year:'numeric'});
-    };
-    const keyFor = (uid, kind)=>`dmx_${kind}_${uid}`;
-    const getArr = (uid, kind)=>{ try{return JSON.parse(localStorage.getItem(keyFor(uid,kind))||'[]')}catch{return[]} };
-    const setArr = (uid, kind, arr)=> localStorage.setItem(keyFor(uid,kind), JSON.stringify(arr));
+    /* ---------- Active nav highlight ---------- */
+    (function(){
+      const path = (location.pathname||'').split('/').pop();
+      document.querySelectorAll('nav a').forEach(a=>{
+        if (a.getAttribute('href') === path) a.classList.add('active');
+      });
+    })();
 
-    const donationsList = $('#donationsList');
-    const requestsList  = $('#requestsList');
-    const activityFeed  = $('#activityFeed');
+    /* ---------- Announce bar ---------- */
+    const announce = document.getElementById('announce');
+    const announceText = document.getElementById('announceText');
+    document.getElementById('announceClose')?.addEventListener('click', ()=> announce.classList.remove('show'));
+    function toastTop(msg){
+      if(!announce||!announceText) return;
+      announceText.textContent = msg;
+      announce.classList.add('show');
+      setTimeout(()=>announce.classList.remove('show'), 6000);
+    }
 
-    /* ---------- Cloudinary Upload (profile photo) ---------- */
+    /* ---------- Cloudinary (avatar) ---------- */
     const CLOUDINARY_CLOUD_NAME = "dsw0erpjx";
     const CLOUDINARY_UNSIGNED_PRESET = "donormedix";
-
-    function openCloudinaryWidget(onSuccess){
-      if (!window.cloudinary || !window.cloudinary.createUploadWidget) {
-        alert("Cloudinary widget failed to load. Check your network.");
-        return;
-      }
-      const widget = window.cloudinary.createUploadWidget({
+    document.getElementById('avatarClick')?.addEventListener('click', ()=>{
+      if (!window.cloudinary?.createUploadWidget) return alert("Cloudinary not loaded.");
+      const w = window.cloudinary.createUploadWidget({
         cloudName: CLOUDINARY_CLOUD_NAME,
         uploadPreset: CLOUDINARY_UNSIGNED_PRESET,
-        multiple: false,
-        cropping: true,
-        croppingAspectRatio: 1,
-        sources: ["local","url","camera"],
-        folder: "donormedix/avatars",
-        maxImageFileSize: 5_000_000,
-        clientAllowedFormats: ["jpg","jpeg","png","webp"],
-        resourceType: "image"
-      }, (error, result) => {
-        if (error) {
-          console.error("Cloudinary error:", error);
-          const msg = (error.status === 400) ? "Check your upload preset (must be Unsigned) and cloud name." : "Upload failed.";
-          alert(msg);
-          return;
-        }
-        if (result && result.event === "success") {
-          onSuccess(result.info.secure_url);
+        multiple:false, cropping:true, croppingAspectRatio:1, maxImageFileSize:5_000_000
+      }, (err,res)=>{
+        if (err) return console.error(err);
+        if (res?.event==='success'){
+          const url = res.info.secure_url;
+          const img=document.getElementById('profilePic');
+          if(img) img.src=url;
+          document.getElementById('saveProfileBtn')?.classList.remove('hidden');
+          document.getElementById('editProfileBtn')?.classList.add('hidden');
         }
       });
-      widget.open();
-    }
-
-    document.getElementById('avatarClick')?.addEventListener('click', ()=>{
-      const img = document.getElementById('profilePic');
-      openCloudinaryWidget((url)=>{
-        img.src = url;
-        document.getElementById('saveProfileBtn')?.classList.remove('hidden');
-        document.getElementById('editProfileBtn')?.classList.add('hidden');
-        pushActivity('Profile photo updated', 'Preview shown — click Save to persist', 'done');
-      });
+      w.open();
     });
-
-    /* ---------- Activity helper ---------- */
-    function pushActivity(text, sub, kind='post'){
-      const color = kind==='done' ? '#10b981' : (kind==='star' ? '#f59e0b' : '#0ea5e9');
-      const d = document.createElement('div');
-      d.className = 'act';
-      d.innerHTML = `
-        <div class="icon ${kind}">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2">
-            <path d="${kind==='done'?'M20 6L9 17l-5-5':'M12 5v14M5 12h14'}"/>
-          </svg>
-        </div>
-        <div><div style="font-weight:700">${text}</div><div class="muted">${sub}</div></div>`;
-      activityFeed?.prepend(d);
-    }
 
     /* ---------- Firebase ---------- */
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
-    import { getFirestore, doc, getDoc, setDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+    import {
+      getFirestore, doc, getDoc, setDoc, updateDoc, increment, deleteDoc,
+      collection, query, where, orderBy, onSnapshot
+    } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
     import { getAuth, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 
     const firebaseConfig = {
@@ -513,53 +580,56 @@
     const db = getFirestore(appFB);
     const auth = getAuth(appFB);
 
+    /* ---------- DOM refs ---------- */
+    const donationsList = document.getElementById('donationsList');
+    const requestsList  = document.getElementById('requestsList');
+    const activityFeed  = document.getElementById('activityFeed');
+
+    const nameDisplay   = document.getElementById('nameDisplay');
+    const profLine      = document.getElementById('professionLine');
+
+    const mDon = document.getElementById('mDonations');
+    const mReq = document.getElementById('mRequests');
+    const mRat = document.getElementById('mRating');
+    const ratingDisp = document.getElementById('ratingDisplay');
+    const sinceDisp  = document.getElementById('sinceDisplay');
+    const donsDisp   = document.getElementById('donationsDisplay');
+
+    /* ---------- Helpers ---------- */
+    const nowStr = ()=> new Date().toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});
+    const keyFor = (uid,kind)=>`dmx_${kind}_${uid}`;
+    const getArr = (uid,kind)=>{ try{return JSON.parse(localStorage.getItem(keyFor(uid,kind))||'[]')}catch{return[]} };
+    const setArr = (uid,kind,arr)=> localStorage.setItem(keyFor(uid,kind), JSON.stringify(arr));
+
+    // Safe HTML escape for templating
+    function escapeHtml(s){
+      return (s ?? "").toString().replace(/[&<>"']/g, m => (
+        {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m] || m
+      ));
+    }
+
+    function pushActivity(text, sub){
+      const d = document.createElement('div'); d.className='act';
+      d.innerHTML = `<div class="icon">💬</div><div><div style="font-weight:800">${text}</div><div class="muted">${sub||''}</div></div>`;
+      activityFeed?.prepend(d);
+      // mirror into notification Activity tab
+      const ddAct = document.getElementById('dd-act');
+      if (ddAct) ddAct.innerHTML = `<div class="dd-item"><strong>${text}</strong><br><small>${nowStr()}</small></div>` + (ddAct.innerHTML||'');
+    }
+
     function updateMetricsUI(data){
-      const n1 = document.getElementById("mDonations");
-      const n2 = document.getElementById("mRequests");
-      const n3 = document.getElementById("mRating");
-      if (n1) n1.textContent = data.donations ?? 0;
-      if (n2) n2.textContent = data.requests ?? 0;
-      if (n3) n3.textContent = data.rating ?? 0;
+      if (mDon) mDon.textContent = data.donations ?? 0;
+      if (mReq) mReq.textContent = data.requests ?? 0;
+      if (mRat) mRat.textContent = (data.rating ?? 0).toFixed(1);
+      if (ratingDisp) ratingDisp.textContent = `(${(data.rating ?? 0).toFixed(1)})`;
+      if (sinceDisp) sinceDisp.textContent = data.since || '—';
+      if (donsDisp) donsDisp.textContent = String(data.donations ?? 0);
     }
 
-    function populateProfile(data){
-      $("#profilePic")?.setAttribute("src", data.photoURL || "default-profile.png");
-      document.querySelector(".name").textContent = data.name || "Anonymous User";
-      document.getElementById("professionLine").textContent = data.profession || "Add your profession";
-      ["name","email","phone","bio"].forEach(id=>{
-        const el=document.getElementById(id); if(el) el.value = (data[id] ?? "");
-      });
-      const profInput = document.getElementById("profession");
-      if (profInput && data.profession) profInput.value = data.profession;
-      updateMetricsUI(data);
-    }
-
-    /* ---------- Donations & Requests (add + delete) ---------- */
-    function setupAddButtons(uid, userData){
-      const refDoc = doc(db, "users", uid);
-
-      document.getElementById('btnAddDonation')?.addEventListener('click', async ()=>{
-        const arr = getArr(uid,'donations');
-        const item = { id: String(Date.now()), title:'New Donation', subtitle:'Auto-added draft', date:nowStr(), status:'available', statusClass:'status--available', emoji:'🎁' };
-        arr.unshift(item); setArr(uid,'donations',arr); renderLists(uid);
-        pushActivity('New donation posted', item.title, 'post');
-        try{ await updateDoc(refDoc,{donations:increment(1)}); userData.donations=(userData.donations||0)+1; updateMetricsUI({ ...userData }); }catch(e){console.warn(e)}
-        location.href = 'Donate.html';
-      });
-
-      document.getElementById('btnNewRequest')?.addEventListener('click', async ()=>{
-        const arr = getArr(uid,'requests');
-        const item = { id: String(Date.now()), title:'New Request', subtitle:'Urgency: medium', date:nowStr(), status:'pending', statusClass:'status--reserved', emoji:'📝' };
-        arr.unshift(item); setArr(uid,'requests',arr); renderLists(uid);
-        pushActivity('Request created', item.title, 'post');
-        try{ await updateDoc(refDoc,{requests:increment(1)}); userData.requests=(userData.requests||0)+1; updateMetricsUI({ ...userData }); }catch(e){console.warn(e)}
-        location.href = 'Request.html';
-      });
-    }
-
+    /* ---------- Donation templates (local legacy — kept if needed) ---------- */
     const donationItemTemplate = (d)=>`
       <article class="donation-card" data-id="${d.id}">
-        <div class="thumb" aria-hidden="true">${d.emoji || '💊'}</div>
+        <div class="thumb">${d.emoji || '🎁'}</div>
         <div>
           <div class="item-title">${d.title}</div>
           <div class="item-sub">${d.subtitle || ''}</div>
@@ -571,66 +641,342 @@
         </div>
       </article>`;
 
+    function renderDonationList(uid){
+      const ds = getArr(uid,'donations');
+      donationsList.innerHTML = (Array.isArray(ds)&&ds.length) ? ds.map(donationItemTemplate).join('') : '<div class="muted">No donations yet.</div>';
+      updateMetricsUI({ donations: ds.length, requests: Number(mReq?.textContent||0), rating: Number((mRat?.textContent)||0) });
+    }
+
+    function bindDonationDeletes(uid, userData){
+      donationsList?.addEventListener('click', (e)=>{
+        const btn = e.target.closest('.btn-del'); if (!btn) return;
+        const id = btn.dataset.id;
+        let ds = getArr(uid,'donations');
+        const before = ds.length;
+        ds = ds.filter(x=> String(x.id)!==String(id));
+        setArr(uid,'donations', ds);
+        renderDonationList(uid);
+        if (before !== ds.length){
+          pushActivity('Donation removed', `ID ${id}`);
+          userData.donations = Math.max(0,(userData.donations||0)-1);
+          updateMetricsUI(userData);
+        }
+      });
+    }
+
+    /* ---------- Requests template (with Open button) ---------- */
     const requestItemTemplate = (r)=>`
-      <article class="request-card" data-id="${r.id}">
-        <div class="thumb" aria-hidden="true">${r.emoji || '📝'}</div>
+      <article class="request-card" data-id="${r._id || r.id}">
+        <div class="thumb">📝</div>
         <div>
-          <div class="item-title">${r.title}</div>
-          <div class="item-sub">${r.subtitle || ''}</div>
-          <div class="item-date">Requested ${r.date || nowStr()}</div>
+          <div class="item-title">${r.title || 'Request'}</div>
+          <div class="item-sub">${r.description || r.subtitle || ''}</div>
+          <div class="item-date">${r._when || ''}</div>
         </div>
         <div style="display:grid;gap:8px;justify-items:end">
-          <span class="status ${r.statusClass || 'status--reserved'}">${r.status || 'pending'}</span>
-          <button class="btn-del" data-type="request" data-id="${r.id}" type="button">Delete</button>
+          <div style="display:flex; gap:8px">
+            <button class="btn-del"  data-type="request" data-id="${r._id || r.id}" type="button">Delete</button>
+            <button class="btn-open" data-id="${r._id || r.id}" type="button">Open</button>
+          </div>
         </div>
       </article>`;
 
-    function renderLists(uid){
-      const ds = getArr(uid,'donations');
-      const rs = getArr(uid,'requests');
-      donationsList.innerHTML = ds.length ? ds.map(donationItemTemplate).join('') : '<div class="muted">No donations yet.</div>';
-      requestsList.innerHTML  = rs.length ? rs.map(requestItemTemplate).join('') : '<div class="muted">No requests yet.</div>';
-      const cached = JSON.parse(localStorage.getItem('userProfile')||'{}');
-      updateMetricsUI({ donations: ds.length, requests: rs.length, rating: cached?.rating ?? 4.8 });
-      updateHeaderSummary(uid, cached); /* <-- update the header summary line */
+    /* ---------- Notification modal logic ---------- */
+    const btnBell   = document.getElementById('btnBell');
+    const bellBadge = document.getElementById('bellBadge');
+    const nmWrap    = document.getElementById('notifModal');
+    const nmTabs    = nmWrap?.querySelectorAll('.nm-tab');
+    const nmCloseEls= nmWrap?.querySelectorAll('[data-nm-close]');
+    const ddMsg     = document.getElementById('dd-msg');
+    const ddAct     = document.getElementById('dd-act');
+    const markAll   = document.getElementById('nmMarkAll');
+
+    function setBadge(n){
+      if(!bellBadge) return;
+      if(n>0){ bellBadge.textContent=String(n); bellBadge.classList.remove('hidden'); }
+      else { bellBadge.classList.add('hidden'); }
     }
+    function switchPane(which){
+      if(!ddMsg || !ddAct) return;
+      const isMsg = which==='msg';
+      ddMsg.classList.toggle('hidden', !isMsg);
+      ddAct.classList.toggle('hidden', isMsg);
+      nmTabs.forEach(t=>{
+        const active = t.dataset.tab===which;
+        t.classList.toggle('active', active);
+        t.setAttribute('aria-selected', active?'true':'false');
+      });
+    }
+    function openNotifModal(){
+      if(!nmWrap) return;
+      nmWrap.classList.add('open');
+      nmWrap.setAttribute('aria-hidden','false');
+      switchPane('msg');
+      nmTabs?.[0]?.focus();
+    }
+    function closeNotifModal(){
+      if(!nmWrap) return;
+      nmWrap.classList.remove('open');
+      nmWrap.setAttribute('aria-hidden','true');
+    }
+    btnBell?.addEventListener('click', openNotifModal);
+    nmTabs?.forEach(t=> t.addEventListener('click', ()=> switchPane(t.dataset.tab)));
+    nmCloseEls?.forEach(el=> el.addEventListener('click', closeNotifModal));
+    document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeNotifModal(); });
+    nmWrap?.addEventListener('click', (e)=>{ if(e.target?.hasAttribute?.('data-nm-close')) closeNotifModal(); });
 
-    function setupDeleteHandlers(uid, userData){
-      const refDoc = doc(db, "users", uid);
+    function getReadMap(uid){ try{ return JSON.parse(localStorage.getItem(`dmx_unread_${uid}`)||'{}'); }catch{return{}} }
+    function setReadMap(uid,map){ localStorage.setItem(`dmx_unread_${uid}`, JSON.stringify(map||{})); }
 
-      const handleDelete = async (kind, id) =>{
-        const key = kind === 'donation' ? 'donations' : 'requests';
-        let arr = getArr(uid, key);
-        const before = arr.length;
-        arr = arr.filter(x => String(x.id) !== String(id));
-        setArr(uid, key, arr);
-        renderLists(uid);
+    markAll?.addEventListener('click', ()=>{
+      if(!window.__notif_userId) return;
+      const map = getReadMap(window.__notif_userId);
+      const now = Date.now();
+      Object.keys(map).forEach(k=> map[k]=now);
+      setReadMap(window.__notif_userId, map);
+      setBadge(0);
+    });
 
-        if (before !== arr.length) {
-          try{
-            await updateDoc(refDoc, { [key]: increment(-1) });
-            userData[key] = Math.max(0, (userData[key] || 0) - 1);
-            updateMetricsUI(userData);
-            pushActivity(kind === 'donation' ? 'Donation removed' : 'Request removed', `ID ${id}`, 'done');
-            updateHeaderSummary(uid, userData); /* keep header in sync */
-          }catch(e){ console.warn(e); }
+    /* ---------- PSGC LOCATION + PROFESSION MAP (Settings) ---------- */
+    const PSGC_BASE = "https://psgc.gitlab.io/api";
+    async function fetchJson(url){ const r=await fetch(url); if(!r.ok) throw new Error(`HTTP ${r.status} for ${url}`); return r.json(); }
+    async function getRegions(){ return fetchJson(`${PSGC_BASE}/regions/`); }
+    async function getProvincesByRegion(regionCode){
+      try{ return await fetchJson(`${PSGC_BASE}/regions/${regionCode}/provinces/`); }
+      catch{ const all = await fetchJson(`${PSGC_BASE}/provinces/`); return all.filter(p=>p.regionCode===regionCode); }
+    }
+    async function getCitiesMunsByProvince(provCode){
+      try{ return await fetchJson(`${PSGC_BASE}/provinces/${provCode}/cities-municipalities/`); }
+      catch{
+        const prov = await fetchJson(`${PSGC_BASE}/provinces/${provCode}/`);
+        const regionCities = await fetchJson(`${PSGC_BASE}/regions/${prov.regionCode}/cities-municipalities/`);
+        return regionCities.filter(x=>x.provinceCode===provCode);
+      }
+    }
+    async function getBarangaysByCityMun(cm){
+      const code = cm.code || cm.cityCode || cm.municipalityCode;
+      try{ return await fetchJson(`${PSGC_BASE}/cities/${code}/barangays/`); }
+      catch{
+        try{ return await fetchJson(`${PSGC_BASE}/municipalities/${code}/barangays/`); }
+        catch{
+          const all = await fetchJson(`${PSGC_BASE}/barangays/`);
+          return all.filter(b=>b.cityCode===code || b.municipalityCode===code);
         }
-      };
-
-      donationsList?.addEventListener('click', (e)=>{
-        const btn = e.target.closest('.btn-del');
-        if (!btn) return;
-        handleDelete('donation', btn.dataset.id);
-      });
-
-      requestsList?.addEventListener('click', (e)=>{
-        const btn = e.target.closest('.btn-del');
-        if (!btn) return;
-        handleDelete('request', btn.dataset.id);
-      });
+      }
     }
+    function opt(text, value){ const o=document.createElement('option'); o.textContent=text; o.value=value; return o; }
 
-    /* ---------- Privacy toggles ---------- */
+    const selRegion = document.getElementById('selRegion');
+    const selProvince = document.getElementById('selProvince');
+    const selCityMun = document.getElementById('selCityMun');
+    const selBarangay = document.getElementById('selBarangay');
+    const hiddenLocation = document.getElementById('location');
+
+    function updateLocationString(){
+      if (!hiddenLocation) return;
+      const rn = selRegion?.selectedOptions?.[0]?.textContent || '';
+      const pn = selProvince?.selectedOptions?.[0]?.textContent || '';
+      const cn = selCityMun?.selectedOptions?.[0]?.textContent || '';
+      const bn = selBarangay?.selectedOptions?.[0]?.textContent || '';
+      hiddenLocation.value = [rn,pn,cn,bn].filter(Boolean).join(' · ');
+    }
+    async function initPSGCCascader(savedText){
+      if (!selRegion||!selProvince||!selCityMun||!selBarangay) return;
+      selRegion.innerHTML=''; selRegion.append(opt('Select Region…',''));
+      selProvince.innerHTML=''; selProvince.append(opt('Select Province…','')); selProvince.disabled=true;
+      selCityMun.innerHTML=''; selCityMun.append(opt('Select City/Municipality…','')); selCityMun.disabled=true;
+      selBarangay.innerHTML=''; selBarangay.append(opt('Select Barangay…','')); selBarangay.disabled=true;
+      try{
+        const regions=await getRegions();
+        regions.sort((a,b)=> (a.regionName||a.name).localeCompare(b.regionName||b.name));
+        regions.forEach(r=> selRegion.append(opt(r.regionName||r.name, r.code)));
+
+        if (savedText){
+          const parts = savedText.split(' · ').map(s=>s.trim()).filter(Boolean);
+          const [savedRegion, savedProv, savedCity, savedBrgy] = parts;
+          if (savedRegion){
+            const rOpt = Array.from(selRegion.options).find(o=>o.textContent===savedRegion);
+            if (rOpt){ selRegion.value=rOpt.value; await onRegionChange(false); }
+          }
+          if (savedProv){
+            const pOpt = Array.from(selProvince.options).find(o=>o.textContent===savedProv);
+            if (pOpt){ selProvince.value=pOpt.value; await onProvinceChange(false); }
+          }
+          if (savedCity){
+            const cOpt = Array.from(selCityMun.options).find(o=>o.textContent===savedCity);
+            if (cOpt){ selCityMun.value=cOpt.value; await onCityMunChange(false); }
+          }
+          if (savedBrgy){
+            const bOpt = Array.from(selBarangay.options).find(o=>o.textContent===savedBrgy);
+            if (bOpt){ selBarangay.value=bOpt.value; }
+          }
+          updateLocationString();
+        }
+      }catch(e){ console.warn("PSGC init failed:", e); }
+    }
+    async function onRegionChange(clearLower=true){
+      if (!selRegion||!selProvince||!selCityMun||!selBarangay) return;
+      const regionCode=selRegion.value;
+      if (!regionCode){
+        if (clearLower){
+          selProvince.innerHTML=''; selProvince.append(opt('Select Province…','')); selProvince.disabled=true;
+          selCityMun.innerHTML=''; selCityMun.append(opt('Select City/Municipality…','')); selCityMun.disabled=true;
+          selBarangay.innerHTML=''; selBarangay.append(opt('Select Barangay…','')); selBarangay.disabled=true;
+        }
+        updateLocationString(); return;
+      }
+      selProvince.disabled=false;
+      selProvince.innerHTML=''; selProvince.append(opt('Loading provinces…',''));
+      try{
+        const provs = await getProvincesByRegion(regionCode);
+        selProvince.innerHTML=''; selProvince.append(opt('Select Province…',''));
+        provs.sort((a,b)=>a.name.localeCompare(b.name)).forEach(p=> selProvince.append(opt(p.name,p.code)));
+        selCityMun.innerHTML=''; selCityMun.append(opt('Select City/Municipality…','')); selCityMun.disabled=true;
+        selBarangay.innerHTML=''; selBarangay.append(opt('Select Barangay…','')); selBarangay.disabled=true;
+      }catch(e){ console.warn("Provinces error:", e); }
+      updateLocationString();
+    }
+    async function onProvinceChange(clearLower=true){
+      if (!selProvince||!selCityMun||!selBarangay) return;
+      const code=selProvince.value;
+      if (!code){
+        if (clearLower){
+          selCityMun.innerHTML=''; selCityMun.append(opt('Select City/Municipality…','')); selCityMun.disabled=true;
+          selBarangay.innerHTML=''; selBarangay.append(opt('Select Barangay…','')); selBarangay.disabled=true;
+        }
+        updateLocationString(); return;
+      }
+      selCityMun.disabled=false;
+      selCityMun.innerHTML=''; selCityMun.append(opt('Loading…',''));
+      try{
+        const cms = await getCitiesMunsByProvince(code);
+        selCityMun.innerHTML=''; selCityMun.append(opt('Select City/Municipality…',''));
+        cms.sort((a,b)=>a.name.localeCompare(b.name)).forEach(c=> selCityMun.append(opt(c.name,c.code)));
+        selBarangay.innerHTML=''; selBarangay.append(opt('Select Barangay…','')); selBarangay.disabled=true;
+      }catch(e){ console.warn("Cities error:", e); }
+      updateLocationString();
+    }
+    async function onCityMunChange(clearLower=true){
+      if (!selCityMun||!selBarangay) return;
+      const code=selCityMun.value;
+      if (!code){
+        if (clearLower){
+          selBarangay.innerHTML=''; selBarangay.append(opt('Select Barangay…','')); selBarangay.disabled=true;
+        }
+        updateLocationString(); return;
+      }
+      selBarangay.disabled=false;
+      selBarangay.innerHTML=''; selBarangay.append(opt('Loading barangays…',''));
+      try{
+        const brgys = await getBarangaysByCityMun({code});
+        selBarangay.innerHTML=''; selBarangay.append(opt('Select Barangay…',''));
+        brgys.sort((a,b)=>a.name.localeCompare(b.name)).forEach(b=> selBarangay.append(opt(b.name,b.code)));
+      }catch(e){ console.warn("Barangays error:", e); }
+      updateLocationString();
+    }
+    selRegion?.addEventListener('change', ()=>onRegionChange(true).then(updateLocationString));
+    selProvince?.addEventListener('change', ()=>onProvinceChange(true).then(updateLocationString));
+    selCityMun?.addEventListener('change', ()=>onCityMunChange(true).then(updateLocationString));
+    selBarangay?.addEventListener('change', updateLocationString);
+
+    /* Profession categories/roles */
+    const selProfCat = document.getElementById('selProfCat');
+    const selProfRole = document.getElementById('selProfRole');
+    const profCustomWrap = document.getElementById('profCustomWrap');
+    const inputProfession = document.getElementById('profession');
+
+    const PROF_MAP = {
+      "Business": ["Entrepreneur","Operations","Sales","Finance/Accounting","HR","Admin Assistant","Other (Custom)"],
+      "Education": ["Teacher","Professor","Tutor","School Administrator","Guidance Counselor","Librarian","Other (Custom)"],
+      "Engineering": ["Civil Engineer","Mechanical Engineer","Electrical Engineer","Electronics Engineer","Software Engineer","QA Engineer","Architect","Other (Custom)"],
+      "Freelance & Creative": ["Freelancer","Photographer","Videographer","Writer","Artist","Musician","Other (Custom)"],
+      "Healthcare": ["Doctor","Nurse","Midwife","Pharmacist","Dentist","Medical Technologist","Caregiver","Therapist","Paramedic","Public Health Worker","Other (Custom)"],
+      "IT & Digital": ["Developer","UI/UX Designer","Product Manager","Data Analyst","IT Support","Cybersecurity","Digital Marketer","Other (Custom)"],
+      "Public Service": ["Gov’t Employee","Barangay Health Worker","Social Worker","Police","Firefighter","Military","Other (Custom)"],
+      "Skilled Trades": ["Driver","Electrician","Plumber","Mechanic","Construction Worker","Farmer","Fisherfolk","Other (Custom)"],
+      "Student": ["Senior High Student","College Student","Graduate Student","Other (Custom)"]
+    };
+    function fillProfCategories(){
+      if (!selProfCat) return;
+      selProfCat.innerHTML = "";
+      selProfCat.append(opt("Select Category…",""));
+      Object.keys(PROF_MAP).sort().forEach(cat=> selProfCat.append(opt(cat, cat)));
+    }
+    function fillProfRoles(cat){
+      if (!selProfRole) return;
+      selProfRole.innerHTML = "";
+      selProfRole.append(opt("Select Role…",""));
+      (PROF_MAP[cat] || []).forEach(role=> selProfRole.append(opt(role, role)));
+    }
+    function showCustom(show){
+      if (!profCustomWrap || !inputProfession) return;
+      profCustomWrap.style.display = show ? "" : "none";
+      inputProfession.disabled = !show;
+      if (show && !inputProfession.value) inputProfession.value = "";
+    }
+    function getProfessionForSave(){
+      if (!selProfCat || !selProfRole) return (inputProfession?.value || "").trim();
+      const cat = selProfCat.value;
+      const role = selProfRole.value;
+      if (role && role !== "Other (Custom)") return `${role} — ${cat}`;
+      const custom = (inputProfession?.value || "").trim();
+      if (custom && cat) return `${custom} — ${cat}`;
+      return custom || "";
+    }
+    function initProfessionUI(savedProfession){
+      fillProfCategories();
+      if (selProfRole) selProfRole.disabled = true;
+      if (inputProfession) inputProfession.disabled = true;
+
+      if (!savedProfession) return;
+      const parts = savedProfession.split("—").map(s=>s.trim());
+      if (parts.length === 2 && selProfCat && selProfRole){
+        const [role, cat] = parts;
+        const catOpt = Array.from(selProfCat.options).find(o=>o.value===cat);
+        if (catOpt){
+          selProfCat.value = cat;
+          fillProfRoles(cat);
+          selProfRole.disabled = false;
+          const roleOpt = Array.from(selProfRole.options).find(o=>o.value===role);
+          if (roleOpt){
+            selProfRole.value = role;
+            showCustom(false);
+            if (inputProfession) inputProfession.value = role;
+            return;
+          }else{
+            selProfRole.value = "Other (Custom)";
+            showCustom(true);
+            if (inputProfession) inputProfession.value = role;
+            return;
+          }
+        }
+      }
+      if (selProfCat) selProfCat.value = "";
+      if (selProfRole){
+        selProfRole.innerHTML = '<option value="">Select Role…</option>';
+        selProfRole.disabled = true;
+      }
+      showCustom(true);
+      if (inputProfession) inputProfession.value = savedProfession;
+    }
+    selProfCat?.addEventListener('change', ()=>{
+      const cat = selProfCat.value;
+      fillProfRoles(cat);
+      if (selProfRole) { selProfRole.disabled = !cat; selProfRole.value = ""; }
+      showCustom(false);
+    });
+    selProfRole?.addEventListener('change', ()=>{
+      const isCustom = selProfRole.value === "Other (Custom)";
+      showCustom(isCustom);
+      if (!isCustom && inputProfession) inputProfession.value = selProfRole.value ? `${selProfRole.value}` : "";
+    });
+
+    /* ---------- Toggles ---------- */
+    function applyToggleState(id, on){
+      const el = document.getElementById(id); if(!el) return;
+      el.classList.toggle('active', !!on);
+      el.setAttribute('aria-checked', !!on ? 'true' : 'false');
+    }
     function setupToggles(uid){
       const toggles = [
         { id:"toggleLocation", field:"showLocation" },
@@ -649,273 +995,13 @@
         el.addEventListener('keydown', (e)=>{ if(e.key==='Enter'||e.key===' '){e.preventDefault();flip();}});
       });
     }
-    function applyToggleState(id, on){
-      const el = document.getElementById(id); if(!el) return;
-      el.classList.toggle('active', !!on);
-      el.setAttribute('aria-checked', !!on ? 'true' : 'false');
-    }
 
-    /* ---------- PSGC LOCATION CASCADER ---------- */
-    const PSGC_BASE = "https://psgc.gitlab.io/api";
-
-    async function fetchJson(url){
-      const r = await fetch(url);
-      if (!r.ok) throw new Error(`HTTP ${r.status} for ${url}`);
-      return r.json();
-    }
-    async function getRegions(){ return fetchJson(`${PSGC_BASE}/regions/`); }
-    async function getProvincesByRegion(regionCode){
-      try{
-        return await fetchJson(`${PSGC_BASE}/regions/${regionCode}/provinces/`);
-      }catch{
-        const all = await fetchJson(`${PSGC_BASE}/provinces/`);
-        return all.filter(p=>p.regionCode===regionCode);
-      }
-    }
-    async function getCitiesMunsByProvince(provCode){
-      try{
-        return await fetchJson(`${PSGC_BASE}/provinces/${provCode}/cities-municipalities/`);
-      }catch{
-        const prov = await fetchJson(`${PSGC_BASE}/provinces/${provCode}/`);
-        const regionCities = await fetchJson(`${PSGC_BASE}/regions/${prov.regionCode}/cities-municipalities/`);
-        return regionCities.filter(x=>x.provinceCode===provCode);
-      }
-    }
-    async function getBarangaysByCityMun(cm){
-      const code = cm.code || cm.cityCode || cm.municipalityCode;
-      try{
-        return await fetchJson(`${PSGC_BASE}/cities/${code}/barangays/`);
-      }catch{
-        try{
-          return await fetchJson(`${PSGC_BASE}/municipalities/${code}/barangays/`);
-        }catch{
-          const all = await fetchJson(`${PSGC_BASE}/barangays/`);
-          return all.filter(b=>b.cityCode===code || b.municipalityCode===code);
-        }
-      }
-    }
-
-    const selRegion = document.getElementById('selRegion');
-    const selProvince = document.getElementById('selProvince');
-    const selCityMun = document.getElementById('selCityMun');
-    const selBarangay = document.getElementById('selBarangay');
-    const hiddenLocation = document.getElementById('location');
-
-    function opt(text, value){ const o=document.createElement('option'); o.textContent=text; o.value=value; return o; }
-
-    function updateLocationString(){
-      const rn = selRegion.selectedOptions[0]?.textContent || '';
-      const pn = selProvince.selectedOptions[0]?.textContent || '';
-      const cn = selCityMun.selectedOptions[0]?.textContent || '';
-      const bn = selBarangay.selectedOptions[0]?.textContent || '';
-      const parts = [rn, pn, cn, bn].filter(Boolean);
-      hiddenLocation.value = parts.join(' · ');
-    }
-
-    async function initPSGCCascader(savedText){
-      selRegion.innerHTML = '';
-      selRegion.append(opt('Select Region…',''));
-      selProvince.innerHTML = ''; selProvince.append(opt('Select Province…','')); selProvince.disabled = true;
-      selCityMun.innerHTML = ''; selCityMun.append(opt('Select City/Municipality…','')); selCityMun.disabled = true;
-      selBarangay.innerHTML = ''; selBarangay.append(opt('Select Barangay…','')); selBarangay.disabled = true;
-
-      const regions = await getRegions();
-      regions.sort((a,b)=> (a.regionName||a.name).localeCompare(b.regionName||b.name));
-      regions.forEach(r=>{
-        const name = r.regionName ? `${r.regionName}` : r.name;
-        selRegion.append(opt(name, r.code));
-      });
-
-      if (savedText){
-        const [savedRegion, savedProv, savedCity, savedBrgy] = savedText.split(' · ').map(s=>s?.trim()).filter(Boolean);
-        if (savedRegion){
-          const rOpt = Array.from(selRegion.options).find(o=>o.textContent===savedRegion);
-          if (rOpt){ selRegion.value = rOpt.value; await onRegionChange(false); }
-        }
-        if (savedProv){
-          const pOpt = Array.from(selProvince.options).find(o=>o.textContent===savedProv);
-          if (pOpt){ selProvince.value = pOpt.value; await onProvinceChange(false); }
-        }
-        if (savedCity){
-          const cOpt = Array.from(selCityMun.options).find(o=>o.textContent===savedCity);
-          if (cOpt){ selCityMun.value = cOpt.value; await onCityMunChange(false); }
-        }
-        if (savedBrgy){
-          const bOpt = Array.from(selBarangay.options).find(o=>o.textContent===savedBrgy);
-          if (bOpt){ selBarangay.value = bOpt.value; }
-        }
-        updateLocationString();
-      }
-    }
-
-    async function onRegionChange(clearLower=true){
-      const regionCode = selRegion.value;
-      if (!regionCode){
-        if (clearLower){
-          selProvince.innerHTML = ''; selProvince.append(opt('Select Province…','')); selProvince.disabled = true;
-          selCityMun.innerHTML = ''; selCityMun.append(opt('Select City/Municipality…','')); selCityMun.disabled = true;
-          selBarangay.innerHTML=''; selBarangay.append(opt('Select Barangay…','')); selBarangay.disabled = true;
-        }
-        updateLocationString();
-        return;
-      }
-      selProvince.disabled = false;
-      selProvince.innerHTML = ''; selProvince.append(opt('Loading provinces…',''));
-      const provs = await getProvincesByRegion(regionCode);
-      selProvince.innerHTML = ''; selProvince.append(opt('Select Province…',''));
-      provs.sort((a,b)=> a.name.localeCompare(b.name)).forEach(p=> selProvince.append(opt(p.name, p.code)));
-      selCityMun.innerHTML=''; selCityMun.append(opt('Select City/Municipality…','')); selCityMun.disabled = true;
-      selBarangay.innerHTML=''; selBarangay.append(opt('Select Barangay…','')); selBarangay.disabled = true;
-      updateLocationString();
-    }
-
-    async function onProvinceChange(clearLower=true){
-      const code = selProvince.value;
-      if (!code){
-        if (clearLower){
-          selCityMun.innerHTML=''; selCityMun.append(opt('Select City/Municipality…','')); selCityMun.disabled = true;
-          selBarangay.innerHTML=''; selBarangay.append(opt('Select Barangay…','')); selBarangay.disabled = true;
-        }
-        updateLocationString();
-        return;
-      }
-      selCityMun.disabled = false;
-      selCityMun.innerHTML=''; selCityMun.append(opt('Loading…',''));
-      const cms = await getCitiesMunsByProvince(code);
-      selCityMun.innerHTML=''; selCityMun.append(opt('Select City/Municipality…',''));
-      cms.sort((a,b)=> a.name.localeCompare(b.name)).forEach(c=> selCityMun.append(opt(c.name, c.code)));
-      selBarangay.innerHTML=''; selBarangay.append(opt('Select Barangay…','')); selBarangay.disabled = true;
-      updateLocationString();
-    }
-
-    async function onCityMunChange(clearLower=true){
-      const code = selCityMun.value;
-      if (!code){
-        if (clearLower){
-          selBarangay.innerHTML=''; selBarangay.append(opt('Select Barangay…','')); selBarangay.disabled = true;
-        }
-        updateLocationString();
-        return;
-      }
-      selBarangay.disabled = false;
-      selBarangay.innerHTML=''; selBarangay.append(opt('Loading barangays…',''));
-      const cm = { code };
-      const brgys = await getBarangaysByCityMun(cm);
-      selBarangay.innerHTML=''; selBarangay.append(opt('Select Barangay…',''));
-      brgys.sort((a,b)=> a.name.localeCompare(b.name)).forEach(b=> selBarangay.append(opt(b.name, b.code)));
-      updateLocationString();
-    }
-
-    selRegion.addEventListener('change', ()=>onRegionChange(true).then(updateLocationString));
-    selProvince.addEventListener('change', ()=>onProvinceChange(true).then(updateLocationString));
-    selCityMun.addEventListener('change', ()=>onCityMunChange(true).then(updateLocationString));
-    selBarangay.addEventListener('change', updateLocationString);
-
-    /* ---------- PROFESSION CATEGORIES ---------- */
-    const selProfCat = document.getElementById('selProfCat');
-    const selProfRole = document.getElementById('selProfRole');
-    const profCustomWrap = document.getElementById('profCustomWrap');
-    const inputProfession = document.getElementById('profession');
-
-    const PROF_MAP = {
-      "Healthcare": ["Doctor","Nurse","Midwife","Pharmacist","Dentist","Medical Technologist","Caregiver","Therapist","Paramedic","Public Health Worker","Other (Custom)"],
-      "Education": ["Teacher","Professor","Tutor","School Administrator","Guidance Counselor","Librarian","Other (Custom)"],
-      "Engineering": ["Civil Engineer","Mechanical Engineer","Electrical Engineer","Electronics Engineer","Software Engineer","QA Engineer","Architect","Other (Custom)"],
-      "IT & Digital": ["Developer","UI/UX Designer","Product Manager","Data Analyst","IT Support","Cybersecurity","Digital Marketer","Other (Custom)"],
-      "Public Service": ["Gov’t Employee","Barangay Health Worker","Social Worker","Police","Firefighter","Military","Other (Custom)"],
-      "Business": ["Entrepreneur","Operations","Sales","Finance/Accounting","HR","Admin Assistant","Other (Custom)"],
-      "Student": ["Senior High Student","College Student","Graduate Student","Other (Custom)"],
-      "Freelance & Creative": ["Freelancer","Photographer","Videographer","Writer","Artist","Musician","Other (Custom)"],
-      "Skilled Trades": ["Driver","Electrician","Plumber","Mechanic","Construction Worker","Farmer","Fisherfolk","Other (Custom)"]
-    };
-
-    function fillProfCategories(){
-      selProfCat.innerHTML = "";
-      selProfCat.append(opt("Select Category…",""));
-      Object.keys(PROF_MAP).sort().forEach(cat=>{
-        selProfCat.append(opt(cat, cat));
-      });
-    }
-
-    function fillProfRoles(cat){
-      selProfRole.innerHTML = "";
-      selProfRole.append(opt("Select Role…",""));
-      (PROF_MAP[cat] || []).forEach(role=>{
-        selProfRole.append(opt(role, role));
-      });
-    }
-
-    function showCustom(show){
-      profCustomWrap.style.display = show ? "" : "none";
-      inputProfession.disabled = !show;
-      if (show && !inputProfession.value) inputProfession.value = "";
-    }
-
-    selProfCat.addEventListener('change', ()=>{
-      const cat = selProfCat.value;
-      fillProfRoles(cat);
-      selProfRole.disabled = !cat;
-      selProfRole.value = "";
-      showCustom(false);
-    });
-
-    selProfRole.addEventListener('change', ()=>{
-      const isCustom = selProfRole.value === "Other (Custom)";
-      showCustom(isCustom);
-      if (!isCustom) {
-        inputProfession.value = selProfRole.value ? `${selProfRole.value}` : "";
-      }
-    });
-
-    function getProfessionForSave(){
-      const cat = selProfCat.value;
-      const role = selProfRole.value;
-      if (role && role !== "Other (Custom)") return `${role} — ${cat}`;
-      const custom = inputProfession.value.trim();
-      if (custom && cat) return `${custom} — ${cat}`;
-      return custom || "";
-    }
-
-    function initProfessionUI(savedProfession){
-      fillProfCategories();
-      selProfRole.disabled = true;
-      inputProfession.disabled = true;
-
-      if (!savedProfession) return;
-      const parts = savedProfession.split("—").map(s=>s.trim());
-      if (parts.length === 2){
-        const [role, cat] = parts;
-        const catOpt = Array.from(selProfCat.options).find(o=>o.value===cat);
-        if (catOpt){
-          selProfCat.value = cat;
-          fillProfRoles(cat);
-          selProfRole.disabled = false;
-          const roleOpt = Array.from(selProfRole.options).find(o=>o.value===role);
-          if (roleOpt){
-            selProfRole.value = role;
-            showCustom(false);
-            inputProfession.value = role;
-            return;
-          }else{
-            selProfRole.value = "Other (Custom)";
-            showCustom(true);
-            inputProfession.value = role;
-            return;
-          }
-        }
-      }
-      selProfCat.value = "";
-      selProfRole.innerHTML = '<option value="">Select Role…</option>';
-      selProfRole.disabled = true;
-      showCustom(true);
-      inputProfession.value = savedProfession;
-    }
-
-    /* ---------- Edit/Save (upper-right) ---------- */
+    /* ---------- Edit/Save (inline) ---------- */
     function setupInlineEdit(uid){
-      const editBtn = $("#editProfileBtn");
-      const saveBtn = $("#saveProfileBtn");
-      const profilePic = $("#profilePic");
+      const editBtn = document.getElementById('editProfileBtn');
+      const saveBtn = document.getElementById('saveProfileBtn');
+      const profilePic = document.getElementById('profilePic');
+
       const inputs = ["name","email","phone","bio"].map(id=>document.getElementById(id)).filter(Boolean);
 
       editBtn?.addEventListener("click", ()=>{
@@ -924,65 +1010,121 @@
           const el=document.getElementById(id); if(el){ el.disabled=false; }
         });
         editBtn.classList.add('hidden');
-        saveBtn.classList.remove('hidden');
+        saveBtn?.classList.remove('hidden');
       });
 
       saveBtn?.addEventListener("click", async ()=>{
         const updatedProfession = getProfessionForSave();
         const updatedData = {
-          name: $("#name")?.value.trim() || "",
-          email: $("#email")?.value.trim() || "",
-          phone: $("#phone")?.value.trim() || "",
+          name: document.getElementById("name")?.value.trim() || "",
+          email: document.getElementById("email")?.value.trim() || "",
+          phone: document.getElementById("phone")?.value.trim() || "",
           profession: updatedProfession,
-          location: $("#location")?.value.trim() || "",
-          bio: $("#bio")?.value.trim() || "",
+          location: document.getElementById("location")?.value.trim() || "",
+          bio: document.getElementById("bio")?.value.trim() || "",
           photoURL: profilePic?.src || ""
         };
         try{
           await setDoc(doc(db,"users",uid), updatedData, { merge:true });
           if (auth.currentUser) await updateProfile(auth.currentUser, { photoURL: updatedData.photoURL });
+
+          // reflect to header/profile
+          nameDisplay.textContent = updatedData.name || "Anonymous User";
+          profLine.textContent = updatedProfession || "Add your profession";
+          document.getElementById('bioPreview').textContent = updatedData.bio || '—';
+
           inputs.forEach(i=> i.setAttribute("disabled","true"));
           ["selProfCat","selProfRole","profession","selRegion","selProvince","selCityMun","selBarangay"].forEach(id=>{
             const el=document.getElementById(id); if(el){ el.disabled=true; }
           });
-          document.getElementById("professionLine").textContent = updatedProfession || "Add your profession";
-          alert("✅ Profile updated successfully!");
+          saveBtn?.classList.add('hidden');
+          editBtn?.classList.remove('hidden');
+          toastTop('✅ Profile updated');
         }catch(e){
           console.error(e); alert("Failed to update profile.");
         }
       });
     }
 
-    /* ---------- Header summary updater (NEW) ---------- */
-    function updateHeaderSummary(uid, userData){
-      const ratingDisp = document.getElementById('ratingDisplay');
-      const sinceDisp  = document.getElementById('sinceDisplay');
-      const donsDisp   = document.getElementById('donationsDisplay');
+    /* ---------- My Donations — Firestore realtime ---------- */
+    const donationsCol = collection(db,'donations');
+    let unsubMyDon = null;
 
-      const ds = getArr(uid,'donations');
-      const donationsCount = Array.isArray(ds) ? ds.length : (userData?.donations ?? 0);
-
-      if (ratingDisp) ratingDisp.textContent = `(${userData?.rating ?? 0})`;
-      if (sinceDisp)  sinceDisp.textContent  = `${userData?.since ?? ''}`;
-      if (donsDisp)   donsDisp.textContent   = String(donationsCount);
+    function donationItemTemplateFS(d){
+      return `
+        <article class="donation-card" data-id="${d._id}">
+          <div class="thumb">
+            ${d.imageUrl
+              ? `<img src="${escapeHtml(d.imageUrl)}" style="width:100%;height:100%;object-fit:cover;border-radius:12px">`
+              : '🎁'}
+          </div>
+          <div>
+            <div class="item-title">${escapeHtml(d.medicineName || 'Donation')}</div>
+            <div class="item-sub">${escapeHtml(d.category || 'Other')} • Qty: ${escapeHtml(String(d.quantity || '1'))}</div>
+            <div class="item-date">Posted ${new Date(d._ms).toLocaleString()}</div>
+          </div>
+          <div style="display:grid;gap:8px;justify-items:end">
+            <span class="status ${d.statusClass || 'status--available'}">${escapeHtml(d.status || 'available')}</span>
+            <button class="btn-del" data-type="donation" data-id="${d._id}" type="button">Delete</button>
+          </div>
+        </article>`;
     }
 
-    /* NEW: reconcile local lists with Firestore */
-    function reconcileLocalData(uid, userData){
-      let ds = getArr(uid, 'donations');
-      let rs = getArr(uid, 'requests');
-      if (!Array.isArray(ds)) { ds = []; setArr(uid,'donations', ds); }
-      if (!Array.isArray(rs)) { rs = []; setArr(uid,'requests', rs); }
-      if ((userData.donations ?? 0) === 0 && ds.length > 0) setArr(uid,'donations', []);
-      if ((userData.requests ?? 0) === 0 && rs.length > 0) setArr(uid,'requests', []);
+    function bindDonationDeletesFS(){
+      donationsList?.addEventListener('click', async (e)=>{
+        const btn = e.target.closest('.btn-del'); if (!btn) return;
+        const id = btn.dataset.id;
+        if (!confirm('Delete this donation?')) return;
+        try {
+          await deleteDoc(doc(db,'donations', id));
+          pushActivity('Donation removed', `ID ${id}`);
+        } catch(err){ alert('Failed to delete.'); }
+      });
     }
 
-    /* ---------- Auth ---------- */
+    function startMyDonationsRealtime(uid, userData){
+      if (unsubMyDon) unsubMyDon();
+      unsubMyDon = onSnapshot(
+        query(donationsCol, where('userId','==', uid)),
+        (ss)=>{
+          const items = [];
+          ss.forEach(s=>{
+            const d = s.data();
+            const ms = d.createdAt?.toMillis?.()
+              || (d.createdAt?.seconds ? d.createdAt.seconds*1000 : Date.now());
+            items.push({ ...d, _id: s.id, _ms: ms });
+          });
+          // newest first
+          items.sort((a,b)=> b._ms - a._ms);
+
+          donationsList.innerHTML = items.length
+            ? items.map(donationItemTemplateFS).join('')
+            : '<div class="muted">No donations yet.</div>';
+
+          // Update metrics (donations count)
+          const currReq = Number(mReq?.textContent || 0);
+          const currRat = Number(mRat?.textContent || 0);
+          updateMetricsUI({ donations: items.length, requests: currReq, rating: currRat });
+        },
+        (err)=> { console.error('My donations listener error:', err); }
+      );
+
+      // one-time bind for delete (delegated)
+      if (!donationsList.__delBound) {
+        bindDonationDeletesFS();
+        donationsList.__delBound = true;
+      }
+    }
+
+    /* ---------- Real-time + auth ---------- */
+    let unsubReq = null, unsubThreads = null;
+
     onAuthStateChanged(auth, async (user)=>{
       if (!user) { location.href = "login.html"; return; }
+      window.__notif_userId = user.uid;
       try{
         const snap = await getDoc(doc(db,"users",user.uid));
-        const data = snap.exists() ? snap.data() : {};
+        const data = snap.exists()? snap.data() : {};
         const userData = {
           uid: user.uid,
           name: data.name || user.displayName || "Anonymous User",
@@ -994,48 +1136,144 @@
           photoURL: data.photoURL || user.photoURL || "default-profile.png",
           donations: typeof data.donations === "number" ? data.donations : 0,
           requests: typeof data.requests === "number" ? data.requests : 0,
-          rating: data.rating ?? 4.8,
+          rating: Number(data.rating ?? 4.8),
           since: data.since || "2023",
           showLocation: data.showLocation ?? false,
           publicProfile: data.publicProfile ?? false,
         };
-        localStorage.setItem("userProfile", JSON.stringify(userData));
-        populateProfile(userData);
 
-        /* NEW: clear stale local data if Firestore shows 0 */
-        reconcileLocalData(user.uid, userData);
+        // Populate profile header & Settings inputs
+        document.getElementById('profilePic').src = userData.photoURL;
+        document.getElementById('nameDisplay').textContent = userData.name;
+        document.getElementById('professionLine').textContent = userData.profession;
+        document.getElementById('bioPreview').textContent = userData.bio || '—';
+        ["name","email","phone","bio"].forEach(id=>{
+          const el=document.getElementById(id); if(el) el.value = (userData[id] ?? "");
+        });
+        updateMetricsUI(userData);
 
-        renderLists(user.uid);       /* will call updateHeaderSummary */
-        setupInlineEdit(user.uid);
-        setupToggles(user.uid);
-        setupAddButtons(user.uid, userData);
-        setupDeleteHandlers(user.uid, userData);
-
+        // Profession UI + PSGC cascader + toggles
         initProfessionUI(userData.profession === "Add your profession" ? "" : userData.profession);
         await initPSGCCascader(userData.location || "");
         applyToggleState('toggleLocation', userData.showLocation);
         applyToggleState('toggleProfile',  userData.publicProfile);
+        setupToggles(user.uid);
+        setupInlineEdit(user.uid);
 
-        /* Ensure header summary shows correct initial values */
-        updateHeaderSummary(user.uid, userData);
+        /* Donations — Firestore realtime */
+        startMyDonationsRealtime(user.uid, userData);
+
+        // Optional: route Add Donation button to the Donate flow
+        document.getElementById('btnAddDonation')?.addEventListener('click', ()=>{ location.href = 'Donate.html'; });
+
+        /* Shortcut to create a real Request on Requests page */
+        document.getElementById('btnNewRequest')?.addEventListener('click', ()=>{ location.href='Request.html'; });
+
+        /* My Requests — Firestore real-time (client-side sort) */
+        if (unsubReq) unsubReq();
+        unsubReq = onSnapshot(
+          query(collection(db,'requests'), where('requesterId','==', user.uid)),
+          (ss)=>{
+            const items=[]; const changesText=[];
+            ss.docChanges().forEach(ch=>{
+              const d = ch.doc.data();
+              if (ch.type==='added')    changesText.push(`Created request: ${d.title||'Untitled'}`);
+              if (ch.type==='modified') changesText.push(`Updated request: ${d.title||'Untitled'} (${d.status||'open'})`);
+              if (ch.type==='removed')  changesText.push(`Deleted request: ${d.title||'Untitled'}`);
+            });
+
+            ss.forEach(s=>{
+              const d = s.data();
+              const ms = d.createdAt?.toMillis ? d.createdAt.toMillis() :
+                         (d.createdAt?.seconds ? d.createdAt.seconds*1000 : Date.now());
+              d._when = 'Requested ' + new Date(ms).toLocaleString();
+              d._ms   = ms;
+              d._id   = s.id;
+              items.push(d);
+            });
+
+            items.sort((a,b)=> b._ms - a._ms);
+
+            requestsList.innerHTML = items.length
+              ? items.map(requestItemTemplate).join('')
+              : '<div class="muted">No requests yet.</div>';
+
+            requestsList.querySelectorAll('.btn-del').forEach(btn=>{
+              btn.addEventListener('click', async ()=>{
+                const id = btn.dataset.id;
+                if (!confirm('Delete this request?')) return;
+                try{
+                  await deleteDoc(doc(db,'requests',id));
+                  pushActivity('Request removed', `ID ${id}`);
+                }catch(e){ alert('Failed to delete.'); }
+              });
+            });
+
+            if (!requestsList.__openBound) {
+              requestsList.addEventListener('click', (e)=>{
+                const openBtn = e.target.closest('.btn-open');
+                if (!openBtn) return;
+                const id = openBtn.dataset.id;
+                location.href = `Request.html?rid=${encodeURIComponent(id)}&view=mine`;
+              });
+              requestsList.__openBound = true;
+            }
+
+            const userReqCount = items.length;
+            const currDon = Number(mDon?.textContent||0);
+            const currRat = Number(mRat?.textContent||0);
+            updateMetricsUI({ donations:currDon, requests:userReqCount, rating:currRat });
+
+            if (changesText.length){
+              changesText.forEach(t=> pushActivity(t, nowStr()));
+              toastTop(changesText[0]);
+            }
+          },
+          (err)=>{ console.error('My requests listener error:', err); }
+        );
+
+        /* Threads — real-time for notifications (modal) */
+        if (unsubThreads) unsubThreads();
+        unsubThreads = onSnapshot(
+          query(collection(db,'threads'), where('participants','array-contains', user.uid), orderBy('updatedAt','desc')),
+          (ss)=>{
+            const readMap = getReadMap(user.uid);
+            const rows = []; let unread = 0;
+            ss.forEach(d=>{
+              const t = d.data(); const id = d.id;
+              const updatedAt = t.updatedAt?.toMillis?.() || Date.now();
+              const lastByOther = t.lastSenderId && t.lastSenderId !== user.uid;
+              const seenAt = Number(readMap[id]||0);
+              const isUnread = lastByOther && updatedAt > seenAt;
+              if (isUnread) unread++;
+              rows.push(`<div class="dd-item" data-thread="${id}">
+                <div style="font-weight:800;color:${isUnread?'#0d9488':'#0f172a'}">${t.requestTitle || 'Conversation'}</div>
+                <small>${(t.lastMessage||'(no messages)')}</small><br/>
+                <small>${new Date(updatedAt).toLocaleString()}</small>
+              </div>`);
+            });
+            ddMsg.innerHTML = rows.length ? rows.join('') : '<div class="dd-empty">No messages yet.</div>';
+            setBadge(unread);
+
+            ddMsg.querySelectorAll('.dd-item').forEach(el=>{
+              el.addEventListener('click', ()=>{
+                const id = el.getAttribute('data-thread');
+                const m = getReadMap(user.uid); m[id]=Date.now(); setReadMap(user.uid,m);
+                closeNotifModal();
+                location.href = 'Request.html';
+              });
+            });
+
+            if (unread>0){ toastTop(`You have ${unread} new message${unread>1?'s':''}`); }
+          },
+          (err)=> console.error('threads listener error:', err)
+        );
+
       }catch(err){
         console.error("❌ Error loading user doc:", err);
         alert("Failed to load profile data — see console.");
       }
     });
-
-    /* Keep “bio” label synced → “Health Professional” (unchanged behavior) */
-    (() => {
-      const bioLabel = document.querySelector('label[for="bio"]');
-      if (bioLabel) bioLabel.textContent = 'Health Professional';
-      const bioTA = document.getElementById('bio');
-      const bioParagraph = document.querySelector('.bio');
-      const syncBio = (val) => { if (bioParagraph) bioParagraph.textContent = (val ?? '').toString().trim(); };
-      try { const cached = JSON.parse(localStorage.getItem('userProfile') || '{}'); if (typeof cached.bio === 'string') syncBio(cached.bio); } catch {}
-      document.addEventListener('dmx:profileLoaded', (e) => { if (typeof e.detail?.bio === 'string') syncBio(e.detail.bio); });
-      bioTA?.addEventListener('input', () => syncBio(bioTA.value));
-      document.getElementById('saveProfileBtn')?.addEventListener('click', () => bioTA && syncBio(bioTA.value));
-    })();
   </script>
 </body>
 </html>
