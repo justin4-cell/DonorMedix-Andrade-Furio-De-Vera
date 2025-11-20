@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html>  
 <html lang="en" data-theme="emerald">
 <head>
   <meta charset="utf-8" />
@@ -9,7 +9,7 @@
     :root{
       /* Brand */
       --brand:#10b981; --brand-2:#059669;
-      --ink:#0f172a; --muted:#64748b; --line:#e2e8f0;
+      --ink:#0f172a; --muted:#0f172a; --line:#e2e8f0;
       --bg:#f8fafc; --card:#ffffff; --shadow:0 8px 22px rgba(2,6,23,.06);
       --radius:14px; --danger:#ef4444; --danger-2:#dc2626;
 
@@ -21,17 +21,33 @@
     /* Background image with overlay */
     body{
       font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
-      line-height:1.5;color:var(--ink);min-height:100vh;position:relative;background:#0b1220;
+      line-height:1.5;
+      color:#0f172a; /* MAIN TEXT COLOR */
+      min-height:100vh;
+      position:relative;
+      background:#0b1220;
     }
-    body::before{
-      content:"";position:fixed;inset:0;z-index:-1;
-      background: var(--page-bg-overlay), var(--page-bg-url) center / cover no-repeat fixed;
+    body::before {
+      content:"";
+      position:fixed;
+      inset:0;
+      z-index:-1;
+      background:
+        var(--page-bg-overlay, rgba(0,0,0,0.4)),
+        var(--page-bg-image, url('hospital background2.jpg')) center / cover no-repeat fixed;
       filter:saturate(1.05) contrast(1.02);
     }
 
-    /* NAV: #0f172a bg, white text, hover white like Home */
-    header.site{position:sticky;top:0;z-index:30;background:#0f172a;border-bottom:1px solid #0b1220;box-shadow:0 2px 10px rgba(2,6,23,.25)}
-    .header-container{max-width:72rem;margin:0 auto;padding:.85rem 1.25rem;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:.75rem}
+    /* NAV: dark bg, white text */
+    header.site{
+      position:sticky;top:0;z-index:30;background:#0f172a;
+      border-bottom:1px solid #0b1220;
+      box-shadow:0 2px 10px rgba(2,6,23,.25)
+    }
+    .header-container{
+      max-width:72rem;margin:0 auto;padding:.85rem 1.25rem;
+      display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:.75rem
+    }
     .logo{font:900 1.3rem/1 system-ui,ui-sans-serif;color:#fff;letter-spacing:.2px}
     nav.nav{display:flex;justify-content:center;gap:.5rem;flex-wrap:wrap}
     .nav-link{
@@ -42,7 +58,10 @@
     .nav-link:hover{background:#ffffff;color:#0f172a;transform:translateY(-1px)}
     .nav-link.active{background:#ffffff;color:#0f172a}
     .header-actions{display:flex;gap:.5rem;align-items:center}
-    .bell-btn{border:none;background:transparent;color:#fff;padding:.5rem;border-radius:10px;cursor:pointer;position:relative}
+    .bell-btn{
+      border:none;background:transparent;color:#fff;
+      padding:.5rem;border-radius:10px;cursor:pointer;position:relative
+    }
     .bell-btn:hover{background:rgba(255,255,255,.12)}
     .bell-btn svg{width:20px;height:20px}
     .sign-in-btn{
@@ -50,26 +69,84 @@
       display:inline-flex;align-items:center;justify-content:center;cursor:pointer;
       background:#fff;color:#0f172a;border:1px solid #fff
     }
-    .sign-in-btn:hover{transform:translateY(-1px)}
+    .sign-in-btn:hover{transform:translateY(-1px);background:#e2e8f0;color:#0f172a}
 
-    /* Hero band (kept light for readability) */
-    .hero{width:100%;background:linear-gradient(180deg,#f0fdf4 0%, #ffffff 100%);border-bottom:1px solid var(--line);box-shadow:0 10px 30px rgba(16,185,129,.08)}
-    .hero-inner{max-width:1100px;margin:0 auto;padding:1.1rem 1.5rem 1rem;text-align:center}
-    .hero h1{font-size:2rem;color:#0f172a} /* same as nav bg color as requested in earlier pages */
+    /* =========== HERO =========== */
+    .hero{
+      width:100%;
+      background:linear-gradient(180deg,#f0fdf4 0%, #ffffff 100%);
+      border-bottom:1px solid var(--line);
+      box-shadow:0 10px 30px rgba(16,185,129,.08)
+    }
+    .hero-inner{
+      max-width:1100px;margin:0 auto;
+      padding:1.1rem 1.5rem 1rem;
+      text-align:center
+    }
+    .hero h1{font-size:2rem;color:#0f172a}
     .hero p{color:#0f172a;margin-top:.25rem}
 
-    /* Page container */
-    .container{max-width:1100px;margin:0 auto;padding:1rem 1.5rem 2rem;display:flex;flex-direction:column;gap:1rem}
+    /* =========== PAGE LAYOUT =========== */
+    .container{
+      max-width:1100px;margin:0 auto;
+      padding:1rem 1.5rem 2rem;
+      display:flex;flex-direction:column;gap:1rem;
+      color:#0f172a;
+    }
 
     /* Switcher */
-    .switcher{margin:.4rem auto .8rem;display:flex;gap:.5rem;flex-wrap:wrap;justify-content:center}
-    .pill{padding:.62rem 1.05rem;border-radius:999px;border:1px solid #bbf7d0;background:#ecfdf5;color:#065f46;font-weight:800;cursor:pointer;transition:all .15s}
-    .pill:hover{background:#d1fae5;transform:translateY(-1px)}
-    .pill.active{background:var(--brand-2);color:#fff;border-color:var(--brand-2)}
+    .switcher{
+      margin:.4rem auto .8rem;
+      display:flex;gap:.5rem;flex-wrap:wrap;
+      justify-content:center
+    }
+    .pill{
+      padding:.62rem 1.05rem;border-radius:999px;
+      border:1px solid #bbf7d0;background:#ecfdf5;
+      color:#0f172a;font-weight:800;
+      cursor:pointer;transition:all .15s
+    }
+    /* HOVER: combination of white + #0f172a */
+    .pill:hover{
+      background:#ffffff;
+      color:#0f172a;
+      border-color:#0f172a;
+      transform:translateY(-1px);
+    }
+    .pill.active{
+      background:var(--brand-2);
+      color:#ffffff;
+      border-color:var(--brand-2);
+    }
 
     /* Panels */
-    .panel{width:100%;margin:0 auto 1rem;padding:1.25rem;background:#ffffff;border-radius:var(--radius);box-shadow:var(--shadow);display:flex;flex-direction:column;gap:1rem;border:1px solid var(--line)}
-    .panel h2{color:var(--brand-2);font-size:1.25rem}
+    .panel{
+      width:100%;margin:0 auto 1rem;
+      padding:1.25rem;
+      background:#ffffff;
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      display:flex;flex-direction:column;gap:1rem;
+      border:1px solid var(--line);
+      color:#0f172a;
+    }
+    .panel h2{color:#0f172a;font-size:1.25rem}
+
+    /* COMMUNITY PANEL (filters + meta only) */
+    #panel-community{
+      border:2px solid var(--brand-2);
+      margin-bottom:0.75rem;
+    }
+
+    /* ACTIVE REQUEST CARDS SEPARATED FROM PANEL */
+    .community-requests-wrapper{
+      margin-bottom:2rem;
+    }
+
+    /* NEW: my requests wrapper */
+    .my-requests-wrapper{
+      margin-bottom:2rem;
+    }
 
     /* --- Pretty Selects with icons --- */
     .filters{display:flex;gap:.75rem;flex-wrap:wrap}
@@ -82,108 +159,237 @@
       appearance:none;-webkit-appearance:none;-moz-appearance:none;border:none;background:transparent;
       padding:.55rem 2rem .55rem .25rem;font-weight:800;color:#0f172a;cursor:pointer;outline:0
     }
-    .select-wrap:focus-within{border-color:#86efac;box-shadow:0 0 0 3px rgba(16,185,129,.18)}
+    .select-wrap:focus-within{
+      border-color:#86efac;
+      box-shadow:0 0 0 3px rgba(16,185,129,.18)
+    }
     .select-wrap::after{
       content:"";position:absolute;right:.6rem;width:10px;height:10px;pointer-events:none;transform:rotate(45deg);
       border-right:2px solid #0f172a;border-bottom:2px solid #0f172a;opacity:.7
     }
-    .results-meta{color:var(--muted);font-size:.95rem}
+    .results-meta{color:#0f172a;font-size:.95rem}
 
     /* Cards */
-    .browse-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.25rem;margin-top:.2rem}
-    .browse-card{background:#ffffff;border:1px solid var(--line);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;transition:transform .18s, box-shadow .18s}
-    .browse-card:hover{transform:translateY(-3px);box-shadow:0 16px 30px rgba(2,6,23,.08)}
+    .browse-list{
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
+      gap:1.25rem;margin-top:.2rem
+    }
+    .browse-card{
+      background:#ffffff;border:1px solid var(--line);
+      border-radius:16px;overflow:hidden;
+      display:flex;flex-direction:column;
+      transition:transform .18s, box-shadow .18s;
+      color:#0f172a;
+    }
+    .browse-card:hover{
+      transform:translateY(-3px);
+      box-shadow:0 16px 30px rgba(2,6,23,.08)
+    }
     .browse-card-image{position:relative}
-    .browse-card-image img{width:100%;height:180px;object-fit:cover;display:block}
+    .browse-card-image img{
+      width:100%;height:180px;object-fit:cover;display:block
+    }
     .badgebar{position:absolute;top:10px;left:10px;display:flex;gap:6px}
-    .badge{font:800 .72rem/1 system-ui;padding:.35rem .55rem;border-radius:999px;background:#ffffff;border:1px solid #e2e8f0}
-    .badge--cat{color:#065f46}
-    .badge--urg-high{color:#b91c1c;background:#fee2e2;border-color:#fecaca}
+    .badge{
+      font:800 .72rem/1 system-ui;padding:.35rem .55rem;
+      border-radius:999px;background:#ffffff;
+      border:1px solid #e2e8f0;color:#0f172a;
+    }
+    .badge--cat{color:#0f172a}
+    .badge--urg-high{color:#0f172a;background:#fee2e2;border-color:#fecaca}
     .badge--urg-medium{color:#92400e;background:#ffedd5;border-color:#fed7aa}
-    .badge--urg-low{color:#065f46;background:#d1fae5;border-color:#a7f3d0}
-    .status-chip{position:absolute;bottom:10px;right:10px;font:900 .7rem/1 system-ui;background:var(--brand-2);color:#fff;padding:.4rem .6rem;border-radius:10px}
+    .badge--urg-low{color:#0f172a;background:#d1fae5;border-color:#a7f3d0}
+    .status-chip{
+      position:absolute;bottom:10px;right:10px;
+      font:900 .7rem/1 system-ui;
+      background:var(--brand-2);color:#fff;
+      padding:.4rem .6rem;border-radius:10px
+    }
 
-    .browse-card-content{padding:1rem;font-size:.95rem;color:#334155;display:flex;flex-direction:column;gap:.45rem}
-    .browse-card-content h3{color:#0f766e;font-size:1.08rem;margin-bottom:.05rem}
-    .meta{display:flex;flex-wrap:wrap;gap:.5rem;color:#64748b;font-size:.88rem}
+    .browse-card-content{
+      padding:1rem;
+      font-size:.95rem;
+      color:#0f172a;
+      display:flex;flex-direction:column;gap:.45rem
+    }
+    .browse-card-content h3{
+      color:#0f172a;
+      font-size:1.08rem;
+      margin-bottom:.05rem
+    }
+    .meta{
+      display:flex;flex-wrap:wrap;gap:.5rem;
+      color:#0f172a;font-size:.88rem
+    }
     .meta span{display:inline-flex;gap:.35rem;align-items:center}
 
-    .card-actions{display:flex;align-items:center;justify-content:space-between;gap:.5rem;margin-top:.4rem;flex-wrap:wrap}
-    .btn{padding:.55rem .9rem;border-radius:10px;font-weight:800;border:1px solid transparent;cursor:pointer}
+    .card-actions{
+      display:flex;align-items:center;justify-content:space-between;
+      gap:.5rem;margin-top:.4rem;flex-wrap:wrap
+    }
+    .btn{
+      padding:.55rem .9rem;border-radius:10px;
+      font-weight:800;border:1px solid transparent;cursor:pointer
+    }
     .btn-primary{background:var(--brand-2);color:#fff;border-color:var(--brand-2)}
-    .btn-primary:hover{background:#0e7a60}
+    .btn-primary:hover{background:#0f172a;color:#fff}
     .btn-ghost{background:#fff;color:var(--brand-2);border:1px dashed #bbf7d0}
     .btn-ghost:hover{background:#ecfdf5}
-    .btn-danger{background:#fff;color:var(--danger);border:1px solid #fecaca}
-    .btn-danger:hover{background:#fff1f2;border-color:#fca5a5}
+    /* DELETE BUTTON: solid red with white text */
+    .btn-danger{
+      background:var(--danger);
+      color:#ffffff;
+      border:1px solid var(--danger);
+    }
+    .btn-danger:hover{
+      background:var(--danger-2);
+      border-color:var(--danger-2);
+      color:#ffffff;
+    }
 
     /* Create form */
-    .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 16px}
-    .form-card{background:transparent;border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;gap:10px;align-items:flex-start}
-    .fc-icon{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;background:#ecfdf5;border:1px solid #bbf7d0;color:#047857;flex:0 0 28px}
+    .form-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px 16px
+    }
+    .form-card{
+      background:transparent;border:1px solid var(--line);
+      border-radius:12px;padding:14px;
+      display:flex;gap:10px;align-items:flex-start;
+      color:#0f172a;
+    }
+    .fc-icon{
+      width:28px;height:28px;border-radius:8px;
+      display:grid;place-items:center;
+      background:#ecfdf5;border:1px solid #bbf7d0;
+      color:#0f172a;flex:0 0 28px
+    }
     .fc-body{flex:1}
-    .fc-body label{font-weight:900;color:#0f172a;display:block;margin:2px 0 6px}
-    .field{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:#fff}
-    .field:focus-within{border-color:#86efac;box-shadow:0 0 0 3px rgba(16,185,129,.18)}
-    .field input[type=text], .field textarea, .field select{border:none;outline:none;background:transparent;width:100%;font-size:.95rem;color:#111827}
+    .fc-body label{
+      font-weight:900;color:#0f172a;
+      display:block;margin:2px 0 6px
+    }
+    .field{
+      display:flex;align-items:center;gap:10px;
+      border:1px solid var(--line);border-radius:12px;
+      padding:10px 12px;background:#fff
+    }
+    .field:focus-within{
+      border-color:#0f172a;
+      box-shadow:0 0 0 3px rgba(16,185,129,.18)
+    }
+    .field input[type=text],
+    .field textarea,
+    .field select{
+      border:none;outline:none;
+      background:transparent;width:100%;
+      font-size:.95rem;color:#0f172a;
+    }
     textarea{min-height:100px;resize:vertical}
     .loc-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-    @media (max-width:720px){ .form-grid{grid-template-columns:1fr} .loc-grid{grid-template-columns:1fr} }
-    .muted{color:var(--muted);font-size:.9rem}
+    @media (max-width:720px){
+      .form-grid{grid-template-columns:1fr}
+      .loc-grid{grid-template-columns:1fr}
+    }
+    .muted{color:#0f172a;font-size:.9rem}
     .upload-wrap{display:flex;align-items:center;gap:10px}
-    .thumb{width:72px;height:72px;border-radius:12px;border:1px solid var(--line);overflow:hidden;display:grid;place-items:center;background:#f8fafc}
+    .thumb{
+      width:72px;height:72px;border-radius:12px;
+      border:1px solid var(--line);overflow:hidden;
+      display:grid;place-items:center;background:#f8fafc
+    }
     .thumb img{width:100%;height:100%;object-fit:cover}
 
     .hidden{display:none!important}
 
-    /* Footer (matches earlier pages) */
-    .footer{background-color:#0f172a;color:#cbd5e1;padding:3rem 1rem 1rem}
-    .footer-container{display:flex;flex-wrap:wrap;justify-content:space-between;max-width:1100px;margin:0 auto;gap:2rem}
+    /* Footer (unchanged, dark) */
+    .footer{
+      background-color:#0f172a;
+      color:white;
+      padding:3rem 1rem 1rem
+    }
+    .footer-container{
+      display:flex;flex-wrap:wrap;justify-content:space-between;
+      max-width:1100px;margin:0 auto;gap:2rem
+    }
     .footer-about{flex:1 1 250px}
-    .footer-logo{font-size:1.6rem;color:#f8fafc;margin-bottom:.5rem;font-weight:700}
-    .footer-logo span{color:#38bdf8}
-    .footer-about p{font-size:.9375rem;line-height:1.6;margin-bottom:1rem;color:#e2e8f0}
+    .footer-logo{
+      font-size:1.6rem;
+      color:#f6f7fb;
+      margin-bottom:.5rem;
+      font-weight:700
+    }
+    .footer-logo span{color:#2bb9cc}
+    .footer-about p{
+      font-size:.9375rem;line-height:1.6;
+      margin-bottom:1rem;color:white
+    }
     .social-icons{display:flex;gap:.75rem}
-    .footer-links{display:flex;flex:2 1 500px;justify-content:space-between;flex-wrap:wrap}
-    .footer-links h3{color:#f8fafc;margin-bottom:1rem;font-size:1rem}
+    .footer-links{
+      display:flex;flex:2 1 500px;
+      justify-content:space-between;flex-wrap:wrap
+    }
+    .footer-links h3{
+      color: white;margin-bottom:1rem;font-size:1rem
+    }
     .footer-links ul{list-style:none;padding:0}
     .footer-links li{margin-bottom:.5rem}
-    .footer-links a{color:#cbd5e1;text-decoration:none;font-size:.9375rem;transition:color .3s}
-    .footer-links a:hover{color:#38bdf8}
-    .footer hr{border:none;border-top:1px solid #1e293b;margin:2rem 0 1rem}
-    .footer-bottom{display:flex;justify-content:space-between;flex-wrap:wrap;max-width:1100px;margin:0 auto;font-size:.875rem;color:#94a3b8}
+    .footer-links a{
+      color:white;text-decoration:none;
+      font-size:.9375rem;transition:color .3s
+    }
+    .footer-links a:hover{color:#059669}
+    .footer hr{
+      border:none;border-top:1px solid #e2e8f0;
+      margin:2rem 0 1rem
+    }
+    .footer-bottom{
+      display:flex;justify-content:space-between;flex-wrap:wrap;
+      max-width:1100px;margin:0 auto;
+      font-size:.875rem;color:#ffffff
+    }
     @media(max-width:768px){
       .header-container{grid-template-columns:1fr auto;gap:.75rem}
       nav.nav{order:3;justify-content:flex-start}
       .footer-container{flex-direction:column;align-items:flex-start}
-      .footer-bottom{flex-direction:column;align-items:center;gap:.5rem;text-align:center}
+      .footer-bottom{
+        flex-direction:column;align-items:center;
+        gap:.5rem;text-align:center
+      }
     }
   </style>
 </head>
-<body data-bg="images/requests-bg.jpg"><!-- change this or use setPageBackground() -->
-
+<body>
   <!-- NAV -->
   <header class="site">
     <div class="header-container">
       <div class="logo">DonorMedix</div>
 
       <nav class="nav">
-        <a href="Home Page.html" class="nav-link" title="Home">
-          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3 2 12h3v8h6v-5h2v5h6v-8h3L12 3z"/></svg>
+        <a href="home.html" class="nav-link" title="Home">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M12 3 2 12h3v8h6v-5h2v5h6v-8h3L12 3z"/>
+          </svg>
           Home
         </a>
         <a href="browse.html" class="nav-link" title="Browse">
-          <!-- Search icon -->
-          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M10.5 3a7.5 7.5 0 1 1 0 15c-1.8 0-3.45-.63-4.74-1.69L3.7 18.87a1 1 0 0 1-1.41-1.41l2.06-2.06A7.47 7.47 0 0 1 3 10.5 7.5 7.5 0 0 1 10.5 3zm0 2a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11zM20.3 20.3a1 1 0 0 1-1.41 0l-3.28-3.28a1 1 0 1 1 1.41-1.41l3.28 3.28a1 1 0 0 1 0 1.41z"/></svg>
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M10.5 3a7.5 7.5 0 1 1 0 15c-1.8 0-3.45-.63-4.74-1.69L3.7 18.87a1 1 0 0 1-1.41-1.41l2.06-2.06A7.47 7.47 0 0 1 3 10.5 7.5 7.5 0 0 1 10.5 3zm0 2a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11zM20.3 20.3a1 1 0 0 1-1.41 0l-3.28-3.28a1 1 0 1 1 1.41-1.41l3.28 3.28a1 1 0 0 1 0 1.41z"/>
+          </svg>
           Browse
         </a>
-        <a href="Donate.html" class="nav-link" title="Donate">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35 10.55 20.03C5.4 15.36 2 12.28 2 8.5 2 6 4 4 6.5 4c1.54 0 3.04.99 3.57 2.36h.86C14.46 4.99 15.96 4 17.5 4 20 4 22 6 22 8.5c0 3.78-3.4 6.86-8.55 11.53L12 21.35z"/></svg>
+        <a href="donate.html" class="nav-link" title="Donate">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 21.35 10.55 20.03C5.4 15.36 2 12.28 2 8.5 2 6 4 4 6.5 4c1.54 0 3.04.99 3.57 2.36h.86C14.46 4.99 15.96 4 17.5 4 20 4 22 6 22 8.5c0 3.78-3.4 6.86-8.55 11.53L12 21.35z"/>
+          </svg>
           Donate
         </a>
-        <a href="Request.html" class="nav-link active" title="Requests">
-          <!-- Clipboard/request icon -->
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 2h6a2 2 0 0 1 2 2h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2-2Zm0 2v2h6V4H9Z"/></svg>
+        <a href="request.html" class="nav-link active" title="Requests">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M9 2h6a2 2 0 0 1 2 2h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2-2Zm0 2v2h6V4H9Z"/>
+          </svg>
           Requests
         </a>
       </nav>
@@ -191,9 +397,11 @@
       <div class="header-actions">
         <!-- NOTIFICATION BELL (JS will add badge + modal) -->
         <button class="bell-btn" aria-label="Notifications" title="Notifications">
-          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 22a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22Zm6-6V11a6 6 0 1 0-12 0v5l-2 2v1h16v-1l-2-2Z"/></svg>
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M12 22a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22Zm6-6V11a6 6 0 1 0-12 0v5l-2 2v1h16v-1l-2-2Z"/>
+          </svg>
         </button>
-        <!-- PROFILE / SIGN IN (your one-JS will turn this into NAME + modal) -->
+        <!-- PROFILE / SIGN IN -->
         <button class="sign-in-btn">Sign In</button>
       </div>
     </div>
@@ -215,7 +423,7 @@
       <button class="pill" data-view="create" aria-selected="false">Create Request</button>
     </div>
 
-    <!-- COMMUNITY -->
+    <!-- COMMUNITY (filters + meta only) -->
     <section class="panel" id="panel-community">
       <h2>Community Requests</h2>
 
@@ -254,15 +462,23 @@
       </div>
 
       <div class="results-meta" id="count">Showing 0 requests</div>
-      <div class="browse-list" id="requestsList"></div>
-      <p class="muted">💡 Tip: Verify expiry dates & packaging before donating.</p>
     </section>
 
-    <!-- MINE -->
+    <!-- SEPARATED ACTIVE REQUEST CARDS -->
+    <section class="community-requests-wrapper" id="communityRequestsWrapper">
+      <div class="browse-list" id="requestsList"></div>
+      <p class="muted"> Tip: Verify expiry dates & packaging before donating.</p>
+    </section>
+
+    <!-- MINE: panel for title + meta only -->
     <section class="panel hidden" id="panel-mine">
       <h2>My Requests</h2>
       <div id="myAuthHint" class="muted">Sign in to see requests you created.</div>
       <div class="results-meta" id="myCount">Showing 0 of your requests</div>
+    </section>
+
+    <!-- Separate wrapper for MY REQUEST cards -->
+    <section class="my-requests-wrapper hidden" id="myRequestsWrapper">
       <div class="browse-list" id="myRequestsList"></div>
     </section>
 
@@ -271,7 +487,6 @@
       <h2>Create a New Request</h2>
       <form id="createForm" class="form-grid">
         <div class="form-card" style="grid-column:1/-1">
-          <div class="fc-icon">💊</div>
           <div class="fc-body">
             <label for="title">Medicine Name</label>
             <div class="field">
@@ -283,7 +498,6 @@
         </div>
 
         <div class="form-card" style="grid-column:1/-1">
-          <div class="fc-icon">📝</div>
           <div class="fc-body">
             <label for="description">Description</label>
             <div class="field" style="align-items:flex-start">
@@ -294,7 +508,6 @@
         </div>
 
         <div class="form-card">
-          <div class="fc-icon">🏷️</div>
           <div class="fc-body">
             <label for="category">Category</label>
             <div class="field">
@@ -309,7 +522,6 @@
         </div>
 
         <div class="form-card">
-          <div class="fc-icon">⏱️</div>
           <div class="fc-body">
             <label for="urgency">Urgency</label>
             <div class="field">
@@ -324,9 +536,8 @@
 
         <!-- Image Upload via Cloudinary -->
         <div class="form-card" style="grid-column:1/-1">
-          <div class="fc-icon">🖼️</div>
           <div class="fc-body">
-            <label>Photo (optional)</label>
+            <label>Photo</label>
             <div class="upload-wrap">
               <div class="thumb" id="thumb"><span class="muted">No image</span></div>
               <button type="button" class="btn btn-ghost" id="btnUpload">Choose File</button>
@@ -338,7 +549,6 @@
 
         <!-- PSGC location -->
         <div class="form-card" style="grid-column:1/-1">
-          <div class="fc-icon">📍</div>
           <div class="fc-body">
             <label>Location</label>
             <div class="loc-grid">
@@ -362,7 +572,7 @@
     </section>
   </main>
 
-  <!-- FOOTER -->
+  <!-- FOOTER (unchanged) -->
   <footer class="footer">
     <div class="footer-container">
       <div class="footer-about">
@@ -370,16 +580,24 @@
         <p>Connecting communities to share life-saving medicines and reduce healthcare waste.</p>
         <div class="social-icons">
           <a href="#" aria-label="Facebook" title="Facebook">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M22 12.07C22 6.48 17.52 2 11.93 2S1.86 6.48 1.86 12.07C1.86 17 5.31 21.06 10 22v-7H7v-3h3V9.5c0-3 1.79-4.67 4.53-4.67 1.31 0 2.68.23 2.68.23v3h-1.51c-1.49 0-1.96.93-1.96 1.89V12h3.34l-.53 3H16v7c4.69-.94 8.14-5 8.14-9.93z" fill="#cbd5e1"/></svg>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+              <path d="M22 12.07C22 6.48 17.52 2 11.93 2S1.86 6.48 1.86 12.07C1.86 17 5.31 21.06 10 22v-7H7v-3h3V9.5c0-3 1.79-4.67 4.53-4.67 1.31 0 2.68.23 2.68.23v3h-1.51c-1.49 0-1.96.93-1.96 1.89V12h3.34l-.53 3H16v7c4.69-.94 8.14-5 8.14-9.93z" fill="#0f172a"/>
+            </svg>
           </a>
           <a href="#" aria-label="X" title="X">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M18.36 3H21l-6.52 7.45L22 21h-6.09l-4.77-5.74L5.67 21H3l7.12-8.14L2 3h6.18l4.33 5.23L18.36 3z" fill="#cbd5e1"/></svg>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+              <path d="M18.36 3H21l-6.52 7.45L22 21h-6.09l-4.77-5.74L5.67 21H3l7.12-8.14L2 3h6.18l4.33 5.23L18.36 3z" fill="#0f172a"/>
+            </svg>
           </a>
           <a href="#" aria-label="Instagram" title="Instagram">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M7 2h10a5 5 0 015 5v10a5 5 0 01-5 5H7a5 5 0 01-5-5V7a5 5 0 015-5zm5 5a5 5 0 100 10 5 5 0 000-10zm6.5-.9a1.1 1.1 0 100 2.2 1.1 1.1 0 000-2.2z" stroke="#cbd5e1" stroke-width="2" fill="none"/></svg>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+              <path d="M7 2h10a5 5 0 015 5v10a5 5 0 01-5 5H7a5 5 0 01-5-5V7a5 5 0 015-5zm5 5a5 5 0 100 10 5 5 0 000-10zm6.5-.9a1.1 1.1 0 100 2.2 1.1 1.1 0 000-2.2z" stroke="#0f172a" stroke-width="2" fill="none"/>
+            </svg>
           </a>
           <a href="#" aria-label="LinkedIn" title="LinkedIn">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4.98 3.5a2.5 2.5 0 110 5 2.5 2.5 0 010-5zM3 8.98h4v12H3v-12zM14.5 9c-2.33 0-3.5 1.28-3.5 1.28V9H7v12h4v-6.5s0-2.5 2.5-2.5 2.5 2.3 2.5 2.3V21h4v-7c0-4.55-3.67-5-5.5-5z" fill="#cbd5e1"/></svg>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+              <path d="M4.98 3.5a2.5 2.5 0 110 5 2.5 2.5 0 010-5zM3 8.98h4v12H3v-12zM14.5 9c-2.33 0-3.5 1.28-3.5 1.28V9H7v12h4v-6.5s0-2.5 2.5-2.5 2.5 2.3 2.5 2.3V21h4v-7c0-4.55-3.67-5-5.5-5z" fill="#0f172a"/>
+            </svg>
           </a>
         </div>
       </div>
@@ -390,7 +608,7 @@
           <ul>
             <li><a href="#">How It Works</a></li>
             <li><a href="browse.html">Browse Medicines</a></li>
-            <li><a href="Donate.html">Donate Medicine</a></li>
+            <li><a href="donate.html">Donate Medicine</a></li>
             <li><a href="#">Health Blog</a></li>
           </ul>
         </div>
@@ -415,7 +633,9 @@
       </div>
     </div>
     <hr />
-    <div class="footer-bottom"><p>© 2025 DonorMedix. All rights reserved.</p></div>
+    <div class="footer-bottom">
+      <p>© 2025 DonorMedix. All rights reserved.</p>
+    </div>
   </footer>
 
   <!-- Cloudinary (for optional image upload in create form) -->

@@ -1,3 +1,6 @@
+// auth.js
+// Final single-file auth + admin + profile + notifications helpers + UI wiring
+// Firebase v12 modular imports (browser)
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-analytics.js";
 import {
@@ -18,17 +21,17 @@ import {
   addDoc,
   collection,
   serverTimestamp,
+  onSnapshot,
+  query,
+  where,
+  orderBy,
+  limit,
+  getDocs,
 } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
-import {
-  getStorage,
-  ref,
-  uploadBytes,
-  getDownloadURL,
-} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js";
 
 /* -----------------------------
-   Firebase config
------------------------------ */
+   Firebase config - keep your values
+   ----------------------------- */
 const firebaseConfig = {
   apiKey: "AIzaSyAaWN2gj3VJxT6kwOvCX4LIXkWlbt0LTHQ",
   authDomain: "donormedix.firebaseapp.com",
@@ -41,26 +44,22 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 try { getAnalytics(app); } catch (_) {}
-export const auth = getAuth(app);
-export const db = getFirestore(app);
-export const storage = getStorage(app);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
 console.log("✅ Firebase initialized:", app.name);
 
 /* -----------------------------
-   Redirect target after LOGIN
------------------------------ */
-const REDIRECT_URL = "home.html"; // change to "profile.html" if you prefer
+   Redirect targets
+   ----------------------------- */
+const REDIRECT_URL = "home.html";
+const ADMIN_REDIRECT_URL = "admin.html";
 
 /* -----------------------------
-   Utilities & DOM helpers
------------------------------ */
+   Small DOM helpers
+   ----------------------------- */
 const $ = (id) => (typeof id === "string" ? document.getElementById(id) : id);
 const byAny = (...ids) => ids.map($).find(Boolean) || null;
-
-const isPermErr = (e) =>
-  e?.code === "permission-denied" ||
-  /insufficient permissions|missing or insufficient permissions/i.test(e?.message || "");
 
 function showError(el, text) {
   if (!el) return;
@@ -72,39 +71,28 @@ function hideError(el) {
   el.textContent = "";
   el.style.display = "none";
 }
-
-/* NEW: use the Login button label for loading feedback */
-function setLoading(btn, loadingEl, on){
-  // Always hide any separate loading text if it exists
-  if (loadingEl) loadingEl.style.display = 'none';
-
-  if (btn) {
-    // Remember original label once
-    btn.dataset._label = btn.dataset._label || btn.textContent.trim();
-    // Update label while loading
-    btn.textContent = on ? 'Logging in…' : (btn.dataset._label || 'Login');
-    btn.disabled = !!on;
-  }
+function showInfo(el, text) {
+  if (!el) return;
+  el.textContent = text;
+  el.style.display = "block";
+}
+function setLoading(btn, loadingEl, on) {
+  if (loadingEl) loadingEl.style.display = "none";
+  if (!btn) return;
+  btn.dataset._label = btn.dataset._label || btn.textContent.trim();
+  btn.textContent = on ? "Logging in…" : (btn.dataset._label || "Login");
+  btn.disabled = !!on;
 }
 
-// Simple event bridge for profile.js (future integration)
-function emit(name, detail) {
-  document.dispatchEvent(new CustomEvent(name, { detail }));
-}
-
-/* -----------------------------
-   Shared Elements
------------------------------ */
+/* Shared elements (safe lookups) */
 const els = {
-  // login
   loginForm: byAny("loginForm"),
   loginBtn: byAny("loginBtn"),
   loginEmail: byAny("loginEmail", "email"),
   loginPassword: byAny("loginPassword", "password"),
-  loginError: byAny("loginErr", "errorMsg"),
+  loginError: byAny("loginErr"),
   loginLoading: byAny("loadingText"),
 
-  // signup
   signupForm: byAny("signupForm"),
   signupBtn: byAny("signupBtn"),
   signupName: byAny("name", "signupName"),
@@ -112,77 +100,115 @@ const els = {
   signupPassword: byAny("signupPassword"),
   signupError: byAny("signupErr"),
 
-  // admin (top-right tab-like)
-  adminBtnTop: byAny("adminBtnTop"),
+  adminCreateForm: byAny("adminCreateForm"),
+  adminCreateName: byAny("adminCreateName"),
+  adminCreateEmail: byAny("adminCreateEmail"),
+  adminCreatePassword: byAny("adminCreatePassword"),
+  adminCreateRole: byAny("adminCreateRole"),
+  adminCreateError: byAny("adminCreateErr"),
+  adminCreateSuccess: byAny("adminCreateOk"),
 
-  // profile (may not exist on auth page)
-  profilePic: byAny("profilePic"),
-  uploadPic: byAny("uploadPic"),
-  nameField: byAny("nameField", "name"),
-  contactField: byAny("contact"),
-  emailDisplay: byAny("displayEmail"),
+  // profile elements (if present on pages)
   displayName: byAny("displayName"),
-  addressField: byAny("address"),
-  dobField: byAny("dob"),
-  genderField: byAny("gender"),
-  bloodTypeField: byAny("bloodType"),
-  medicalInfoField: byAny("medicalInfo"),
-  aboutField: byAny("about"),
-  editBtn: byAny("editBtn"),
-  saveBtn: byAny("saveBtn"),
-  logoutBtn: byAny("logoutBtn"),
-
-  // admin content hooks (optional)
-  adminGate: byAny("adminGate"),
-  adminContent: byAny("adminContent"),
-  adminStats: byAny("adminStats"),
+  displayEmail: byAny("displayEmail"),
+  profilePic: byAny("profilePic"),
+  roleEl: byAny("role"),
+  notifBadge: byAny("notifBadge"),
+  notifList: byAny("notifList"),
 };
 
+const isPermErr = (e) =>
+  e?.code === "permission-denied" ||
+  /insufficient permissions|missing or insufficient permissions/i.test(e?.message || "");
+
 /* -----------------------------
-   Auth: LOGIN
------------------------------ */
+   Auth role helpers
+   ----------------------------- */
+
+/**
+ * isUserAdmin(user)
+ * checks Firestore users/{uid}.role and token claims for admin
+ */
+async function isUserAdmin(user) {
+  if (!user) return false;
+  try {
+    const snap = await getDoc(doc(db, "users", user.uid));
+    const role = snap.exists() ? (snap.data().role || "user") : "user";
+    if (role === "admin") return true;
+  } catch (e) {
+    console.warn("role check (firestore) error:", e);
+  }
+  try {
+    const token = await user.getIdTokenResult();
+    if (token?.claims?.admin) return true;
+  } catch (e) {
+    // ignore token errors
+  }
+  return false;
+}
+
+/**
+ * redirectAfterLogin(user)
+ */
+async function redirectAfterLogin(user) {
+  if (!user) return;
+  try {
+    const admin = await isUserAdmin(user);
+    if (admin) window.location.href = ADMIN_REDIRECT_URL;
+    else window.location.href = REDIRECT_URL;
+  } catch (e) {
+    console.error("redirectAfterLogin error:", e);
+    window.location.href = REDIRECT_URL;
+  }
+}
+
+/* -----------------------------
+   LOGIN
+   ----------------------------- */
 if (els.loginForm) {
-  els.loginForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
+  els.loginForm.addEventListener("submit", async (ev) => {
+    ev.preventDefault();
     hideError(els.loginError);
-    const email = els.loginEmail?.value.trim();
+
+    const email = els.loginEmail?.value?.trim();
     const password = els.loginPassword?.value;
-    if (!email || !password) return;
+
+    if (!email || !password) {
+      showError(els.loginError, "Please enter email and password.");
+      return;
+    }
 
     try {
       setLoading(els.loginBtn, els.loginLoading, true);
-      const { user } = await signInWithEmailAndPassword(auth, email, password);
-      console.log("✅ Logged in as:", user.email);
+      const cred = await signInWithEmailAndPassword(auth, email, password);
+      const user = cred.user;
+      console.log("Logged in:", user?.email);
 
-      // Upsert user doc (best-effort)
+      // Upsert basic user doc (non-fatal)
       try {
-        await setDoc(
-          doc(db, "users", user.uid),
-          { uid: user.uid, email: user.email, lastLogin: serverTimestamp() },
-          { merge: true }
-        );
-      } catch (e) {
-        if (!isPermErr(e)) throw e;
-        console.warn("⚠️ users/{uid} write blocked by rules.", e);
-      }
-
-      // Optional login history (best-effort)
-      try {
-        await addDoc(collection(db, "login_history"), {
+        await setDoc(doc(db, "users", user.uid), {
           uid: user.uid,
           email: user.email,
-          ts: serverTimestamp(),
-        });
+          lastLogin: serverTimestamp(),
+        }, { merge: true });
+      } catch (e) {
+        if (!isPermErr(e)) throw e;
+        console.warn("could not write user doc (permission):", e);
+      }
+
+      // Optional login history
+      try {
+        await addDoc(collection(db, "login_history"), { uid: user.uid, email: user.email, ts: serverTimestamp() });
       } catch (e) {
         if (!isPermErr(e)) console.warn("login_history write error:", e);
       }
 
-      emit("auth:login", { uid: user.uid });
-      if (!document.body.dataset.stay) {
-        window.location.href = REDIRECT_URL; // send to home page.html
+      // Role-aware redirect fallback
+      if (!window.__auth_wants_createdByAdmin) {
+        await redirectAfterLogin(user);
       }
     } catch (err) {
-      console.error("❌ Login failed:", err);
+      console.error("Login failed:", err);
       const map = {
         "auth/invalid-credential": "Invalid email or password.",
         "auth/invalid-email": "Invalid email format.",
@@ -200,51 +226,51 @@ if (els.loginForm) {
 }
 
 /* -----------------------------
-   Auth: SIGNUP (then sign out → show Login tab)
------------------------------ */
+   SIGNUP
+   ----------------------------- */
 if (els.signupForm) {
-  els.signupForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
+  els.signupForm.addEventListener("submit", async (ev) => {
+    ev.preventDefault();
     hideError(els.signupError);
 
-    const name = els.signupName?.value.trim();
-    const email = els.signupEmail?.value.trim();
+    const name = els.signupName?.value?.trim();
+    const email = els.signupEmail?.value?.trim();
     const password = els.signupPassword?.value;
-    if (!name || !email || !password)
-      return showError(els.signupError, "Please fill out all fields.");
-    if (password.length < 8)
-      return showError(els.signupError, "Password must be at least 8 characters.");
+
+    if (!name || !email || !password) {
+      showError(els.signupError, "Please fill out all fields.");
+      return;
+    }
+    if (password.length < 8) {
+      showError(els.signupError, "Password must be at least 8 characters.");
+      return;
+    }
 
     try {
       if (els.signupBtn) els.signupBtn.disabled = true;
-      const { user } = await createUserWithEmailAndPassword(auth, email, password);
+      const cred = await createUserWithEmailAndPassword(auth, email, password);
+      const user = cred.user;
       await updateProfile(user, { displayName: name });
       try { await sendEmailVerification(user); } catch (_) {}
 
-      // Create user doc (best-effort)
+      // Create user doc in Firestore
       try {
-        await setDoc(
-          doc(db, "users", user.uid),
-          {
-            uid: user.uid,
-            email: user.email,
-            name,
-            role: "user",
-            createdAt: serverTimestamp(),
-          },
-          { merge: true }
-        );
+        await setDoc(doc(db, "users", user.uid), {
+          uid: user.uid,
+          email: user.email,
+          name,
+          role: "user",
+          createdAt: serverTimestamp(),
+        }, { merge: true });
       } catch (e) {
         if (!isPermErr(e)) throw e;
-        console.warn("⚠️ users/{uid} create blocked by rules.", e);
+        console.warn("could not create user doc (permission):", e);
       }
 
-      emit("auth:signup", { uid: user.uid });
-
-      // Force new users to log in manually
+      // Sign out new user so admin/owner flow is secure (keep existing behavior for normal signup)
       await signOut(auth);
 
-      // If tabs exist on the same page, flip to Login tab and show note
+      // If you have a tabbed UI, prefer switching to login tab, otherwise redirect
       const loginTab = document.getElementById("tab-login");
       const loginActions = document.querySelector("#panel-login .actions");
       if (loginTab) {
@@ -255,13 +281,12 @@ if (els.signupForm) {
           loginActions.insertAdjacentElement("beforebegin", note);
         }
         loginTab.click();
-        els.signupForm?.reset();
+        els.signupForm.reset();
       } else {
-        // Fallback: separate login page
         window.location.href = "login.html?signup=success";
       }
     } catch (err) {
-      console.error("❌ Signup failed:", err);
+      console.error("Signup failed:", err);
       const map = {
         "auth/email-already-in-use": "Email already in use.",
         "auth/invalid-email": "Invalid email format.",
@@ -276,265 +301,98 @@ if (els.signupForm) {
 }
 
 /* -----------------------------
-   Auth State — profile & admin hooks
------------------------------ */
-onAuthStateChanged(auth, async (user) => {
-  emit("auth:ready", { user });
-  const onProfileUI = !!(
-    els.profilePic || els.displayName || els.emailDisplay || els.saveBtn
-  );
-  const onAdmin = !!(
-    els.adminGate ||
-    els.adminContent ||
-    els.adminStats ||
-    document.body.dataset.page === "admin"
-  );
-
-  if (onProfileUI && !user) {
-    window.location.href = "login.html";
-    return;
-  }
-
-  if (!user) return;
-
-  if (onProfileUI) await loadProfile(user);
-
-  if (onAdmin) {
-    const isAdmin = await isUserAdmin(user);
-    if (!isAdmin) {
-      if (els.adminGate) els.adminGate.innerHTML = "<p>Admins only.</p>";
-      console.warn("User is not admin");
-    } else {
-      initAdminArea(user).catch(console.error);
+   ADMIN: Create Account (fast path)
+   Now: after creation we KEEP the browser signed in as the newly-created user,
+   write their Firestore role, and then redirect them immediately to the appropriate page.
+   This makes the creation flow fast: click create -> you're the new admin right away.
+   ----------------------------- */
+if (els.adminCreateForm) {
+  els.adminCreateForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    hideError(els.adminCreateError);
+    if (els.adminCreateSuccess) {
+      els.adminCreateSuccess.style.display = "none";
+      els.adminCreateSuccess.textContent = "";
     }
-  }
-});
 
-async function isUserAdmin(user) {
-  try {
-    const snap = await getDoc(doc(db, "users", user.uid));
-    const role = snap.exists() ? snap.data().role || "user" : "user";
-    if (role === "admin") return true;
-  } catch (e) {
-    console.warn("role check error", e);
-  }
-  try {
-    const token = await user.getIdTokenResult();
-    if (token.claims?.admin) return true;
-  } catch (e) {}
-  return false;
-}
-
-async function loadProfile(user) {
-  try {
-    const docRef = doc(db, "users", user.uid);
-    const docSnap = await getDoc(docRef);
-    if (docSnap.exists()) {
-      const data = docSnap.data();
-      if (els.profilePic) els.profilePic.src = data.photoURL || "default-profile.png";
-      if (els.displayName) els.displayName.textContent = data.name || user.displayName || "User";
-      if (els.emailDisplay) els.emailDisplay.textContent = user.email || "";
-      if (els.nameField && els.nameField.tagName === "INPUT") els.nameField.value = data.name || "";
-      if (els.contactField) els.contactField.value = data.contact || "";
-      if (els.addressField) els.addressField.value = data.address || "";
-      if (els.dobField) els.dobField.value = data.dob || "";
-      if (els.genderField) els.genderField.value = data.gender || "";
-      if (els.bloodTypeField) els.bloodTypeField.value = data.bloodType || "";
-      if (els.medicalInfoField) els.medicalInfoField.value = data.medicalInfo || "";
-      if (els.aboutField) els.aboutField.value = data.about || "";
-    } else {
-      try {
-        await setDoc(
-          docRef,
-          { uid: user.uid, email: user.email, createdAt: serverTimestamp() },
-          { merge: true }
-        );
-      } catch (e) {
-        if (!isPermErr(e)) throw e;
-      }
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+      return showError(els.adminCreateError, "You must be logged in as admin to create accounts.");
     }
-  } catch (err) {
-    console.error("❌ Error loading profile:", err);
-  }
-}
 
-/* Save profile (only if profile page provides saveBtn) */
-if (els.saveBtn) {
-  els.saveBtn.addEventListener("click", async () => {
-    const user = auth.currentUser;
-    if (!user) return;
+    // Verify creator is admin (best-effort)
+    const creatorIsAdmin = await isUserAdmin(currentUser);
+    if (!creatorIsAdmin) {
+      return showError(els.adminCreateError, "Admins only (creator not an admin).");
+    }
+
+    const name = els.adminCreateName?.value?.trim();
+    const email = els.adminCreateEmail?.value?.trim();
+    const password = els.adminCreatePassword?.value;
+    const role = (els.adminCreateRole?.value || "user").trim() || "user";
+
+    if (!name || !email || !password) {
+      return showError(els.adminCreateError, "Please fill out all fields.");
+    }
+    if (password.length < 8) {
+      return showError(els.adminCreateError, "Password must be at least 8 characters.");
+    }
+
     try {
-      let photoURL = els.profilePic?.src;
-      if (els.uploadPic && els.uploadPic.files?.length) {
-        const file = els.uploadPic.files[0];
-        const storageRef = ref(storage, `profile_pics/${user.uid}`);
-        try {
-          await uploadBytes(storageRef, file);
-          photoURL = await getDownloadURL(storageRef);
-          await updateProfile(user, { photoURL });
-        } catch (e) {
-          if (!isPermErr(e)) throw e;
-        }
-      }
-      const updated = {
-        name: els.nameField?.value?.trim() || "",
-        contact: els.contactField?.value?.trim() || "",
-        address: els.addressField?.value || "",
-        dob: els.dobField?.value || "",
-        gender: els.genderField?.value || "",
-        bloodType: els.bloodTypeField?.value || "",
-        medicalInfo: els.medicalInfoField?.value?.trim() || "",
-        about: els.aboutField?.value?.trim() || "",
-        photoURL,
-        updatedAt: serverTimestamp(),
-      };
+      // Create the user - this will sign the browser in as the NEW user automatically.
+      const { user: newUser } = await createUserWithEmailAndPassword(auth, email, password);
+      // Set display name
+      await updateProfile(newUser, { displayName: name });
+
+      // Write Firestore users/{uid} doc with role
       try {
-        await updateDoc(doc(db, "users", user.uid), updated);
-        emit("profile:updated", { uid: user.uid });
-      } catch (e) {
-        if (!isPermErr(e)) throw e;
+        await setDoc(doc(db, "users", newUser.uid), {
+          uid: newUser.uid,
+          email: newUser.email,
+          name,
+          role,
+          createdAt: serverTimestamp(),
+          createdBy: currentUser.uid,
+        }, { merge: true });
+      } catch (writeErr) {
+        // If we can't write role (permissions), still proceed — the account exists and user is signed in.
+        console.warn("Could not write user doc (permission?):", writeErr);
       }
+
+      // Try to send verification (non-fatal)
+      try { await sendEmailVerification(newUser); } catch (_) {}
+
+      // Show success message in UI if available
+      if (els.adminCreateSuccess) {
+        showInfo(els.adminCreateSuccess, `✅ Account created for ${email} with role "${role}". Signing in now...`);
+      }
+
+      // FAST PATH: remain signed in as the created user and redirect immediately.
+      // If the created user is admin, go to ADMIN_REDIRECT_URL; otherwise go to REDIRECT_URL.
+      if ((role || "").toLowerCase() === "admin") {
+        window.location.href = ADMIN_REDIRECT_URL;
+      } else {
+        window.location.href = REDIRECT_URL;
+      }
+
+      // (Do NOT signOut here — we intentionally leave the session as the new user so they can use it immediately.)
+
     } catch (err) {
-      console.error("❌ Error saving profile:", err);
+      console.error("Admin create account failed:", err);
+      const map = {
+        "auth/email-already-in-use": "Email already in use.",
+        "auth/invalid-email": "Invalid email format.",
+        "auth/weak-password": "Password is too weak.",
+        "auth/network-request-failed": "Network error. Check your connection.",
+      };
+      showError(els.adminCreateError, map[err?.code] || "Unable to create account.");
     }
   });
 }
 
-if (els.logoutBtn) {
-  els.logoutBtn.addEventListener("click", async () => {
-    await signOut(auth);
-    window.location.href = "login.html";
-  });
-}
-
 /* -----------------------------
-   Admin Area — basic example
------------------------------ */
-if (els.adminBtnTop) {
-  els.adminBtnTop.addEventListener("click", (e) => {
-    if (!document.body.dataset.page || document.body.dataset.page !== "admin") {
-      e.preventDefault();
-      window.location.href = "admin.html";
-    }
-  });
-}
-
-async function initAdminArea(user) {
-  if (els.adminStats) {
-    try {
-      els.adminStats.innerHTML = `<div class="stat">Welcome, ${user.email}</div>`;
-    } catch (e) {
-      els.adminStats.innerHTML = "<p>Unable to load stats.</p>";
-    }
-  }
-
-  if (els.adminContent) {
-    els.adminContent.innerHTML = `
-      <section>
-        <h3>Quick Actions</h3>
-        <div class="admin-actions">
-          <button id="admCreateAnnouncement">Create Announcement</button>
-          <button id="admListUsers">List Users</button>
-          <button id="admViewLogins">Login History</button>
-        </div>
-        <div id="adminResults" class="admin-results"></div>
-      </section>`;
-    const results = $("#adminResults");
-
-    $("#admCreateAnnouncement")?.addEventListener("click", async () => {
-      try {
-        const refCol = collection(db, "announcements");
-        const payload = {
-          title: "Welcome to DonorMedix",
-          body: "Be safe and keep donating ❤️",
-          ts: serverTimestamp(),
-          author: user.uid,
-        };
-        await addDoc(refCol, payload);
-        results.innerHTML = "<p>✅ Announcement created.</p>";
-      } catch (e) {
-        results.innerHTML = "<p>⚠️ Unable to create announcement (check rules).</p>";
-      }
-    });
-
-    $("#admListUsers")?.addEventListener("click", async () => {
-      results.innerHTML = "<p>ℹ️ Implement a users list here (Firestore query + pagination).</p>";
-    });
-
-    $("#admViewLogins")?.addEventListener("click", async () => {
-      results.innerHTML = "<p>ℹ️ Implement login history table here.</p>";
-    });
-  }
-}
-
-/* -----------------------------
-   Site UI helpers (dialogs, menu)
------------------------------ */
-function toggleMobileMenu() {
-  const mobileMenu = $("#mobileMenu");
-  const menuIcon = document.querySelector(".menu-icon");
-  const closeIcon = document.querySelector(".close-icon");
-  if (!mobileMenu) return;
-
-  if (mobileMenu.classList.contains("active")) {
-    mobileMenu.classList.remove("active");
-    if (menuIcon) menuIcon.style.display = "block";
-    if (closeIcon) closeIcon.style.display = "none";
-  } else {
-    mobileMenu.classList.add("active");
-    if (menuIcon) menuIcon.style.display = "none";
-    if (closeIcon) closeIcon.style.display = "block";
-  }
-}
-window.toggleMobileMenu = toggleMobileMenu;
-
-function openDonateDialog() { const d = $("donateDialog"); if (!d) return; d.classList.add("active"); document.body.style.overflow = "hidden"; }
-function closeDonateDialog() { const d = $("donateDialog"); if (!d) return; d.classList.remove("active"); document.body.style.overflow = "auto"; }
-function openRequestDialog(){ const d = $("requestDialog"); if (!d) return; d.classList.add("active"); document.body.style.overflow = "hidden"; }
-function closeRequestDialog(){ const d = $("requestDialog"); if (!d) return; d.classList.remove("active"); document.body.style.overflow = "auto"; }
-
-window.openDonateDialog = openDonateDialog;
-window.closeDonateDialog = closeDonateDialog;
-window.openRequestDialog = openRequestDialog;
-window.closeRequestDialog = closeRequestDialog;
-
-document.addEventListener("click", (event) => {
-  const donateDialog = $("donateDialog");
-  const requestDialog = $("requestDialog");
-  if (event.target === donateDialog) closeDonateDialog();
-  if (event.target === requestDialog) closeRequestDialog();
-});
-
-document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape") { closeDonateDialog(); closeRequestDialog(); }
-});
-
-Array.from(document.querySelectorAll('a[href^="#"]')).forEach((anchor) => {
-  anchor.addEventListener("click", function (e) {
-    const href = this.getAttribute("href");
-    if (!href || href === "#") return;
-    const target = document.querySelector(href);
-    if (!target) return;
-    e.preventDefault();
-    target.scrollIntoView({ behavior: "smooth", block: "start" });
-    const mobileMenu = $("#mobileMenu");
-    if (mobileMenu?.classList.contains("active")) toggleMobileMenu();
-  });
-});
-
-Array.from(document.querySelectorAll("form[data-demo]")).forEach((form) => {
-  form.addEventListener("submit", function (e) {
-    e.preventDefault();
-    closeDonateDialog();
-    closeRequestDialog();
-    form.reset();
-  });
-});
-
-/* -----------------------------
-   Password eye toggles
-   (hidden ⇒ slashed, shown ⇒ normal)
------------------------------ */
+   Password toggles
+   ----------------------------- */
 function makeEyeSVG(slash = false) {
   return slash
     ? '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3.27 2 2 3.27 5.05 6.3A12.66 12.66 0 0 0 1 12c1.73 3.89 6 7 11 7a11 11 0 0 0 4.39-.9l2.34 2.35L21 19.73 3.27 2Zm6.46 6.46 1.15 1.15a3 3 0 0 0 3.21 3.21l1.15 1.15A5 5 0 0 1 9.73 8.46ZM12 7a5 5 0 0 1 5 5 5 5 0 0 1-.22 1.45l3.18 3.18A13.16 13.16 0 0 0 23 12c-1.73-3.89-6-7-11-7a10.9 10.9 0 0 0-3.77.67L9.4 7.84A5 5 0 0 1 12 7Z"/></svg>'
@@ -543,12 +401,14 @@ function makeEyeSVG(slash = false) {
 
 function bindPasswordToggles() {
   document.querySelectorAll(".toggle-pass").forEach((btn) => {
-    const input = document.getElementById(btn.dataset.target);
+    const targetId = btn.dataset?.target;
+    if (!targetId) return;
+    const input = document.getElementById(targetId);
     if (!input) return;
-    let show = false; // default hidden
+    let show = false;
     function paint() {
       input.type = show ? "text" : "password";
-      btn.innerHTML = makeEyeSVG(!show); // hidden => slash, shown => no slash
+      btn.innerHTML = makeEyeSVG(!show);
       btn.setAttribute("aria-label", show ? "Hide password" : "Show password");
       btn.setAttribute("aria-pressed", String(show));
       btn.title = show ? "Hide password" : "Show password";
@@ -556,7 +416,11 @@ function bindPasswordToggles() {
     paint();
     btn.addEventListener("click", () => { show = !show; paint(); });
     btn.addEventListener("keydown", (e) => {
-      if (e.key === " " || e.key === "Enter") { e.preventDefault(); show = !show; paint(); }
+      if (e.key === " " || e.key === "Enter") {
+        e.preventDefault();
+        show = !show;
+        paint();
+      }
     });
   });
 }
@@ -568,6 +432,363 @@ if (document.readyState === "loading") {
 }
 
 /* -----------------------------
-   Export bridge for profile.js
------------------------------ */
-export const AppBridge = { auth, db, storage, emit };
+   Profile & Notifications helpers
+   ----------------------------- */
+export function onAuthState(callback) {
+  return onAuthStateChanged(auth, callback);
+}
+
+export async function getUserDoc(uid) {
+  if (!uid) return null;
+  try {
+    const snap = await getDoc(doc(db, "users", uid));
+    return snap.exists() ? snap.data() : null;
+  } catch (e) {
+    console.warn("getUserDoc error", e);
+    return null;
+  }
+}
+
+export async function updateUserDoc(uid, data) {
+  if (!uid) throw new Error("uid required");
+  return updateDoc(doc(db, "users", uid), { ...data, updatedAt: serverTimestamp() });
+}
+
+/* Notifications helpers */
+export async function fetchNotifications(uid, opts = { limit: 20 }) {
+  if (!uid) return [];
+  try {
+    const q = query(collection(db, "notifications"), where("uid", "==", uid), orderBy("ts", "desc"), limit(opts.limit || 20));
+    const snap = await getDocs(q);
+    return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  } catch (e) {
+    console.warn("fetchNotifications error", e);
+    return [];
+  }
+}
+
+export function listenNotifications(uid, onChange) {
+  if (!uid) return () => {};
+  const q = query(collection(db, "notifications"), where("uid", "==", uid), orderBy("ts", "desc"), limit(50));
+  return onSnapshot(q, (snap) => {
+    const arr = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    onChange(arr);
+  }, (err) => {
+    console.warn("listenNotifications error", err);
+  });
+}
+
+export async function markNotificationRead(notificationId) {
+  if (!notificationId) return;
+  try {
+    await updateDoc(doc(db, "notifications", notificationId), { read: true, readAt: serverTimestamp() });
+  } catch (e) {
+    console.warn("markNotificationRead error", e);
+  }
+}
+
+export async function createNotification({ uid, title, body, metadata = {} } = {}) {
+  if (!uid) throw new Error("uid required");
+  try {
+    await addDoc(collection(db, "notifications"), { uid, title: title || "Notification", body: body || "", metadata, read: false, ts: serverTimestamp() });
+  } catch (e) {
+    console.warn("createNotification error", e);
+  }
+}
+
+/* UI helpers */
+export async function populateProfileUI(user, opts = {}) {
+  const { nameElId, emailElId, avatarElId, roleElId } = opts;
+  if (!user) {
+    [nameElId, emailElId, avatarElId, roleElId].forEach((id) => {
+      if (!id) return;
+      const el = document.getElementById(id);
+      if (el) {
+        if (id === avatarElId && el.tagName === "IMG") el.src = el.dataset?.default || "";
+        else el.textContent = "";
+      }
+    });
+    return;
+  }
+
+  const nameEl = nameElId ? document.getElementById(nameElId) : null;
+  const emailEl = emailElId ? document.getElementById(emailElId) : null;
+  const avatarEl = avatarElId ? document.getElementById(avatarElId) : null;
+  const roleEl = roleElId ? document.getElementById(roleElId) : null;
+
+  if (nameEl) nameEl.textContent = user.displayName || user.email || "";
+  if (emailEl) emailEl.textContent = user.email || "";
+  if (avatarEl && user.photoURL && avatarEl.tagName === "IMG") avatarEl.src = user.photoURL;
+
+  const userDoc = await getUserDoc(user.uid);
+  if (userDoc) {
+    if (nameEl && userDoc.name) nameEl.textContent = userDoc.name;
+    if (avatarEl && userDoc.photoURL && avatarEl.tagName === "IMG") avatarEl.src = userDoc.photoURL;
+    if (roleEl) roleEl.textContent = userDoc.role || "";
+  }
+}
+
+export function bindNotificationBadge(user, opts = {}) {
+  const { badgeElId, listElId, onItemClick } = opts;
+  const badgeEl = badgeElId ? document.getElementById(badgeElId) : null;
+  const listEl = listElId ? document.getElementById(listElId) : null;
+
+  if (!user) {
+    if (badgeEl) badgeEl.style.display = "none";
+    if (listEl) listEl.innerHTML = "";
+    return () => {};
+  }
+
+  const unsub = listenNotifications(user.uid, (notifications) => {
+    const unreadCount = notifications.filter(n => !n.read).length;
+    if (badgeEl) {
+      badgeEl.textContent = unreadCount > 0 ? String(unreadCount) : "";
+      badgeEl.style.display = unreadCount > 0 ? "inline-block" : "none";
+    }
+    if (listEl) {
+      listEl.innerHTML = notifications.map((n) => {
+        const cls = n.read ? "notif read" : "notif unread";
+        const time = n.ts?.toDate ? new Date(n.ts.toDate()).toLocaleString() : "";
+        return `<li class="${cls}" data-id="${escapeHtml(n.id)}" role="button" tabindex="0">
+                  <strong>${escapeHtml(n.title || "Notification")}</strong>
+                  <div class="meta">${escapeHtml(time)}</div>
+                  <div class="body">${escapeHtml(n.body || "")}</div>
+                </li>`;
+      }).join("");
+
+      listEl.querySelectorAll("li[data-id]").forEach(li => {
+        li.onclick = async () => {
+          const id = li.dataset.id;
+          const notif = notifications.find(x => x.id === id);
+          if (notif && !notif.read) await markNotificationRead(id);
+          if (onItemClick) onItemClick(notif);
+        };
+        li.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            li.click();
+          }
+        });
+      });
+    }
+  });
+
+  return unsub;
+}
+
+/* safe escape helper */
+function escapeHtml(s = "") {
+  return String(s).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+}
+
+/* =============================
+   NEW: Admin & page helpers (exports)
+   ============================= */
+export async function createAdminAccount({ email, password, name } = {}) {
+  if (!email || !password || (password.length < 8)) {
+    throw new Error("email and password(>=8) required");
+  }
+  const cred = await createUserWithEmailAndPassword(auth, email, password);
+  const user = cred.user;
+  if (name) await updateProfile(user, { displayName: name });
+  await setDoc(doc(db, "users", user.uid), {
+    uid: user.uid,
+    email: user.email,
+    name: name || "",
+    role: "admin",
+    createdAt: serverTimestamp(),
+  }, { merge: true });
+  try { await sendEmailVerification(user); } catch (_) {}
+  // keep signed in as created user
+  return user.uid;
+}
+
+export async function setUserRole(uid, role = "user") {
+  if (!uid) throw new Error("uid required");
+  return updateDoc(doc(db, "users", uid), { role, updatedAt: serverTimestamp() });
+}
+
+export function requireAuth(options = {}) {
+  const redirectTo = options.redirectTo || "login.html";
+  return onAuthState(async (user) => {
+    if (!user) {
+      window.location.href = redirectTo;
+      return;
+    }
+  });
+}
+
+export function requireAdmin(options = {}) {
+  const redirectTo = options.redirectTo || "login.html";
+  return onAuthState(async (user) => {
+    if (!user) {
+      window.location.href = redirectTo;
+      return;
+    }
+    const docu = await getUserDoc(user.uid);
+    const role = docu?.role || "";
+    if (role !== "admin") {
+      window.location.href = redirectTo;
+    }
+  });
+}
+
+export function wirePageAuth(opts = {}) {
+  const { profile = {}, badge = {}, requireAdmin: rAdmin = false, requireLogin: rLogin = false, redirectTo = "login.html" } = opts;
+  return onAuthState(async (user) => {
+    if (!user) {
+      if (rLogin || rAdmin) window.location.href = redirectTo;
+      else {
+        await populateProfileUI(null, profile);
+        bindNotificationBadge(null, badge);
+      }
+      return;
+    }
+    await populateProfileUI(user, profile);
+    bindNotificationBadge(user, badge);
+    if (rAdmin) {
+      const docu = await getUserDoc(user.uid);
+      if ((docu?.role || "") !== "admin") {
+        window.location.href = redirectTo;
+      }
+    }
+  });
+}
+
+/* =============================
+   UI wiring (moved from HTML)
+   ============================= */
+(function uiWireUp() {
+  const onLoginPage = !!document.getElementById("loginForm");
+
+  // createdByAdmin banner (kept but optional)
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const createdByAdminFlag = params.get("createdByAdmin") === "1";
+    if (createdByAdminFlag && onLoginPage) {
+      const banner = document.createElement("div");
+      banner.className = "auth-created-by-admin-banner";
+      banner.style.cssText = "position:fixed;top:12px;left:50%;transform:translateX(-50%);background:#f0fdf4;color:#064e3b;padding:10px 14px;border-radius:10px;box-shadow:0 8px 20px rgba(2,6,23,.08);z-index:10000;font-weight:700";
+      banner.textContent = "Admin account created — please log in.";
+      document.body.appendChild(banner);
+      setTimeout(() => {
+        banner.style.transition = "opacity .3s";
+        banner.style.opacity = "0";
+        setTimeout(() => banner.remove(), 350);
+      }, 3500);
+
+      window.__auth_wants_createdByAdmin = true;
+      const unsub = onAuthState(async (user) => {
+        if (!user) return;
+        try {
+          window.__auth_wants_createdByAdmin = false;
+          unsub();
+          window.location.href = REDIRECT_URL;
+        } catch (err) {
+          console.error("createdByAdmin auth handler error:", err);
+          window.__auth_wants_createdByAdmin = false;
+          unsub();
+          await redirectAfterLogin(user);
+        }
+      });
+    }
+  } catch (e) {
+    console.warn("createdByAdmin banner logic failed:", e);
+  }
+
+  // tabs
+  try {
+    const tabLogin = document.getElementById("tab-login");
+    const tabSignup = document.getElementById("tab-signup");
+    const panelLogin = document.getElementById("panel-login");
+    const panelSignup = document.getElementById("panel-signup");
+    if (tabLogin && tabSignup && panelLogin && panelSignup) {
+      function selectTab(which) {
+        const isLogin = which === "login";
+        tabLogin.setAttribute("aria-selected", String(isLogin));
+        tabSignup.setAttribute("aria-selected", String(!isLogin));
+        panelLogin.classList.toggle("hidden", !isLogin);
+        panelSignup.classList.toggle("hidden", isLogin);
+      }
+      tabLogin.addEventListener("click", () => selectTab("login"));
+      tabSignup.addEventListener("click", () => selectTab("signup"));
+      document.getElementById("toLogin")?.addEventListener("click", (e) => { e.preventDefault(); selectTab("login"); });
+    }
+  } catch (e) { console.warn("tab wiring error:", e); }
+
+  // admin modal wiring
+  try {
+    const adminBtn = document.getElementById("adminBtnTop");
+    const adminPanel = document.getElementById("adminPanel");
+    const closeAdmin = document.getElementById("closeAdmin");
+    const adminForm = document.getElementById("adminCreateForm");
+    const adminOk = document.getElementById("adminCreateOk");
+    const adminErr = document.getElementById("adminCreateErr");
+
+    if (adminBtn && adminPanel) {
+      adminBtn.addEventListener("click", (ev) => {
+        ev.preventDefault();
+        adminPanel.classList.add("open");
+        adminPanel.setAttribute("aria-hidden", "false");
+        setTimeout(() => document.getElementById("adminCreateEmail")?.focus(), 120);
+      });
+    }
+    if (closeAdmin && adminPanel) {
+      closeAdmin.addEventListener("click", () => {
+        adminPanel.classList.remove("open");
+        adminPanel.setAttribute("aria-hidden", "true");
+      });
+    }
+    document.addEventListener("keydown", (ev) => {
+      if (ev.key === "Escape" && adminPanel) {
+        adminPanel.classList.remove("open");
+        adminPanel.setAttribute("aria-hidden", "true");
+      }
+    });
+
+    if (adminForm) {
+      adminForm.addEventListener("submit", (ev) => {
+        if (adminErr) { adminErr.style.display = "none"; adminErr.textContent = ""; }
+        if (adminOk) { adminOk.style.display = "block"; adminOk.textContent = "Processing..."; }
+      });
+    }
+  } catch (e) { console.warn("admin panel wiring error:", e); }
+
+  // populate profile UI if present
+  try {
+    const hasProfileEls = !!(els.displayName || els.displayEmail || els.profilePic || els.roleEl);
+    if (hasProfileEls) {
+      onAuthState(async (user) => {
+        if (!user) {
+          populateProfileUI(null, { nameElId: "displayName", emailElId: "displayEmail", avatarElId: "profilePic", roleElId: "role" }).catch(()=>{});
+          bindNotificationBadge(null, { badgeElId: "notifBadge", listElId: "notifList" });
+          return;
+        }
+        populateProfileUI(user, { nameElId: "displayName", emailElId: "displayEmail", avatarElId: "profilePic", roleElId: "role" }).catch(()=>{});
+        bindNotificationBadge(user, { badgeElId: "notifBadge", listElId: "notifList" });
+      });
+    }
+  } catch (e) { console.warn("profile UI wiring error:", e); }
+})();
+
+/* =============================
+   Export AppBridge and helpers
+   ============================= */
+export const AppBridge = {
+  auth,
+  db,
+  onAuthState,
+  getUserDoc,
+  updateUserDoc,
+  fetchNotifications,
+  listenNotifications,
+  markNotificationRead,
+  createNotification,
+  populateProfileUI,
+  bindNotificationBadge,
+  createAdminAccount,
+  setUserRole,
+  requireAuth,
+  requireAdmin,
+  wirePageAuth,
+};
