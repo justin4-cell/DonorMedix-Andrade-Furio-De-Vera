@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DonorMedix · Admin Panel</title>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      /* Emerald/Slate palette (same as your existing design) */
+      --brand:#10b981;
+      --brand-2:#059669;
+      --ink:#0f172a;
+      --muted:#64748b;
+      --line:#e2e8f0;
+      --bg:#f8fafc;
+      --card:#ffffff;
+      --shadow:0 8px 22px rgba(2,6,23,.06);
+      --radius:14px;
+      --danger:#ef4444;
+      --danger-2:#dc2626;
+      --warning:#f59e0b;
+      --info:#3b82f6;
+      --success:#22c55e;
+    }
+
+    body {
+      min-height: 100vh;
+      font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+      background: radial-gradient(circle at top left, #ecfeff 0, #f8fafc 45%, #e2fbe8 100%);
+      color: var(--ink);
+    }
+
+    .shell {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 20px 16px 32px;
+    }
+
+    /* Header / Top Bar */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-mark {
+      width: 32px;
+      height: 32px;
+      border-radius: 999px;
+      background: conic-gradient(from 140deg, var(--brand), var(--brand-2));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 18px rgba(16,185,129,.55);
+      color: #ecfdf5;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .brand-text-main {
+      font-weight: 700;
+      letter-spacing: .04em;
+      font-size: 16px;
+      text-transform: uppercase;
+      color: var(--ink);
+    }
+
+    .brand-text-sub {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      color: var(--muted);
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    /* remove underline from Admin link/button if you use id="adminBtnTop" */
+    #adminBtnTop,
+    #adminBtnTop:visited,
+    #adminBtnTop:hover {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .pill {
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(15,23,42,.04);
+      border: 1px solid rgba(148,163,184,.6);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .14em;
+      color: var(--muted);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .pill-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: var(--brand);
+      box-shadow: 0 0 0 4px rgba(34,197,94,.25);
+    }
+
+    .admin-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border-radius: 999px;
+      padding: 6px 12px;
+      background: #ecfdf5;
+      border: 1px solid rgba(16,185,129,.4);
+      font-size: 12px;
+      color: var(--brand-2);
+      font-weight: 500;
+      cursor: default;
+    }
+
+    .admin-avatar {
+      width: 22px;
+      height: 22px;
+      border-radius: 999px;
+      background: linear-gradient(135deg,#22c55e,#0f766e);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      color: #ecfdf5;
+      font-weight: 600;
+    }
+
+    .admin-role {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .14em;
+      color: var(--muted);
+    }
+
+    /* Main Layout */
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.6fr);
+      gap: 20px;
+    }
+
+    @media (max-width: 880px) {
+      .layout {
+        grid-template-columns: minmax(0,1fr);
+      }
+    }
+
+    /* Cards */
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      border: 1px solid rgba(148,163,184,.3);
+      box-shadow: var(--shadow);
+      padding: 16px 18px;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      gap: 8px;
+    }
+
+    .card-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--ink);
+    }
+
+    .card-subtitle {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .card-tag {
+      font-size: 10px;
+      padding: 4px 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,.55);
+      text-transform: uppercase;
+      letter-spacing: .14em;
+      color: var(--muted);
+      background: rgba(248,250,252,.7);
+    }
+
+    /* Summary Grid */
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(2,minmax(0,1fr));
+      gap: 10px;
+      margin-top: 6px;
+    }
+
+    @media (max-width: 520px) {
+      .summary-grid {
+        grid-template-columns: minmax(0,1fr);
+      }
+    }
+
+    .summary-item {
+      border-radius: 12px;
+      border: 1px solid rgba(148,163,184,.3);
+      padding: 10px 11px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      background: #f9fafb;
+    }
+
+    .summary-label {
+      font-size: 11px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .dot-green {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--success);
+    }
+
+    .dot-yellow {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--warning);
+    }
+
+    .dot-red {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--danger);
+    }
+
+    .dot-blue {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--info);
+    }
+
+    .summary-value {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .summary-trend {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    /* Filters */
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 8px 0 14px;
+    }
+
+    .input,
+    .select {
+      border-radius: 999px;
+      padding: 6px 11px;
+      border: 1px solid rgba(148,163,184,.7);
+      background: #f9fafb;
+      font-size: 12px;
+      color: var(--ink);
+      outline: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .input input {
+      border: none;
+      background: transparent;
+      font-size: 12px;
+      outline: none;
+      min-width: 120px;
+    }
+
+    .select select {
+      border: none;
+      background: transparent;
+      font-size: 12px;
+      outline: none;
+      appearance: none;
+      padding-right: 14px;
+    }
+
+    .btn {
+      border-radius: 999px;
+      border: none;
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: 500;
+      background: linear-gradient(135deg,var(--brand),var(--brand-2));
+      color: #ecfdf5;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 10px 18px rgba(16,185,129,.55);
+      transition: transform .08s ease, box-shadow .08s ease;
+    }
+
+    .btn:active {
+      transform: translateY(1px) scale(.99);
+      box-shadow: 0 4px 10px rgba(16,185,129,.45);
+    }
+
+    /* Requests Table */
+    .table-wrapper {
+      border-radius: 12px;
+      border: 1px solid rgba(148,163,184,.4);
+      overflow: hidden;
+      background: #f9fafb;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    thead {
+      background: #e5f7ef;
+    }
+
+    th,
+    td {
+      padding: 8px 10px;
+      text-align: left;
+      border-bottom: 1px solid rgba(148,163,184,.35);
+    }
+
+    th {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      color: var(--muted);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    tbody tr:hover {
+      background: rgba(16,185,129,.03);
+    }
+
+    .cell-title {
+      font-weight: 600;
+      font-size: 12px;
+      color: var(--ink);
+    }
+
+    .cell-sub {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3px 9px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 500;
+      border: 1px solid transparent;
+      white-space: nowrap;
+    }
+
+    .badge-urgent {
+      background: #fef2f2;
+      color: var(--danger-2);
+      border-color: rgba(239,68,68,.6);
+    }
+
+    .badge-high {
+      background: #fffbeb;
+      color: #b45309;
+      border-color: rgba(245,158,11,.7);
+    }
+
+    .badge-medium {
+      background: #eff6ff;
+      color: #1d4ed8;
+      border-color: rgba(59,130,246,.7);
+    }
+
+    .badge-low {
+      background: #ecfdf5;
+      color: #15803d;
+      border-color: rgba(34,197,94,.6);
+    }
+
+    .badge-category {
+      background: #eef2ff;
+      color: #4f46e5;
+      border-color: rgba(99,102,241,.7);
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+    }
+
+    .status-pending .status-dot {
+      background: var(--warning);
+    }
+    .status-approved .status-dot {
+      background: var(--success);
+    }
+    .status-rejected .status-dot {
+      background: var(--danger);
+    }
+
+    .status-pending {
+      color: #b45309;
+    }
+    .status-approved {
+      color: #166534;
+    }
+    .status-rejected {
+      color: #b91c1c;
+    }
+
+    .row-actions {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .chip-action {
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,.6);
+      font-size: 11px;
+      cursor: pointer;
+      background: #ffffff;
+      transition: background .08s ease, transform .06s ease, box-shadow .06s ease;
+      box-shadow: 0 3px 8px rgba(15,23,42,.12);
+    }
+
+    .chip-action:active {
+      transform: translateY(1px) scale(.99);
+      box-shadow: 0 1px 3px rgba(15,23,42,.3);
+    }
+
+    .chip-action.approve {
+      border-color: rgba(34,197,94,.8);
+      color: #166534;
+    }
+
+    .chip-action.reject {
+      border-color: rgba(239,68,68,.8);
+      color: #b91c1c;
+    }
+
+    .chip-action.view {
+      border-style: dashed;
+      color: #334155;
+    }
+
+    /* Right column header meta */
+    .meta-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 4px;
+      gap: 8px;
+    }
+
+    .meta-text {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .meta-text strong {
+      color: var(--ink);
+    }
+
+    /* Admin create account form styles */
+    .admin-create-form {
+      margin-top: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .field label {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .field input,
+    .field select {
+      width: 100%;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,.7);
+      padding: 8px 12px;
+      font-size: 13px;
+      outline: none;
+      background: #f9fafb;
+      color: var(--ink);
+    }
+
+    .field input:focus,
+    .field select:focus {
+      border-color: var(--brand);
+      box-shadow: 0 0 0 1px rgba(16,185,129,.3);
+      background: #ffffff;
+    }
+
+    .error {
+      font-size: 12px;
+      color: var(--danger-2);
+    }
+
+    .ok {
+      font-size: 12px;
+      color: var(--brand-2);
+    }
+
+    /* Footer note */
+    .footer-note {
+      margin-top: 18px;
+      font-size: 11px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <!-- Top Bar -->
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark">DM</div>
+        <div>
+          <div class="brand-text-main">DonorMedix</div>
+          <div class="brand-text-sub">Medicine Donation · Admin Panel</div>
+        </div>
+      </div>
+
+      <div class="topbar-right">
+        <div class="pill">
+          <span class="pill-dot"></span>
+          LIVE OVERVIEW
+        </div>
+        <div>
+          <div class="admin-chip">
+            <div class="admin-avatar">A</div>
+            <div>
+              <div style="font-size:12px;font-weight:600;">Admin</div>
+              <div class="admin-role">System</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+      <!-- Right: Requests table -->
+      <section class="card">
+        <!-- Dashboard Overview -->
+<section class="card" style="grid-column: 1 / -1;">
+  <div class="card-header">
+    <div>
+      <div class="card-title">Dashboard Overview</div>
+      <div class="card-subtitle">Real-time activity and system status</div>
+    </div>
+    <span class="card-tag">Dashboard</span>
+  </div>
+
+  <!-- Dashboard Stats -->
+  <div class="summary-grid" style="margin-top: 4px;">
+    <div class="summary-item">
+      <div class="summary-label">
+        <span class="dot-blue"></span>
+        Active Donors Today
+      </div>
+      <div class="summary-value">42</div>
+      <div class="summary-trend">+4 vs yesterday</div>
+    </div>
+
+    <div class="summary-item">
+      <div class="summary-label">
+        <span class="dot-green"></span>
+        Medicines Donated
+      </div>
+      <div class="summary-value">312</div>
+      <div class="summary-trend">Total processed</div>
+    </div>
+
+    <div class="summary-item">
+      <div class="summary-label">
+        <span class="dot-yellow"></span>
+        Pending Deliveries
+      </div>
+      <div class="summary-value">18</div>
+      <div class="summary-trend">Shipment queue</div>
+    </div>
+
+    <div class="summary-item">
+      <div class="summary-label">
+        <span class="dot-red"></span>
+        Expiring Soon
+      </div>
+      <div class="summary-value">9</div>
+      <div class="summary-trend">Check inventory</div>
+    </div>
+  </div>
+
+  <!-- Divider -->
+  <div style="border-top: 1px solid var(--line); margin: 16px 0;"></div>
+
+  <!-- Activity Feed -->
+  <div>
+    <div class="card-title" style="font-size:14px;margin-bottom:6px;">Recent Activity</div>
+
+    <ul style="list-style:none; display:flex; flex-direction:column; gap:10px; font-size:13px; color:var(--ink); padding-left:4px;">
+      <li>
+        ✔️ <strong>Admin (You)</strong> approved request of <strong>Maria Santos</strong>
+        <span style="color:var(--muted);">· 5 min ago</span>
+      </li>
+      <li>
+        📦 Delivery update: <strong>Losartan</strong> dispatched to <strong>Rogelio Cruz</strong>
+        <span style="color:var(--muted);">· 22 min ago</span>
+      </li>
+      <li>
+        ➕ New user registered: <strong>Joseph Villanueva</strong>
+        <span style="color:var(--muted);">· 1 hr ago</span>
+      </li>
+      <li>
+        ⚠️ 3 medicines marked as <strong>near expiration</strong>.
+        <span style="color:var(--muted);">· 3 hrs ago</span>
+      </li>
+    </ul>
+  </div>
+</section>
+
+
+
+        <div class="card-header">
+          <div>
+            <div class="card-title">Manage Medicine Requests</div>
+            <div class="card-subtitle">Filter by category, urgency, and status</div>
+          </div>
+          <span class="card-tag">Admin View</span>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters">
+          <div class="input">
+            🔍
+            <input type="text" placeholder="Search patient or medicine…" />
+          </div>
+
+          <div class="select">
+            <select>
+              <option value="">All Categories</option>
+              <option>Antibiotics</option>
+              <option>Maintenance</option>
+              <option>Pain Relief</option>
+              <option>Vitamins</option>
+              <option>Others</option>
+            </select>
+          </div>
+
+          <div class="select">
+            <select>
+              <option value="">All Urgency</option>
+              <option>Urgent</option>
+              <option>High</option>
+              <option>Medium</option>
+              <option>Low</option>
+            </select>
+          </div>
+
+          <div class="select">
+            <select>
+              <option value="">All Status</option>
+              <option>Pending</option>
+              <option>Approved</option>
+              <option>Rejected</option>
+            </select>
+          </div>
+
+          <button class="btn" type="button">
+            Apply Filters
+          </button>
+        </div>
+
+        <div class="meta-row">
+          <div class="meta-text">
+            Showing <strong>1–6</strong> of <strong>128</strong> requests
+          </div>
+          <div class="meta-text">
+            Sort by <strong>Newest</strong>
+          </div>
+        </div>
+
+        <!-- Requests Table -->
+        <div class="table-wrapper" style="margin-top:10px;">
+          <table>
+            <thead>
+              <tr>
+                <th>Patient / Request</th>
+                <th>Category</th>
+                <th>Urgency</th>
+                <th>Status</th>
+                <th>Requested</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Row 1 -->
+              <tr>
+                <td>
+                  <div class="cell-title">Maria Santos</div>
+                  <div class="cell-sub">Amoxicillin 500mg · 14 capsules</div>
+                </td>
+                <td>
+                  <span class="badge badge-category">Antibiotics</span>
+                </td>
+                <td>
+                  <span class="badge badge-urgent">Urgent</span>
+                </td>
+                <td>
+                  <span class="status status-pending">
+                    <span class="status-dot"></span>
+                    Pending
+                  </span>
+                </td>
+                <td>
+                  <div class="cell-sub">Today · 09:12 AM</div>
+                </td>
+                <td>
+                  <div class="row-actions">
+                    <button class="chip-action approve">Approve</button>
+                    <button class="chip-action reject">Reject</button>
+                    <button class="chip-action view">View</button>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Row 2 -->
+              <tr>
+                <td>
+                  <div class="cell-title">Juan Dela Cruz</div>
+                  <div class="cell-sub">Metformin 500mg · 30 tablets</div>
+                </td>
+                <td>
+                  <span class="badge badge-category">Maintenance</span>
+                </td>
+                <td>
+                  <span class="badge badge-high">High</span>
+                </td>
+                <td>
+                  <span class="status status-approved">
+                    <span class="status-dot"></span>
+                    Approved
+                  </span>
+                </td>
+                <td>
+                  <div class="cell-sub">Today · 08:25 AM</div>
+                </td>
+                <td>
+                  <div class="row-actions">
+                    <button class="chip-action view">View</button>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Row 3 -->
+              <tr>
+                <td>
+                  <div class="cell-title">Liza Reyes</div>
+                  <div class="cell-sub">Paracetamol 500mg · 20 tablets</div>
+                </td>
+                <td>
+                  <span class="badge badge-category">Pain Relief</span>
+                </td>
+                <td>
+                  <span class="badge badge-medium">Medium</span>
+                </td>
+                <td>
+                  <span class="status status-approved">
+                    <span class="status-dot"></span>
+                    Approved
+                  </span>
+                </td>
+                <td>
+                  <div class="cell-sub">Yesterday · 04:10 PM</div>
+                </td>
+                <td>
+                  <div class="row-actions">
+                    <button class="chip-action view">View</button>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Row 4 -->
+              <tr>
+                <td>
+                  <div class="cell-title">Rogelio Cruz</div>
+                  <div class="cell-sub">Losartan 50mg · 30 tablets</div>
+                </td>
+                <td>
+                  <span class="badge badge-category">Maintenance</span>
+                </td>
+                <td>
+                  <span class="badge badge-high">High</span>
+                </td>
+                <td>
+                  <span class="status status-pending">
+                    <span class="status-dot"></span>
+                    Pending
+                  </span>
+                </td>
+                <td>
+                  <div class="cell-sub">Yesterday · 11:45 AM</div>
+                </td>
+                <td>
+                  <div class="row-actions">
+                    <button class="chip-action approve">Approve</button>
+                    <button class="chip-action reject">Reject</button>
+                    <button class="chip-action view">View</button>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Row 5 -->
+              <tr>
+                <td>
+                  <div class="cell-title">Ana Lopez</div>
+                  <div class="cell-sub">Vitamin C 500mg · 30 tablets</div>
+                </td>
+                <td>
+                  <span class="badge badge-category">Vitamins</span>
+                </td>
+                <td>
+                  <span class="badge badge-low">Low</span>
+                </td>
+                <td>
+                  <span class="status status-rejected">
+                    <span class="status-dot"></span>
+                    Rejected
+                  </span>
+                </td>
+                <td>
+                  <div class="cell-sub">Nov 10 · 01:30 PM</div>
+                </td>
+                <td>
+                  <div class="row-actions">
+                    <button class="chip-action view">View</button>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Row 6 -->
+              <tr>
+                <td>
+                  <div class="cell-title">Mark Garcia</div>
+                  <div class="cell-sub">Insulin (Pen) · 1 box </div>
+                </td>
+                <td>
+                  <span class="badge badge-category">Maintenance</span>
+                </td>
+                <td>
+                  <span class="badge badge-urgent">Urgent</span>
+                </td>
+                <td>
+                  <span class="status status-pending">
+                    <span class="status-dot"></span>
+                    Pending
+                  </span>
+                </td>
+                <td>
+                  <div class="cell-sub">Nov 9 · 05:05 PM</div>
+                </td>
+                <td>
+                  <div class="row-actions">
+                    <button class="chip-action approve">Approve</button>
+                    <button class="chip-action reject">Reject</button>
+                    <button class="chip-action view">View</button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      
+    </main>
+
+    <p class="footer-note">
+      This is a static admin UI. The buttons are now connected via <code>auth.js</code> to Firebase Authentication and Firestore for creating accounts.
+    </p>
+  </div>
+
+  <!-- Connect Firebase auth / admin logic -->
+  <script type="module" src="auth.js"></script>
+</body>
+</html>
