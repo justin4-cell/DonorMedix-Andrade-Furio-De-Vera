@@ -1,6 +1,5 @@
-// donate.js
-// DonorMedix · Create Donation + Header Profile & Notifications + Cloudinary upload
-// NOTE: In your HTML, include Cloudinary widget BEFORE this file:
+// donate.js (updated) - DonorMedix · Donate page logic
+// Make sure in donate.html you have:
 // <script src="https://widget.cloudinary.com/v2.0/global/all.js"></script>
 // <script type="module" src="donate.js"></script>
 
@@ -16,6 +15,9 @@ import {
   orderBy,
   limit,
   serverTimestamp,
+  updateDoc,
+  setDoc,
+  increment,
 } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 import {
   getAuth,
@@ -40,11 +42,10 @@ const app  = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
 const db   = getFirestore(app);
 const auth = getAuth(app);
 
-// shared auth state
 let currentUser = null;
 
 // -------------------------------------------------------
-// Helpers (general)
+// Helpers
 // -------------------------------------------------------
 const $ = (sel) => document.querySelector(sel);
 
@@ -56,7 +57,6 @@ function onReady(fn){
   }
 }
 
-// Toast (id="toast")
 const toastEl = document.getElementById("toast");
 function showToast(msg){
   if (!toastEl) { alert(msg); return; }
@@ -65,7 +65,6 @@ function showToast(msg){
   setTimeout(()=> toastEl.classList.remove("show"), 3000);
 }
 
-// small helper
 function displayNameFrom(u, data){
   return data?.name || u?.displayName || (u?.email ? u.email.split("@")[0] : "Profile");
 }
@@ -93,13 +92,6 @@ function timeAgo(date) {
   return "";
 }
 
-// -------------------------------------------------------
-// Donation form logic
-// -------------------------------------------------------
-const donationForm   = document.getElementById("donationForm");
-const imageUrlInput  = document.getElementById("imageUrl");
-const imagePreviewEl = document.getElementById("imagePreview");
-
 async function getCanonicalUser(u){
   if (!u) return { name: "Anonymous", photoURL: null };
   let name = u.displayName || (u.email ? u.email.split("@")[0] : "Anonymous");
@@ -118,108 +110,195 @@ async function getCanonicalUser(u){
   return { name, photoURL };
 }
 
-if (donationForm) {
-  donationForm.addEventListener("submit", async (e)=>{
-    e.preventDefault();
+// -------------------------------------------------------
+// Quantity select (1–50)
+// -------------------------------------------------------
+function initQuantitySelect(){
+  const qtySel = document.getElementById("quantity");
+  if (!qtySel) return;
 
-    if (!currentUser) {
-      showToast("Please sign in first.");
-      window.location.href = "auth.html";
-      return;
-    }
+  // Reset then populate
+  qtySel.innerHTML = "";
+  for (let i = 1; i <= 50; i++){
+    const opt = document.createElement("option");
+    opt.value = String(i);
+    opt.textContent = String(i);
+    qtySel.appendChild(opt);
+  }
+  qtySel.value = "1";
+}
 
-    const submitBtn = donationForm.querySelector("button[type='submit']");
-    if (submitBtn) {
-      submitBtn.disabled = true;
-      submitBtn.textContent = "Posting...";
-    }
+// -------------------------------------------------------
+// PH Location – full dataset via JSON (regions, provinces, cities, barangays)
+// Based on: https://github.com/flores-jacob/philippine-regions-provinces-cities-municipalities-barangays
+// -------------------------------------------------------
+let PH_DATA = null;
+let phDataPromise = null;
 
-    try {
-      const fd = new FormData(donationForm);
+function clearSelect(sel, placeholder){
+  if (!sel) return;
+  sel.innerHTML = "";
+  const opt = document.createElement("option");
+  opt.value = "";
+  opt.textContent = placeholder;
+  sel.appendChild(opt);
+}
 
-      const quantityRaw = fd.get("quantity");
-      const quantity = quantityRaw ? Number(quantityRaw) : 1;
+async function loadPhData(){
+  if (PH_DATA) return PH_DATA;
+  if (phDataPromise) return phDataPromise;
 
-      const { name: donorName, photoURL: donorPhoto } = await getCanonicalUser(currentUser);
+  const DATA_URL =
+    "https://raw.githubusercontent.com/flores-jacob/philippine-regions-provinces-cities-municipalities-barangays/master/philippine_provinces_cities_municipalities_and_barangays_2019v2.json";
 
-      const docData = {
-        medicineName: (fd.get("medicineName") || "").toString().trim(),
-        category: (fd.get("category") || "Other").toString().trim() || "Other",
-        urgency: (fd.get("urgency") || "normal").toString().trim() || "normal",
-        condition: (fd.get("condition") || "Unspecified").toString().trim() || "Unspecified",
-        quantity: isNaN(quantity) || quantity <= 0 ? 1 : quantity,
-        expiryDate: (fd.get("expiryDate") || "").toString().trim() || null,
-        pickupLocation: (fd.get("pickupLocation") || "").toString().trim(),
-        description: (fd.get("description") || "").toString().trim(),
-        contactMethod: (fd.get("contactMethod") || "app").toString().trim() || "app",
-        imageUrl: (fd.get("imageUrl") || "").toString().trim() || "",
-        createdAt: serverTimestamp(),
+  phDataPromise = fetch(DATA_URL)
+    .then((res)=>{
+      if (!res.ok) throw new Error("Failed to load PH locations JSON");
+      return res.json();
+    })
+    .then((json)=>{
+      PH_DATA = json;
+      return PH_DATA;
+    })
+    .catch((err)=>{
+      console.warn("Error loading PH locations:", err);
+      PH_DATA = null;
+      phDataPromise = null;
+      return null;
+    });
 
-        // donor meta
-        userId: currentUser.uid,
-        donorName,
-        donorPhoto,
-      };
+  return phDataPromise;
+}
 
-      if (!docData.medicineName) {
-        throw new Error("Please enter a medicine name.");
-      }
+function initLocationDropdowns(){
+  const selRegion   = document.getElementById("selRegion");
+  const selProvince = document.getElementById("selProvince");
+  const selCityMun  = document.getElementById("selCityMun");
+  const selBarangay = document.getElementById("selBarangay");
 
-      await addDoc(collection(db, "donations"), docData);
+  if (!selRegion || !selProvince || !selCityMun || !selBarangay) return;
 
-      // optional: flash message for browse page
-      try {
-        sessionStorage.setItem("browseFlash", "Donation posted successfully!");
-      } catch(e){}
+  clearSelect(selRegion,   "Select Region…");
+  clearSelect(selProvince, "Select Province…");
+  clearSelect(selCityMun,  "Select City/Municipality…");
+  clearSelect(selBarangay, "Select Barangay…");
 
-      showToast("Donation posted successfully!");
+  selRegion.disabled   = false;
+  selProvince.disabled = true;
+  selCityMun.disabled  = true;
+  selBarangay.disabled = true;
 
-      donationForm.reset();
-      if (imagePreviewEl) {
-        imagePreviewEl.src = "";
-        imagePreviewEl.style.display = "none";
-      }
+  loadPhData().then((data)=>{
+    if (!data) return;
 
-      // optional redirect to browse page (adjust filename if needed)
-      // window.location.href = "browse.html#donation=success";
+    Object.entries(data).forEach(([regionCode, regionObj])=>{
+      if (!regionObj) return;
+      const opt = document.createElement("option");
+      opt.value = regionCode;
+      opt.textContent = regionObj.region_name || regionCode;
+      selRegion.appendChild(opt);
+    });
+  });
 
-    } catch (err) {
-      console.error("Failed to post donation:", err);
-      showToast(err?.message || "Failed to post donation. Please try again.");
-    } finally {
-      const submitBtn2 = donationForm.querySelector("button[type='submit']");
-      if (submitBtn2) {
-        submitBtn2.disabled = false;
-        submitBtn2.textContent = "Post Donation";
-      }
-    }
+  selRegion.addEventListener("change", ()=>{
+    const regionCode = selRegion.value;
+
+    clearSelect(selProvince, "Select Province…");
+    clearSelect(selCityMun,  "Select City/Municipality…");
+    clearSelect(selBarangay, "Select Barangay…");
+
+    selProvince.disabled = true;
+    selCityMun.disabled  = true;
+    selBarangay.disabled = true;
+
+    if (!regionCode || !PH_DATA || !PH_DATA[regionCode]) return;
+
+    const regionObj = PH_DATA[regionCode];
+    const provinces = regionObj.province_list || {};
+
+    Object.keys(provinces).forEach((provName)=>{
+      const opt = document.createElement("option");
+      opt.value = provName;
+      opt.textContent = provName;
+      selProvince.appendChild(opt);
+    });
+
+    selProvince.disabled = false;
+  });
+
+  selProvince.addEventListener("change", ()=>{
+    const regionCode = selRegion.value;
+    const provName   = selProvince.value;
+
+    clearSelect(selCityMun,  "Select City/Municipality…");
+    clearSelect(selBarangay, "Select Barangay…");
+
+    selCityMun.disabled  = true;
+    selBarangay.disabled = true;
+
+    if (!regionCode || !provName || !PH_DATA) return;
+
+    const regionObj = PH_DATA[regionCode];
+    if (!regionObj || !regionObj.province_list || !regionObj.province_list[provName]) return;
+
+    const municipalityList = regionObj.province_list[provName].municipality_list || {};
+
+    Object.keys(municipalityList).forEach((munName)=>{
+      const opt = document.createElement("option");
+      opt.value = munName;
+      opt.textContent = munName;
+      selCityMun.appendChild(opt);
+    });
+
+    selCityMun.disabled = false;
+  });
+
+  selCityMun.addEventListener("change", ()=>{
+    const regionCode = selRegion.value;
+    const provName   = selProvince.value;
+    const munName    = selCityMun.value;
+
+    clearSelect(selBarangay, "Select Barangay…");
+    selBarangay.disabled = true;
+
+    if (!regionCode || !provName || !munName || !PH_DATA) return;
+
+    const regionObj = PH_DATA[regionCode];
+    const provinceObj =
+      regionObj && regionObj.province_list && regionObj.province_list[provName];
+    const municipalityObj =
+      provinceObj && provinceObj.municipality_list && provinceObj.municipality_list[munName];
+
+    const brgyList = (municipalityObj && municipalityObj.barangay_list) || [];
+
+    brgyList.forEach((b)=>{
+      const opt = document.createElement("option");
+      opt.value = b;
+      opt.textContent = b;
+      selBarangay.appendChild(opt);
+    });
+
+    selBarangay.disabled = brgyList.length === 0;
   });
 }
 
 // -------------------------------------------------------
 // Cloudinary Upload Widget
 // -------------------------------------------------------
-// Expected HTML:
-// <button type="button" id="cloudinaryUploadBtn">Choose image</button>
-// <input type="hidden" id="imageUrl" name="imageUrl">
-// <img id="imagePreview" style="display:none;max-width:180px;border-radius:10px;margin-top:8px;">
-// -------------------------------------------------------
-(function setupCloudinaryUpload() {
+function setupCloudinaryUpload() {
   const uploadBtn  = document.getElementById("cloudinaryUploadBtn");
-  const imageInput = imageUrlInput; // same hidden input
-  const previewImg = imagePreviewEl;
+  const imageInput = document.getElementById("imageUrl");
+  const previewImg = document.getElementById("imagePreview");
 
   if (!uploadBtn || !imageInput) return;
 
-  // 🔑 PUT YOUR REAL CLOUDINARY VALUES HERE
-  const CLOUD_NAME     = "dsw0erpjx";       // e.g. "demo" (from Cloudinary dashboard)
-  const UPLOAD_PRESET  = "donormedix";    // e.g. "unsigned_preset"
+  const CLOUD_NAME     = "dsw0erpjx";
+  const UPLOAD_PRESET  = "donormedix";
 
-  // Guard: catch the common mistake "Unknown API key"
   if (
     !CLOUD_NAME ||
     CLOUD_NAME === "YOUR_CLOUD_NAME" ||
-    CLOUD_NAME.startsWith("AIza") // you accidentally used Firebase apiKey
+    CLOUD_NAME.startsWith("AIza")
   ) {
     console.error(
       "Cloudinary config error: Replace CLOUD_NAME with your actual Cloudinary cloud name (NOT the Firebase apiKey)."
@@ -236,7 +315,7 @@ if (donationForm) {
 
   function initWidget() {
     if (!window.cloudinary || !window.cloudinary.createUploadWidget) {
-      console.warn("Cloudinary widget not loaded. Check the <script src='https://widget.cloudinary.com/v2.0/global/all.js'> tag.");
+      console.warn("Cloudinary widget not loaded. Check the widget <script> tag.");
       return;
     }
 
@@ -278,20 +357,19 @@ if (donationForm) {
   } else {
     window.addEventListener("load", initWidget);
   }
-})();
+}
 
 // -------------------------------------------------------
-// Header: Profile modal + Notifications bell
+// Header: Profile + Notifications (same UI helpers as browse.js)
 // -------------------------------------------------------
-let signInBtn;            // .sign-in-btn
-let bellBtn;              // .bell-btn
-let bellBadge;            // badge
-let profileModal;         // profile modal
-let notifModal;           // notifications modal
+let signInBtn;
+let bellBtn;
+let bellBadge;
+let profileModal;
+let notifModal;
 let unsubUserDoc = null;
 let unsubEvents  = null;
 
-// Profile modal
 function ensureProfileModal(){
   if (profileModal) return profileModal;
   profileModal = document.createElement("div");
@@ -321,7 +399,7 @@ function ensureProfileModal(){
 
     <div style="padding:12px; display:flex; gap:10px;">
       <a href="profile.html" style="flex:1; text-align:center; text-decoration:none; background:#0f172a; color:#fff; border-radius:10px; padding:10px 12px; font-weight:800;">Go to Profile</a>
-      <button id="dm_signout" style="flex:1; background:#ffffff; color:#0f172a; border:1px solid #e5e7eb; border-radius:10px; padding:10px 12px; font-weight:800; cursor:pointer;">Sign Out</button>
+      <button id="dm_signout" style="flex:1; background:#ffffff; color:#0f172a; border:1px solid #e2e8f0; border-radius:10px; padding:10px 12px; font-weight:800; cursor:pointer;">Sign Out</button>
     </div>
   `;
   document.body.appendChild(profileModal);
@@ -374,7 +452,6 @@ function renderSignedOut(){
   hideProfileModal();
 }
 
-// Notifications
 function ensureBellBadge(){
   if (!bellBtn) return null;
   if (bellBadge) return bellBadge;
@@ -443,7 +520,6 @@ function ensureNotifModal(){
   `;
   document.body.appendChild(notifModal);
 
-  $("#dm_notif_close").addEventListener("click", hideNotifModal);
   document.addEventListener("keydown", (e)=>{
     if (notifModal.style.display !== "none" && e.key === "Escape") hideNotifModal();
   });
@@ -509,7 +585,6 @@ function renderEventsList(items){
   }).join("");
 }
 
-// Firestore listeners for header
 function listenToUserDoc(u){
   if (unsubUserDoc){ unsubUserDoc(); unsubUserDoc = null; }
   if (!u) return;
@@ -551,12 +626,215 @@ function listenToEvents(){
 }
 
 // -------------------------------------------------------
-// Init header + auth
+// Donation form submit (modified to create events entry + increment user.donations)
+// -------------------------------------------------------
+function setupDonationForm(){
+  const donationForm = document.getElementById("donationForm");
+  if (!donationForm) return;
+
+  donationForm.addEventListener("submit", async (e)=>{
+    e.preventDefault();
+
+    if (!currentUser) {
+      showToast("Please sign in first.");
+      window.location.href = "auth.html";
+      return;
+    }
+
+    const submitBtn = donationForm.querySelector("button[type='submit']");
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Posting...";
+    }
+
+    try {
+      const medicineNameEl = document.getElementById("medicineName");
+      const categoryEl     = document.getElementById("category");
+      const dosageFormEl   = document.getElementById("dosageForm");
+      const descEl         = document.getElementById("description");
+      const qtySel         = document.getElementById("quantity");
+      const expiryEl       = document.getElementById("expiryDate");
+      const conditionEl    = document.getElementById("condition");
+      const urgencyEl      = document.getElementById("urgencyLevel");
+      const imageInput     = document.getElementById("imageUrl");
+      const contactEl      = document.getElementById("contactMethod");
+
+      const selRegion   = document.getElementById("selRegion");
+      const selProvince = document.getElementById("selProvince");
+      const selCityMun  = document.getElementById("selCityMun");
+      const selBarangay = document.getElementById("selBarangay");
+      const locationTxt = document.getElementById("locationText");
+
+      const medicineName = (medicineNameEl?.value || "").trim();
+      if (!medicineName) throw new Error("Please enter a medicine/item name.");
+
+      const category    = (categoryEl?.value || "Other").trim() || "Other";
+      const dosageForm  = (dosageFormEl?.value || "").trim();
+      const description = (descEl?.value || "").trim();
+      if (!description) throw new Error("Please provide a description.");
+
+      let quantity = parseInt(qtySel?.value || "1", 10);
+      if (isNaN(quantity) || quantity <= 0) quantity = 1;
+
+      const expiryDate = (expiryEl?.value || "").trim() || null;
+      if (!expiryDate) throw new Error("Please select an expiry date.");
+
+      const condition = (conditionEl?.value || "Unspecified").trim() || "Unspecified";
+      const urgency   = (urgencyEl?.value || "medium").trim() || "medium";
+      const imageUrl  = (imageInput?.value || "").trim() || "";
+
+      const contactMethod = (contactEl?.value || "app").trim() || "app";
+
+      // Location text from dropdowns
+      const region = selRegion && selRegion.value
+        ? selRegion.options[selRegion.selectedIndex].text
+        : "";
+      const province = selProvince && selProvince.value
+        ? selProvince.options[selProvince.selectedIndex].text
+        : "";
+      const cityMunicipality = selCityMun && selCityMun.value
+        ? selCityMun.options[selCityMun.selectedIndex].text
+        : "";
+      const barangay = selBarangay && selBarangay.value
+        ? selBarangay.options[selBarangay.selectedIndex].text
+        : "";
+
+      const addressDetails = (locationTxt?.value || "").trim();
+
+      const pickupParts = [barangay, cityMunicipality, province, region].filter(Boolean);
+      let pickupLocation = pickupParts.join(", ");
+      if (addressDetails) {
+        pickupLocation = pickupLocation
+          ? `${pickupLocation} – ${addressDetails}`
+          : addressDetails;
+      }
+
+      const { name: donorName, photoURL: donorPhoto } = await getCanonicalUser(currentUser);
+
+      const docData = {
+        medicineName,
+        category,
+        dosageForm,
+        description,
+        quantity,
+        expiryDate,
+        condition,
+        urgency,
+        contactMethod,
+        imageUrl,
+
+        // location pieces
+        pickupLocation,
+        region,
+        province,
+        cityMunicipality,
+        barangay,
+        addressDetails,
+
+        createdAt: serverTimestamp(),
+
+        // donor meta
+        userId: currentUser.uid,
+        donorName,
+        donorPhoto,
+      };
+
+      // create donation doc
+      const donationRef = await addDoc(collection(db, "donations"), docData);
+
+      // increment user's donations counter (so profile.js / metrics reflect the new donation)
+      try {
+        const userRef = doc(db, "users", currentUser.uid);
+        try {
+          await updateDoc(userRef, { donations: increment(1) });
+        } catch (uErr) {
+          // fallback: create/merge field if doc doesn't exist
+          try {
+            await setDoc(userRef, { donations: 1 }, { merge: true });
+          } catch (setErr) {
+            console.warn("Failed to increment/create user donations counter:", setErr);
+          }
+        }
+      } catch (incErr) {
+        console.warn("Increment donations error:", incErr);
+      }
+
+      // create an events doc so browse.js (which listens to events) will show notification
+      try {
+        const eventMsg = `${donorName} posted "${medicineName}"`;
+        await addDoc(collection(db, "events"), {
+          type: "donation",
+          message: eventMsg,
+          userName: donorName,
+          createdAt: serverTimestamp(),
+          metadata: {
+            donationId: donationRef.id,
+            userId: currentUser.uid,
+            region,
+            province,
+            cityMunicipality,
+            barangay,
+          },
+          read: false
+        });
+      } catch (evErr) {
+        // non-blocking: if events writing fails, still continue
+        console.warn("Failed to write event:", evErr);
+      }
+
+      try {
+        sessionStorage.setItem("browseFlash", "Donation posted successfully!");
+      } catch(e){}
+
+      showToast("Donation posted successfully!");
+
+      donationForm.reset();
+      initQuantitySelect(); // ensure quantity back to 1
+
+      const previewImg = document.getElementById("imagePreview");
+      if (previewImg) {
+        previewImg.src = "";
+        previewImg.style.display = "none";
+      }
+
+      // optional: navigate to browse page so user sees the posted donation and notifications
+      // comment/uncomment below according to your UX preference
+      // window.location.href = "browse.html";
+
+    } catch (err) {
+      console.error("Failed to post donation:", err);
+      showToast(err?.message || "Failed to post donation. Please try again.");
+    } finally {
+      const submitBtn2 = donationForm.querySelector("button[type='submit']");
+      if (submitBtn2) {
+        submitBtn2.disabled = false;
+        submitBtn2.textContent = "Submit Donation";
+      }
+    }
+  });
+}
+
+// -------------------------------------------------------
+// Init everything
 // -------------------------------------------------------
 onReady(()=>{
   signInBtn = document.querySelector(".sign-in-btn");
   bellBtn   = document.querySelector(".bell-btn");
 
+  // Back button
+  const backBtn = document.getElementById("btnBack");
+  if (backBtn){
+    backBtn.addEventListener("click", ()=> window.history.back());
+  }
+
+  // Quantity & PH locations
+  initQuantitySelect();
+  initLocationDropdowns();
+
+  // Cloudinary
+  setupCloudinaryUpload();
+
+  // Header + notifications
   if (bellBtn){
     ensureBellBadge();
     bellBtn.addEventListener("click", (e)=>{
@@ -565,14 +843,15 @@ onReady(()=>{
     });
     listenToEvents();
   }
-
   if (signInBtn){
     renderSignedOut();
   }
 
+  // Auth state
   onAuthStateChanged(auth, (u)=>{
     currentUser = u || null;
-    if (!signInBtn) return; // header might not exist
+
+    if (!signInBtn) return;
 
     if (!u){
       if (unsubUserDoc){ unsubUserDoc(); unsubUserDoc = null; }
@@ -581,4 +860,7 @@ onReady(()=>{
       listenToUserDoc(u);
     }
   });
+
+  // Donation form
+  setupDonationForm();
 });

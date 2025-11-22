@@ -1,5 +1,6 @@
 // browse.js
 // DonorMedix · Browse donations + Likes + Header Profile & Notifications
+// Final combined file matching the snippet behavior (profile + notifications) and keeping donations/likes.
 
 import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
 import {
@@ -20,9 +21,7 @@ import {
   signOut,
 } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 
-// -------------------------------------------------------
-// Firebase (shared)
-// -------------------------------------------------------
+// ---------------- Firebase ----------------
 const firebaseConfig = {
   apiKey: "AIzaSyAaWN2gj3VJxT6kwOvCX4LIXkWlbt0LTHQ",
   authDomain: "donormedix.firebaseapp.com",
@@ -32,15 +31,12 @@ const firebaseConfig = {
   appId: "1:627472172279:web:9bf645b54d33075a0d7ff2",
   measurementId: "G-NTNPR4FPT7",
 };
-
 const app  = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
 const db   = getFirestore(app);
 const auth = getAuth(app);
 
-// -------------------------------------------------------
-// Helpers (shared)
-// -------------------------------------------------------
-const $  = (sel) => document.querySelector(sel);
+// ---------------- Helpers ----------------
+const $ = (sel) => document.querySelector(sel);
 function onReady(fn){ document.readyState === "loading" ? document.addEventListener("DOMContentLoaded", fn) : fn(); }
 
 const timeFmt = new Intl.RelativeTimeFormat(undefined, { numeric: "auto" });
@@ -65,24 +61,17 @@ function timeAgo(date) {
   return "";
 }
 
-function firstTwo(str="U"){ return str.trim().slice(0,2).toUpperCase(); }
-function displayNameFrom(u, data){
-  return data?.name || u?.displayName || (u?.email ? u.email.split("@")[0] : "Profile");
-}
-
-function escapeHtml(s){
-  return (s||"").replace(/[&<>"']/g, m => (
-    {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]
-  ));
-}
+function escapeHtml(s){ return (s||"").replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 function getInitials(name){
   const n = (name||"").trim();
   if(!n) return "A";
   const parts = n.split(/\s+/).slice(0,2);
   return parts.map(p=>p[0]?.toUpperCase()||"").join("") || "A";
 }
+function firstTwo(str="U"){ return (str||"").trim().slice(0,2).toUpperCase(); }
+function displayNameFrom(u, data){ return data?.name || u?.displayName || (u?.email ? u.email.split("@")[0] : "Profile"); }
 
-// Toast
+// ---------------- Toast ----------------
 const toast = document.getElementById("toast");
 function showToast(msg){
   if (!toast) { alert(msg); return; }
@@ -91,13 +80,7 @@ function showToast(msg){
   setTimeout(()=> toast.classList.remove("show"), 3000);
 }
 
-// Global auth state (shared by likes + header)
-let currentUser  = null;
-
-// =======================================================
-// BROWSE DONATIONS + LIKES
-// =======================================================
-
+// ---------------- Donations + Likes ----------------
 const browseList = document.getElementById("browseList");
 const searchForm = document.getElementById("searchForm");
 const qInput     = document.getElementById("q");
@@ -125,7 +108,7 @@ const qInput     = document.getElementById("q");
   }
 })();
 
-// --- user cache ---
+// user-lite cache
 const __userCache = new Map(); // uid -> {name, photoURL, profession}
 async function getUserLite(uid){
   if (!uid) return null;
@@ -133,11 +116,7 @@ async function getUserLite(uid){
   try {
     const s = await getDoc(doc(db,'users', uid));
     const d = s.exists() ? s.data() : {};
-    const lite = {
-      name: d.name || 'Anonymous',
-      photoURL: d.photoURL || null,
-      profession: d.profession || null
-    };
+    const lite = { name: d.name || 'Anonymous', photoURL: d.photoURL || null, profession: d.profession || null };
     __userCache.set(uid, lite);
     return lite;
   } catch(e){ return null; }
@@ -153,12 +132,10 @@ onSnapshot(donationsQ, (snap) => {
   render(allDocs, qInput ? qInput.value.trim() : "");
 }, (err) => {
   console.error("Error loading donations:", err);
-  if (browseList) {
-    browseList.innerHTML = `<p class="muted">⚠️ Failed to load donations.</p>`;
-  }
+  if (browseList) browseList.innerHTML = `<p class="muted">⚠️ Failed to load donations.</p>`;
 });
 
-// Render cards
+// Render donation cards
 function render(items, term="") {
   if (!browseList) return;
 
@@ -179,8 +156,6 @@ function render(items, term="") {
 
   for (const donation of filtered) {
     const imageUrl = donation.imageUrl || "https://via.placeholder.com/600x450?text=No+Image";
-
-    /* donor fields */
     const donorName  = donation.donorName || "Anonymous";
     const donorUID   = donation.userId || "";
     const donorPhoto = donation.donorPhoto || null;
@@ -193,8 +168,6 @@ function render(items, term="") {
     const likeCountId = `like-count-${donation.id}`;
     const likeBtnId   = `btn-like-${donation.id}`;
     const msgBtnHref  = `chat.html?to=${encodeURIComponent(donorUID)}&name=${encodeURIComponent(donorName)}&donation=${encodeURIComponent(donation.id)}`;
-
-    // avatar id
     const avaId = `av-${donation.id}`;
 
     card.innerHTML = `
@@ -204,7 +177,6 @@ function render(items, term="") {
       <div class="card__body">
         <h3 class="title">${escapeHtml(donation.medicineName || 'Unnamed Donation')}</h3>
 
-        <!-- donor block -->
         <div class="donor" title="Added by ${escapeHtml(donorName)}">
           <div class="avatar" id="${avaId}">
             ${donorPhoto ? `<img src="${escapeHtml(donorPhoto)}" alt="${escapeHtml(donorName)}" style="width:100%;height:100%;object-fit:cover;border-radius:999px;">` : escapeHtml(initials)}
@@ -232,7 +204,7 @@ function render(items, term="") {
     `;
     browseList.appendChild(card);
 
-    /* Backfill donor info if missing (old docs) */
+    // Backfill donor info (old docs)
     if ((!donation.donorName || !donation.donorPhoto) && donorUID) {
       getUserLite(donorUID).then(info=>{
         if (!info) return;
@@ -241,7 +213,7 @@ function render(items, term="") {
           if (nameEl) nameEl.textContent = `Added by ${info.name}`;
         }
         if (!donation.donorPhoto && info.photoURL) {
-          const av = card.querySelector(`#av-${donation.id}`);
+          const av = card.querySelector(`#${avaId}`);
           if (av) av.innerHTML = `<img src="${escapeHtml(info.photoURL)}" alt="${escapeHtml(info.name)}" style="width:100%;height:100%;object-fit:cover;border-radius:999px;">`;
         }
       });
@@ -275,7 +247,6 @@ function render(items, term="") {
   }
 }
 
-// Search
 if (searchForm) {
   searchForm.addEventListener("submit", (e) => {
     e.preventDefault();
@@ -322,40 +293,28 @@ function toggleLikeActive(btnId, isActive){
   else btn.classList.remove("active");
 }
 
-// Nav highlight safety
-(function(){
-  try{
-    const path=location.pathname.split('/').pop();
-    document.querySelectorAll('nav a').forEach(a=>{
-      if(a.getAttribute('href')===path) a.classList.add('active');
-    });
-  }catch(e){}
-})();
-
-// =======================================================
-// HEADER: PROFILE + NOTIFICATIONS (your exact logic)
-// =======================================================
+// ---------------- Header profile + notifications (matches provided snippet) ----------------
 
 let signInBtn;            // .sign-in-btn
 let bellBtn;              // .bell-btn
 let bellBadge;            // badge
-let profileModal;         // profile modal (normal size)
-let notifModal;           // notifications modal (smaller, lengthwise cards)
+let profileModal = null;  // profile modal (normal size)
+let notifModal = null;    // notifications modal (smaller, lengthwise cards)
 let unsubUserDoc = null;
-let unsubEvents  = null;
+let unsubEvents = null;
+let currentUser = null;
 
 // ---------- Profile Modal (normal size) ----------
 function ensureProfileModal(){
   if (profileModal) return profileModal;
   profileModal = document.createElement("div");
   profileModal.id = "dm_profile_modal";
-  // Profile modal (normal, smaller)
-  Object.assign(profileModal.style, {
+  Object.assign(profileModal.style,{
     position: "fixed",
     zIndex: "1000",
     right: "16px",
     top: "64px",
-    width: "min(92vw, 300px)",   // ↓ was 360px
+    width: "min(92vw, 300px)",
     background: "#ffffff",
     border: "1px solid #e2e8f0",
     borderRadius: "14px",
@@ -375,7 +334,7 @@ function ensureProfileModal(){
 
     <div style="padding:12px; display:flex; gap:10px;">
       <a href="profile.html" style="flex:1; text-align:center; text-decoration:none; background:#0f172a; color:#fff; border-radius:10px; padding:10px 12px; font-weight:800;">Go to Profile</a>
-      <button id="dm_signout" style="flex:1; background:#ffffff; color:#0f172a; border:1px solid #e2e8f0; border-radius:10px; padding:10px 12px; font-weight:800; cursor:pointer;">Sign Out</button>
+      <button id="dm_signout" style="flex:1; background:#ffffff; color:#0f172a; border:1px solid #e2e8eb; border-radius:10px; padding:10px 12px; font-weight:800; cursor:pointer;">Sign Out</button>
     </div>
   `;
   document.body.appendChild(profileModal);
@@ -407,12 +366,23 @@ function updateProfileUI(u, userData){
   signInBtn.setAttribute("aria-label", name);
 
   ensureProfileModal();
-  const nm = $("#dm_profile_name");
-  const em = $("#dm_profile_email");
-  const av = $("#dm_profile_avatar");
+  const nm = document.getElementById("dm_profile_name");
+  const em = document.getElementById("dm_profile_email");
+  const av = document.getElementById("dm_profile_avatar");
+
+  // header elements (expected in HTML)
+  const headerName = document.getElementById("profileName");
+  const headerEmail = document.getElementById("profileEmail");
+  const headerAvatar = document.getElementById("profileAvatar"); // expected <img>
+
   if (nm) nm.textContent = name;
   if (em) em.textContent = u?.email || "";
   if (av) av.textContent = firstTwo(name);
+
+  if (headerName) headerName.textContent = name;
+  if (headerEmail) headerEmail.textContent = u?.email || "";
+  if (headerAvatar && u?.photoURL) headerAvatar.src = u.photoURL;
+  // if no photoURL, keep headerAvatar src as default image (provided in HTML)
 
   signInBtn.onclick = (e)=>{ e.preventDefault();
     if (profileModal.style.display === "none") showProfileModal(); else hideProfileModal();
@@ -467,13 +437,12 @@ function ensureNotifModal(){
   if (notifModal) return notifModal;
   notifModal = document.createElement("div");
   notifModal.id = "dm_notif_modal";
-  // Notifications modal (smaller, lengthwise cards)
-  Object.assign(notifModal.style, {
+  Object.assign(notifModal.style,{
     position: "fixed",
     zIndex: "1000",
     right: "220px",
     top: "64px",
-    width: "min(92vw, 200px)",   // ↓ was 340px
+    width: "min(92vw, 200px)",
     background: "#ffffff",
     border: "1px solid #e2e8f0",
     borderRadius: "14px",
@@ -498,7 +467,7 @@ function ensureNotifModal(){
   document.body.appendChild(notifModal);
 
   // Close logic
-  $("#dm_notif_close").addEventListener("click", hideNotifModal);
+  document.getElementById("dm_notif_close").addEventListener("click", hideNotifModal);
   document.addEventListener("keydown", (e)=>{ if (notifModal.style.display !== "none" && e.key === "Escape") hideNotifModal(); });
   document.addEventListener("click", (e)=>{
     if (notifModal.style.display === "none") return;
@@ -526,8 +495,8 @@ function iconForType(type){
 // LENGTHWISE cards: icon on top, then message, then time
 function renderEventsList(items){
   ensureNotifModal();
-  const list = $("#dm_notif_list");
-  const pill = $("#dm_notif_count_pill");
+  const list = document.getElementById("dm_notif_list");
+  const pill = document.getElementById("dm_notif_count_pill");
 
   if (!items || !items.length) {
     list.innerHTML = `<div style="padding:10px; color:#64748b;">No notifications yet.</div>`;
@@ -539,7 +508,7 @@ function renderEventsList(items){
   list.innerHTML = items.map(ev=>{
     const icon = iconForType(ev.type);
     const when = ev.createdAt? timeAgo(ev.createdAt.toDate ? ev.createdAt.toDate() : ev.createdAt) : "";
-    const who  = ev.userName ? `<strong style="color:#0f172a">${ev.userName}</strong> — ` : "";
+    const who  = ev.userName ? `<strong style="color:#0f172a">${escapeHtml(ev.userName)}</strong> — ` : "";
     const msg  = ev.message || "";
     return `
       <div style="
@@ -550,16 +519,33 @@ function renderEventsList(items){
         margin-bottom:10px;
         box-shadow:0 6px 18px rgba(0,0,0,.06);
         display:flex;
-        flex-direction:column;     /* vertical stack */
+        flex-direction:column;
         align-items:flex-start;
         gap:4px;
-      ">
+      " data-id="${ev.id}">
         ${icon}
-        <div style="color:#0f172a; line-height:1.35;">${who}${msg}</div>
+        <div style="color:#0f172a; line-height:1.35;">${who}${escapeHtml(msg)}</div>
         <div style="color:#64748b; font-size:.85rem;">${when}</div>
       </div>
     `;
   }).join("");
+
+  // click behavior for cards (mark as read or navigate if metadata present)
+  list.querySelectorAll('[data-id]').forEach(card => {
+    card.onclick = async () => {
+      const id = card.getAttribute('data-id');
+      // try to mark as read (best-effort)
+      try {
+        // update directly (may require security rules); ignore failures
+        const nRef = doc(db, "events", id);
+        // updateDoc isn't imported; try dynamic import to avoid extra top-level import
+        const mod = await import("https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js");
+        await mod.updateDoc(nRef, { read: true }).catch(()=>{});
+      } catch(e){}
+      // close modal
+      hideNotifModal();
+    };
+  });
 }
 
 // ---------- Firestore listeners for header ----------
@@ -591,10 +577,14 @@ function listenToEvents(){
           message: data.message || "",
           userName: data.userName || "",
           createdAt: data.createdAt || null,
+          metadata: data.metadata || {},
+          read: data.read || false,
         });
       });
       renderEventsList(items);
-      setBellCount(items.length); // show count until user opens modal
+      // show count of unread as badge (or total items)
+      const unread = items.filter(i => !i.read).length;
+      setBellCount(unread || items.length);
     }, (err)=>{
       console.warn("events listener error:", err?.message);
       renderEventsList([]);
@@ -619,19 +609,49 @@ onReady(()=>{
     listenToEvents();
   }
 
-  if (signInBtn){
-    renderSignedOut();
-  }
+  if (!signInBtn) return;
+  renderSignedOut();
 
   onAuthStateChanged(auth, (u)=>{
-    currentUser = u || null;  // <-- used by likes + header
-    if (!signInBtn) return;
-
+    currentUser = u;
     if (!u){
       if (unsubUserDoc){ unsubUserDoc(); unsubUserDoc = null; }
       renderSignedOut();
-    } else {
-      listenToUserDoc(u);
+
+      // clear header placeholders if present
+      const headerName = document.getElementById("profileName");
+      const headerEmail = document.getElementById("profileEmail");
+      const headerAvatar = document.getElementById("profileAvatar");
+      if (headerName) headerName.textContent = "Guest";
+      if (headerEmail) headerEmail.textContent = "";
+      if (headerAvatar && headerAvatar.dataset?.default) headerAvatar.src = headerAvatar.dataset.default;
+      // clear small notif panel
+      const nl = document.getElementById("notifList");
+      if (nl) nl.innerHTML = "";
+      return;
     }
+    // signed in
+    listenToUserDoc(u);
+
+    // also set header immediately from auth object (best-effort)
+    try {
+      const headerName = document.getElementById("profileName");
+      const headerEmail = document.getElementById("profileEmail");
+      const headerAvatar = document.getElementById("profileAvatar");
+      if (headerName) headerName.textContent = u.displayName || (u.email ? u.email.split("@")[0] : "User");
+      if (headerEmail) headerEmail.textContent = u.email || "";
+      if (headerAvatar && u.photoURL) headerAvatar.src = u.photoURL;
+    } catch(e){}
+
   });
 });
+
+// ---------------- Nav highlight (small) ----------------
+(function(){
+  try{
+    const path=location.pathname.split('/').pop();
+    document.querySelectorAll('nav a').forEach(a=>{
+      if(a.getAttribute('href')===path) a.classList.add('active');
+    });
+  }catch(e){}
+})();
