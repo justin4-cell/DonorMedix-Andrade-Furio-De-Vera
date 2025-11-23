@@ -10,138 +10,468 @@
       --muted:#616c7c;
       --white:#ffffff;
       --radius:16px;
+      --bg-image:url("hospital background1.jpg");
     }
-    *{box-sizing:border-box;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
-    html,body{height:100%;margin:0}
-    :root{--bg-image:url("hospital background1.jpg")}
+
+    *{
+      box-sizing:border-box;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    }
+
+    html,body{
+      height:100%;
+      margin:0;
+    }
 
     body{
-      margin:0;color:var(--primary);background:#000;display:flex;align-items:center;justify-content:center;padding:24px;min-height:100vh;overflow:hidden;
+      margin:0;
+      color:var(--primary);
+      background:#000;
+      display:flex;
+      flex-direction:column;
+      min-height:100vh;
     }
+
+    /* Blurred background */
     body::before{
-      content:"";position:fixed;inset:0;background:var(--bg-image) center/cover no-repeat;filter:blur(5px);transform:scale(1.08);z-index:-1;
+      content:"";
+      position:fixed;
+      inset:0;
+      background:var(--bg-image) center/cover no-repeat;
+      filter:blur(5px);
+      transform:scale(1.08);
+      z-index:-1;
     }
 
-    .auth-card{width:100%;max-width:640px;background:var(--white);border-radius:var(--radius);padding:28px 24px;box-shadow:0 18px 40px rgba(0,0,0,.12)}
-    .brand{display:flex;align-items:center;justify-content:center;gap:12px;font-weight:900;font-size:28px;margin-bottom:12px}
-    .tabs{display:flex;align-items:center;justify-content:center;gap:8px;margin:6px auto 20px}
-    .tabs-left{display:flex;gap:8px}
-    .tab-btn{background:transparent;border:none;padding:10px 16px;border-radius:12px;font-weight:700;cursor:pointer;color:var(--muted)}
-    .tab-btn:hover{color:var(--primary)}
-    .tab-btn[aria-selected="true"]{background:var(--primary);color:#fff}
-    .tab-btn.secondary{border:1px solid #e5e7eb;background:#fff;color:var(--primary)}
+    /* HEADER */
+    header{
+      width:100%;
+      background:#0f172a;
+      padding:14px 20px;
+      display:flex;
+      align-items:center;
+      gap:12px;
+      box-shadow:0 4px 10px rgba(0,0,0,.25);
+    }
+    header img{
+      width:42px;
+      height:42px;
+      border-radius:8px;
+      object-fit:contain;
+    }
+    header h1{
+      color:#ffffff;
+      margin:0;
+      font-size:22px;
+      font-weight:800;
+      letter-spacing:0.5px;
+    }
 
-    h2{text-align:center;margin:2px 0 8px}
-    label{display:block;font-weight:600;margin-top:12px}
+    /* MAIN WRAPPER */
+    main.page{
+      flex:1;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      padding:40px 16px;
+    }
+
+    /* AUTH CARD */
+    .auth-card{
+      width:100%;
+      max-width:480px;
+      background:var(--white);
+      border-radius:var(--radius);
+      padding:24px 20px;
+      box-shadow:0 12px 32px rgba(0,0,0,.16);
+      backdrop-filter:blur(8px);
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:12px;
+      font-weight:900;
+      font-size:24px;
+      margin-bottom:8px;
+    }
+
+    .tabs{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      margin:4px auto 18px;
+    }
+    .tabs-left{display:flex;gap:8px}
+    .tab-btn{
+      background:transparent;
+      border:none;
+      padding:8px 14px;
+      border-radius:12px;
+      font-weight:700;
+      cursor:pointer;
+      color:var(--muted);
+      font-size:14px;
+    }
+    .tab-btn:hover{color:var(--primary)}
+    .tab-btn[aria-selected="true"]{
+      background:var(--primary);
+      color:#fff;
+    }
+    .tab-btn.secondary{
+      border:1px solid #e5e7eb;
+      background:#fff;
+      color:var(--primary);
+    }
+
+    h2{
+      text-align:center;
+      margin:2px 0 8px;
+      font-size:18px;
+    }
+
+    label{
+      display:block;
+      font-weight:600;
+      margin-top:12px;
+      font-size:14px;
+    }
     .field{margin-top:6px}
     .input-wrap{position:relative}
-    input,select{width:100%;padding:12px 44px 12px 12px;border:1px solid #cbd5e1;border-radius:12px;font-size:14px;outline:none;transition:border-color .2s}
-    input:focus,select:focus{border-color:var(--primary)}
-    .toggle-pass{position:absolute;right:8px;top:50%;transform:translateY(-50%);border:none;background:transparent;cursor:pointer;padding:6px;border-radius:8px;color:var(--primary)}
-    .actions{display:grid;grid-template-columns:1fr;gap:10px;margin-top:16px}
-    .btn{width:100%;padding:12px;background:var(--primary);color:#fff;border:none;border-radius:12px;font-weight:800;cursor:pointer}
-    .row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px}
-    .link,.note{font-size:13px;color:var(--muted)}
-    .link a{color:var(--primary);text-decoration:none;font-weight:700}
-    .err{color:#dc2626;text-align:center;min-height:18px;margin-top:8px;font-size:14px;display:none}
+
+    input,select{
+      width:100%;
+      padding:10px 44px 10px 10px;
+      border:1px solid #cbd5e1;
+      border-radius:12px;
+      font-size:14px;
+      outline:none;
+      transition:border-color .2s,box-shadow .2s,background-color .2s;
+      background-color:#f9fafb;
+    }
+    input:focus,select:focus{
+      border-color:var(--primary);
+      box-shadow:0 0 0 1px rgba(15,23,42,0.15);
+      background-color:#ffffff;
+    }
+
+    .toggle-pass{
+      position:absolute;
+      right:8px;
+      top:50%;
+      transform:translateY(-50%);
+      border:none;
+      background:transparent;
+      cursor:pointer;
+      padding:6px;
+      border-radius:8px;
+      color:var(--primary);
+      font-size:14px;
+    }
+
+    .actions{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:10px;
+      margin-top:16px;
+    }
+    .btn{
+      width:100%;
+      padding:11px;
+      background:var(--primary);
+      color:#fff;
+      border:none;
+      border-radius:12px;
+      font-weight:800;
+      cursor:pointer;
+      font-size:14px;
+      letter-spacing:0.03em;
+    }
+    .btn:hover{
+      filter:brightness(1.05);
+    }
+
+    .row{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-top:10px;
+    }
+
+    .link,.note{
+      font-size:13px;
+      color:var(--muted);
+    }
+    .link a{
+      color:var(--primary);
+      text-decoration:none;
+      font-weight:700;
+    }
+    .link a:hover{
+      text-decoration:underline;
+    }
+
+    .err{
+      color:#dc2626;
+      text-align:center;
+      min-height:18px;
+      margin-top:8px;
+      font-size:14px;
+      display:none;
+    }
     .hidden{display:none !important}
 
     /* Admin modal */
-    .admin-panel{position:fixed;inset:0;display:grid;place-items:center;background:rgba(2,6,23,0.45);z-index:9999;padding:20px;visibility:hidden;opacity:0;transition:opacity .18s,visibility .18s}
-    .admin-panel.open{visibility:visible;opacity:1}
-    .admin-card{width:100%;max-width:560px;background:var(--white);border-radius:12px;padding:18px;box-shadow:0 14px 30px rgba(0,0,0,.18)}
-    .admin-card header{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
-    .admin-note{font-size:13px;color:var(--muted);margin-bottom:8px}
-    .close-admin{background:transparent;border:none;font-weight:700;color:var(--muted);cursor:pointer;padding:6px;border-radius:8px}
-    .small{font-size:13px;color:var(--muted)}
-    .success{color:#059669;font-weight:700}
-    .banner{position:fixed;top:12px;left:50%;transform:translateX(-50%);background:#f0fdf4;color:#064e3b;padding:10px 14px;border-radius:10px;box-shadow:0 8px 20px rgba(2,6,23,.08);z-index:10000;font-weight:700}
+    .admin-panel{
+      position:fixed;
+      inset:0;
+      display:grid;
+      place-items:center;
+      background:rgba(2,6,23,0.45);
+      z-index:9999;
+      padding:20px;
+      visibility:hidden;
+      opacity:0;
+      transition:opacity .18s,visibility .18s;
+    }
+    .admin-panel.open{
+      visibility:visible;
+      opacity:1;
+    }
+    .admin-card{
+      width:100%;
+      max-width:450px;
+      background:var(--white);
+      border-radius:16px;
+      padding:0 18px 14px 18px;
+      box-shadow:0 18px 40px rgba(0,0,0,.25);
+      max-height:90vh;
+      overflow:auto;
+      padding-top:80px; /* pushes content down below fixed header */
+      position:relative; /* required for absolute header */
+    }
+
+    /* upper part of admin modal */
+
+    .admin-header-fixed {
+      position:absolute;
+      top:0;
+      left:0;
+      right:0;
+      height:60px;
+      background:#0f172a;
+      color:#fff;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:0 16px;
+      border-radius:16px 16px 0 0;
+      box-shadow:0 2px 6px rgba(0,0,0,0.25);
+}
+
+    .admin-header-fixed h3{
+      margin:0;
+      font-size:17px;
+      font-weight:700;
+    }
+    .admin-note{
+      font-size:13px;
+      color:var(--muted);
+      margin-bottom:10px;
+      background:#f9fafb;
+      border-radius:10px;
+      padding:8px 10px;
+    }
+    .close-admin{
+      background:transparent;
+      border:none;
+      cursor:pointer;
+      font-size:18px;
+      padding:4px;
+      color:#e2e8f0;
+      border-radius:8px;
+    }
+    .close-admin:hover{
+      background:rgba(255,255,255,0.10);
+    }
+    .small{
+      font-size:13px;
+      color:var(--muted);
+    }
+    .success{
+      color:#000000;
+      font-weight:600;
+      font-size:13px;
+      margin-top:6px;
+      text-align:left;
+    }
+    .banner{
+      position:fixed;
+      top:12px;
+      left:50%;
+      transform:translateX(-50%);
+      background:#f0fdf4;
+      color:#064e3b;
+      padding:10px 14px;
+      border-radius:10px;
+      box-shadow:0 8px 20px rgba(2,6,23,.08);
+      z-index:10000;
+      font-weight:700;
+      font-size:13px;
+    }
+    #adminCreateOk.processing{
+      display:block !important;
+      color:#0f766e;
+    }
+
+    /* FOOTER – larger, always at bottom */
+    footer{
+      width:100%;
+      background:#0f172a;
+      color:#ffffff;
+      padding:24px 16px;
+      box-shadow:0 -4px 10px rgba(0,0,0,.25);
+      margin-top:auto;
+    }
+    .footer-inner{
+      max-width:640px;
+      margin:0 auto;
+      text-align:center;
+      font-size:14px;
+      line-height:1.5;
+    }
+
+    /* Small screens */
+    @media (max-width:480px){
+      .auth-card{
+        padding:20px 16px;
+        border-radius:14px;
+      }
+      header{
+        padding:10px 14px;
+      }
+      header h1{
+        font-size:18px;
+      }
+    }
   </style>
 </head>
 <body>
-  <article class="auth-card" role="main" aria-labelledby="authTabs">
-    <div class="brand" aria-label="DonorMedix"><span>DonorMedix</span></div>
 
-    <div class="tabs" id="authTabs" role="tablist" aria-label="Authentication tabs">
-      <div class="tabs-left">
-        <button class="tab-btn" id="tab-login" role="tab" aria-controls="panel-login" aria-selected="true">Login</button>
-        <button class="tab-btn" id="tab-signup" role="tab" aria-controls="panel-signup" aria-selected="false">Sign Up</button>
+  <!-- HEADER WITH LOGO + NAME -->
+  <header>
+    <img src="donormedix.logo.png" alt="DonorMedix Logo">
+    <h1>DonorMedix</h1>
+  </header>
+
+  <!-- MAIN CONTENT -->
+  <main class="page">
+    <article class="auth-card" role="main" aria-labelledby="authTabs">
+      <div class="brand" aria-label="DonorMedix">
+        <span>DonorMedix</span>
       </div>
-      <button class="tab-btn secondary" id="adminBtnTop" aria-label="Admin Area">Admin</button>
-    </div>
 
-    <!-- LOGIN -->
-    <section id="panel-login" role="tabpanel" aria-labelledby="tab-login">
-      <h2>Login to DonorMedix</h2>
-      <form id="loginForm" novalidate>
-        <label for="loginEmail">Email Address</label>
-        <div class="field"><input type="email" id="loginEmail" name="email" placeholder="eg. username@gmail.com" required></div>
-
-        <label for="loginPassword">Password</label>
-        <div class="field input-wrap">
-          <input type="password" id="loginPassword" name="password" placeholder="Your password" required>
-          <button type="button" class="toggle-pass" aria-label="Show password" data-target="loginPassword">👁️</button>
+      <div class="tabs" id="authTabs" role="tablist" aria-label="Authentication tabs">
+        <div class="tabs-left">
+          <button class="tab-btn" id="tab-login" role="tab" aria-controls="panel-login" aria-selected="true">Login</button>
+          <button class="tab-btn" id="tab-signup" role="tab" aria-controls="panel-signup" aria-selected="false">Sign Up</button>
         </div>
+        <button class="tab-btn secondary" id="adminBtnTop" aria-label="Admin Area">Admin</button>
+      </div>
 
-        <div class="row">
-          <span class="link">&nbsp;</span>
-          <a href="forgot.html" class="link">Forgot password?</a>
-        </div>
+      <!-- LOGIN -->
+      <section id="panel-login" role="tabpanel" aria-labelledby="tab-login">
+        <h2>Login to DonorMedix</h2>
+        <form id="loginForm" novalidate>
+          <label for="loginEmail">Email Address</label>
+          <div class="field">
+            <input type="email" id="loginEmail" name="email" placeholder="eg. username@gmail.com" required>
+          </div>
 
-        <div class="actions" role="group" aria-label="Login actions">
-          <button class="btn" type="submit" id="loginBtn">Login</button>
-        </div>
+          <label for="loginPassword">Password</label>
+          <div class="field input-wrap">
+            <input type="password" id="loginPassword" name="password" placeholder="Your password" required>
+            <button type="button" class="toggle-pass" aria-label="Show password" data-target="loginPassword">👁️</button>
+          </div>
 
-        <p id="loadingText" class="note" style="display:none">Logging in... please wait</p>
-        <p class="err" id="loginErr" role="alert">&nbsp;</p>
-        <p class="note" style="text-align:center;margin-top:10px;">Welcome — please log in or sign up to continue.</p>
-      </form>
-    </section>
+          <div class="row">
+            <span class="link">&nbsp;</span>
+            <a href="forgot.html" class="link">Forgot password?</a>
+          </div>
 
-    <!-- SIGNUP -->
-    <section id="panel-signup" role="tabpanel" aria-labelledby="tab-signup" class="hidden">
-      <h2>Create New Account</h2>
-      <form id="signupForm" novalidate>
-        <label for="name">Full Name</label>
-        <div class="field"><input type="text" id="name" name="name" placeholder="eg. Juan Dela Cruz" required></div>
+          <div class="actions" role="group" aria-label="Login actions">
+            <button class="btn" type="submit" id="loginBtn">Login</button>
+          </div>
 
-        <label for="signupEmail">Email Address</label>
-        <div class="field"><input type="email" id="signupEmail" name="email" placeholder="eg. username@gmail.com" required></div>
+          <p id="loadingText" class="note" style="display:none">Logging in... please wait</p>
+          <p class="err" id="loginErr" role="alert">&nbsp;</p>
+          <p class="note" style="text-align:center;margin-top:10px;">
+            Welcome — please log in or sign up to continue.
+          </p>
+        </form>
+      </section>
 
-        <label for="signupPassword">Password</label>
-        <div class="field input-wrap">
-          <input type="password" id="signupPassword" name="password" placeholder="8+ characters" minlength="8" required>
-          <button type="button" class="toggle-pass" aria-label="Show password" data-target="signupPassword">👁️</button>
-        </div>
+      <!-- SIGNUP -->
+      <section id="panel-signup" role="tabpanel" aria-labelledby="tab-signup" class="hidden">
+        <h2>Create New Account</h2>
+        <form id="signupForm" novalidate>
+          <label for="name">Full Name</label>
+          <div class="field">
+            <input type="text" id="name" name="name" placeholder="eg. Juan Dela Cruz" required>
+          </div>
 
-        <p class="note">Use at least 8 characters with a mix of letters and numbers.</p>
+          <label for="signupEmail">Email Address</label>
+          <div class="field">
+            <input type="email" id="signupEmail" name="email" placeholder="eg. username@gmail.com" required>
+          </div>
 
-        <div class="actions" role="group" aria-label="Signup actions">
-          <button class="btn" type="submit" id="signupBtn">Create Account</button>
-        </div>
+          <label for="signupPassword">Password</label>
+          <div class="field input-wrap">
+            <input type="password" id="signupPassword" name="password" placeholder="8+ characters" minlength="8" required>
+            <button type="button" class="toggle-pass" aria-label="Show password" data-target="signupPassword">👁️</button>
+          </div>
 
-        <p class="err" id="signupErr" role="alert">&nbsp;</p>
-        <p class="link" style="text-align:center">Already have an account? <a href="#" id="toLogin">Log In</a></p>
-      </form>
-    </section>
-  </article>
+          <p class="note">Use at least 8 characters with a mix of letters and numbers.</p>
+
+          <div class="actions" role="group" aria-label="Signup actions">
+            <button class="btn" type="submit" id="signupBtn">Create Account</button>
+          </div>
+
+          <p class="err" id="signupErr" role="alert">&nbsp;</p>
+          <p class="link" style="text-align:center">
+            Already have an account? <a href="#" id="toLogin">Log In</a>
+          </p>
+        </form>
+      </section>
+    </article>
+  </main>
 
   <!-- Admin modal -->
   <div id="adminPanel" class="admin-panel" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Admin panel">
     <div class="admin-card" role="document">
-      <header>
-        <h3>Admin — Create Account</h3>
+      <header class="admin-header-fixed">
+        <h3>Create Admin Account</h3>
         <button id="closeAdmin" class="close-admin" aria-label="Close admin panel">✕</button>
       </header>
 
-      <p class="admin-note">You must be signed in as an admin to create accounts here. Creating an account with role <strong>admin</strong> sets users/{uid}.role = "admin" in Firestore.</p>
+      <p class="admin-note">
+        Existing admins can create new admin accounts here.
+        New accounts created in this form will automatically receive <strong>admin</strong> access.
+      </p>
 
       <form id="adminCreateForm" novalidate>
         <label for="adminCreateName">Full Name</label>
-        <div class="field"><input type="text" id="adminCreateName" name="adminCreateName" placeholder="Admin name" required></div>
+        <div class="field">
+          <input type="text" id="adminCreateName" name="adminCreateName" placeholder="Admin name" required>
+        </div>
 
         <label for="adminCreateEmail">Email Address</label>
-        <div class="field"><input type="email" id="adminCreateEmail" name="adminCreateEmail" placeholder="admin@example.com" required></div>
+        <div class="field">
+          <input type="email" id="adminCreateEmail" name="adminCreateEmail" placeholder="admin@example.com" required>
+        </div>
 
         <label for="adminCreatePassword">Password</label>
         <div class="field input-wrap">
@@ -149,24 +479,25 @@
           <button type="button" class="toggle-pass" aria-label="Show password" data-target="adminCreatePassword">👁️</button>
         </div>
 
-        <label for="adminCreateRole">Role</label>
-        <div class="field">
-          <select id="adminCreateRole" name="adminCreateRole" required>
-            <option value="user">User</option>
-            <option value="admin">Admin</option>
-          </select>
-        </div>
-
         <div class="actions">
-          <button class="btn" type="submit">Create Account</button>
+          <button class="btn" type="submit">Create Admin</button>
         </div>
 
         <p id="adminCreateOk" class="small success" style="display:none;margin-top:8px;"></p>
         <p id="adminCreateErr" class="err" role="alert" style="display:none;margin-top:8px;"></p>
-        <p class="small" style="margin-top:10px;">Tip: For production, prefer server-side admin creation via a secure Cloud Function.</p>
+        <p class="small" style="margin-top:10px;">
+          Tip: For production, prefer server-side admin creation via a secure Cloud Function.
+        </p>
       </form>
     </div>
   </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-inner">
+      © 2025 DonorMedix · All Rights Reserved
+    </div>
+  </footer>
 
   <!-- load auth.js once as a module -->
   <script type="module" src="auth.js"></script>

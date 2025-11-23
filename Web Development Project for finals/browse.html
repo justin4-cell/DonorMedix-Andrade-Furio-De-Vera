@@ -66,6 +66,7 @@
     }
     .bell-btn:hover{background:rgba(255,255,255,.12)}
     .bell-icon{width:22px;height:22px;display:block}
+    /* 🔔 Notification badge (header only) */
     .badge{
       position:absolute;top:-4px;right:-4px;background:#ef4444;color:#fff;
       border:2px solid #0f172a;border-radius:999px;padding:1px 6px;font-size:.72rem;
@@ -118,37 +119,99 @@
     .btn-search svg{width:18px;height:18px}
     .btn-search:hover{filter:brightness(1.06)}
 
-    /* GRID + CARD */
-    .browse-grid{display:grid;grid-template-columns:1fr;gap:1rem}
-    @media(min-width:640px){.browse-grid{grid-template-columns:repeat(2,1fr)}}
-    @media(min-width:1024px){.browse-grid{grid-template-columns:repeat(3,1fr)}}
+/* GRID + CARD */
+.browse-grid{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:1rem;
+}
+@media(min-width:640px){
+  .browse-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media(min-width:1024px){
+  .browse-grid{grid-template-columns:repeat(3,1fr)}
+}
 
-    .card{
-      background:var(--card);border:1px solid var(--line);border-radius:16px;
-      box-shadow:0 16px 32px rgba(2,6,23,.06), 0 4px 12px rgba(2,6,23,.04);
-      overflow:hidden;display:flex;flex-direction:column;transition:transform .15s, box-shadow .15s
+.card{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:16px;
+  box-shadow:0 16px 32px rgba(2,6,23,.06), 0 4px 12px rgba(2,6,23,.04);
+  overflow:hidden;
+
+  /* IMPORTANT → LEFT TEXT + RIGHT IMAGE */
+  display:flex;
+  flex-direction:row;
+  justify-content:space-between;
+  align-items:stretch;
+
+  transition:transform .15s, box-shadow .15s;
+}
+.card:hover{
+  transform:translateY(-2px);
+  box-shadow:0 20px 42px rgba(2,6,23,.10);
+}
+
+.card__body{
+  flex:1;
+  padding:1rem;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  gap:.6rem;
+}
+
+.card__media{
+  width:40%;
+  max-width:180px;
+  min-width:140px;
+
+  /* RIGHT SIDE IMAGE */
+  order:2;
+
+  background:#f8fafc;
+  display:grid;
+  place-items:center;
+  overflow:hidden;
+}
+.card__media img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+/* MOBILE VIEW → image top, text bottom */
+@media(max-width:640px){
+  .card{
+    flex-direction:column;
+  }
+  .card__media{
+    width:100%;
+    max-width:none;
+    order:0;        /* image goes on top */
+    aspect-ratio:4/3;
+  }
+}
+
+
+    .title{
+      font-weight:900;margin:0;color:#0f172a;font-size:1.05rem;letter-spacing:.1px;
     }
-    .card:hover{transform:translateY(-2px);box-shadow:0 20px 42px rgba(2,6,23,.10)}
-    .card__media{width:100%;aspect-ratio:4/3;background:#f8fafc;display:grid;place-items:center;overflow:hidden}
-    .card__media img{width:100%;height:100%;object-fit:cover}
-    .card__body{padding:1rem;display:flex;flex-direction:column;gap:.6rem}
-    .title{font-weight:900;margin:0;color:#0f172a;font-size:1.1rem;letter-spacing:.2px}
-    .muted{color:var(--muted);font-size:.92rem}
-    .desc{color:#0f172a;font-size:.94rem;line-height:1.5;opacity:.95}
-    .badge{display:inline-block;padding:.25rem .55rem;border-radius:999px;background:#ecfdf5;color:#065f46;font-size:.75rem;font-weight:800;border:1px solid #a7f3d0}
-
-    .row{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center}
-    .kv{display:flex;gap:.35rem;align-items:center}
-    .kv strong{font-weight:900;color:#0f172a;font-size:.88rem}
-
-    .donor{display:flex;align-items:center;gap:.6rem;margin-top:.15rem}
-    .avatar{width:34px;height:34px;border-radius:999px;display:grid;place-items:center;overflow:hidden;background:#dcfce7;color:#065f46;font-weight:900;border:1px solid #bbf7d0;font-size:.8rem}
-    .avatar img{width:100%;height:100%;object-fit:cover;display:block}
-    .donor .name{font-weight:900;color:#0f172a;font-size:.95rem}
-    .donor .sub{font-size:.82rem;color:var(--muted)}
+    .muted{color:var(--muted);font-size:.9rem}
 
     .actions{display:flex;gap:.5rem;margin-top:.25rem;flex-wrap:wrap}
-    .btn{padding:.55rem .85rem;border-radius:10px;border:1px solid var(--line);background:#fff;cursor:pointer;font-weight:800;display:inline-flex;align-items:center;gap:.45rem;font-size:.9rem}
+    .btn{
+      padding:.55rem .85rem;
+      border-radius:10px;
+      border:1px solid var(--line);
+      background:#fff;
+      cursor:pointer;
+      font-weight:800;
+      display:inline-flex;
+      align-items:center;
+      gap:.45rem;
+      font-size:.9rem;
+    }
     .btn:hover{background:#f8fafc}
     .btn-message{border-color:#a7f3d0}
     .btn-like{background:var(--like-bg);border-color:var(--like-border);color:var(--like-ink)}
@@ -162,73 +225,45 @@
     /* TOAST */
     .toast{
       position:fixed; top:78px; left:50%; transform:translateX(-50%);
-      background:#065f46; color:#ecfdf5; border:1px solid #34d399;
+      background:#38bdf8; color:#ecfdf5; border:1px solid #38bdf8;
       padding:.6rem .9rem; border-radius:10px; box-shadow:var(--shadow);
       z-index:50; font-weight:700; display:none; min-width:240px; text-align:center
     }
     .toast.show{display:block}
 
-    /* FOOTER */
-    .footer{
-      background-color:#0f172a;color:#cbd5e1;
-      padding:3rem 1rem 1rem;margin-top:2rem;
-      flex-shrink: 0;
-    }
-    .footer-container{
+    /* ============ Footer ============ */
+    .footer{background:#0f172a;color:#cbd5e1;padding:3.25rem 1rem 1.25rem}
+    .footer .wrap{max-width:1100px;margin:0 auto}
+    .footer-top{
       display:flex;flex-wrap:wrap;justify-content:space-between;
-      max-width:1100px;margin:0 auto;gap:2.5rem
+      column-gap:4rem;row-gap:3rem;
     }
-    .footer-about{flex:1 1 250px}
-    .footer-logo{font-size:1.6rem;color:#f8fafc;margin-bottom:.5rem;font-weight:800}
+    .footer-about{flex:1 1 320px}
+    .footer-logo{font-size:1.6rem;color:#f8fafc;font-weight:900}
     .footer-logo span{color:#38bdf8}
-    .footer-about p{font-size:.9375rem;line-height:1.6;margin-bottom:1rem;color:#e2e8f0}
+    .footer-about p{margin:10px 0 14px;color:#e2e8f0}
+    .social{display:flex;gap:12px}
+    .social a{
+      display:inline-flex;align-items:center;justify-content:center;
+      width:38px;height:38px;border-radius:10px;background:#0b1220;color:#e2e8f0;
+      text-decoration:none;transition:.2s;border:1px solid #1e293b;
+    }
+    .social a:hover{background:#111827}
+    .footer-cols{
+      display:flex;flex:2 1 600px;flex-wrap:wrap;
+      column-gap:5rem;row-gap:2rem;
+    }
+    .footer h3{font-size:1rem;color:#f8fafc;margin-bottom:.75rem}
+    .footer ul{list-style:none}
+    .footer li+li{margin-top:.5rem}
+    .footer a{color:#cbd5e1;text-decoration:none}
+    .footer a:hover{color:#38bdf8}
+    .footer hr{border:none;border-top:1px solid #1e293b;margin:2rem 0 1.25rem}
+    .footer-bottom{display:flex;justify-content:space-between;flex-wrap:wrap;color:#ffffff;font-size:.9rem}
 
-    .social-icons{
-      display:flex;
-      gap:.75rem;
-    }
-
-    /* 🔁 NEW: social buttons & hover like Home footer */
-    .social-icons a{
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      width:38px;
-      height:38px;
-      border-radius:10px;
-      background:#0b1220;
-      color:#e2e8f0;
-      text-decoration:none;
-      transition:.2s;
-      border:1px solid #1e293b;
-    }
-    .social-icons a:hover{
-      background:#111827;
-    }
-
-    .footer-links{
-      display:flex;flex:2 1 500px;justify-content:space-between;flex-wrap:wrap
-    }
-    .footer-links h3{color:#f8fafc;margin-bottom:1rem;font-size:1rem}
-    .footer-links ul{list-style:none;padding:0}
-    .footer-links li{margin-bottom:.5rem}
-    .footer-links a{color:#cbd5e1;text-decoration:none;font-size:.9375rem;transition:color .3s}
-    .footer-links a:hover{color:#38bdf8}
-    .footer hr{border:none;border-top:1px solid #1e293b;margin:2rem 0 1rem}
-    .footer-bottom{
-      display:flex;justify-content:space-between;flex-wrap:wrap;
-      max-width:1100px;margin:0 auto;font-size:.875rem;color:#94a3b8
-    }
     @media(max-width:768px){
-      .footer-container{flex-direction:column;align-items:flex-start}
-      .footer-bottom{flex-direction:column;align-items:center;gap:.5rem;text-align:center}
-    }
-
-    .panel{background:#fff;border:1px solid var(--line);border-radius:10px;padding:.5rem;box-shadow:0 8px 26px rgba(2,6,23,.12)}
-    #notifPanel { position:absolute; right:1rem; top:64px; z-index:40; min-width:260px; display:none; }
-    #notifList { list-style:none; padding:0.5rem; max-height:40vh; overflow:auto; }
-    #notifList li { padding:.6rem; border-bottom:1px solid #f1f5f9; font-size:.95rem; color:var(--ink) }
-  </style>
+      .footer-bottom{flex-direction:column;gap:.5rem;align-items:center;text-align:center}
+    }  </style>
 </head>
 <body>
   <!-- NAV -->
@@ -249,12 +284,12 @@
           Browse
         </a>
 
-        <a href="Donate.html" class="nav-link">
+        <a href="donate.html" class="nav-link">
           <svg viewBox="0 0 24 24"><path d="M12 21.35 10.55 20.03C5.4 15.36 2 12.28 2 8.5A4.5 4.5 0 0 1 6.5 4c1.76 0 3.41.81 4.5 2.09A6 6 0 0 1 22 8.5c0 3.78-3.4 6.86-8.55 11.53L12 21.35z"/></svg>
           Donate
         </a>
 
-        <a href="Request.html" class="nav-link">
+        <a href="request.html" class="nav-link">
           <svg viewBox="0 0 24 24">
             <path d="M9 3h6a2 2 0 0 1 2 2h1a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h1a2 2 0 0 1 2-2Zm0 2a1 1 0 0 0-1 1H7v2h10V6h-1a1 1 0 0 0-1-1H9Zm3 5a1 1 0 0 1 1 1v2h2a1 1 0 1 1 0 2h-2v2a1 1 0 1 1-2 0v-2H9a1 1 0 1 1 0-2h2v-2a1 1 0 0 1 1-1Z"/>
           </svg>
@@ -278,7 +313,7 @@
           </div>
         </div>
 
-        <button class="sign-in-btn">Sign In</button>
+        <button class="sign-in-btn">Profile</button>
       </div>
     </div>
   </header>
@@ -287,7 +322,7 @@
   <section class="hero">
     <div class="hero-inner">
       <h1>Browse Available Medicines</h1>
-      <p>Find donated medicines and supplies from your community.</p>
+      <p>Find donated medicines and requests from your community.</p>
     </div>
   </section>
 
@@ -295,41 +330,30 @@
     <form class="search" id="searchForm" action="#">
       <input class="input" id="q" name="q" placeholder="Search for medicines, medical supplies…" />
       <button class="btn-search" type="submit">
-        <svg viewBox="0 0 24 24"><path d="M21 21 15.5 15.5m-5 2.5a7 7 0 1 1 0-14 7 7 0 0 1 0 14Z"/></svg>
         Search
       </button>
     </form>
+    <div class="browse-switcher">
+  <button class="browse-pill active" data-browse-category="donation">Donation</button>
+  <button class="browse-pill" data-browse-category="request">Request</button>
+</div>
 
     <section id="browseList" class="browse-grid">
+      <!-- Static sample card (will be replaced by browse.js when Firestore loads) -->
       <article class="card">
-        <div class="card__media">
-          <img src="https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?q=80&amp;w=1200" alt="Paracetamol 500mg" />
-        </div>
         <div class="card__body">
           <h3 class="title">Paracetamol 500mg</h3>
-          <p class="muted">Tablets · 20 pcs · Exp: 2026-03</p>
-          <div class="row">
-            <span class="badge">Pain Relief</span>
-            <span class="muted">Quezon City</span>
-          </div>
-          <p class="desc">Unopened blister packs from recent purchase. Willing to meet at the barangay hall.</p>
-          <div class="donor">
-            <div class="avatar">JD</div>
-            <div>
-              <div class="name">Juan Dela Cruz</div>
-              <div class="sub">Donor · Verified</div>
-            </div>
-          </div>
+          <p class="muted">
+            Donated by <strong>Juan Dela Cruz</strong>
+          </p>
           <div class="actions">
-            <button class="btn btn-message">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h16v10H7l-3 3V4z"/></svg>
-              Message
-            </button>
-            <button class="btn btn-like" onclick="this.classList.toggle('active')">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5A4.5 4.5 0 0 1 6.5 4c1.76 0 3.41.81 4.5 2.09A6 6 0 0 1 22 8.5c0 3.78-3.4 6.86-8.55 11.53L12 21.35z"/></svg>
-              <span class="like-count">Save</span>
+            <button class="btn" type="button">
+              Open
             </button>
           </div>
+        </div>
+        <div class="card__media">
+          <img src="https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?q=80&amp;w=1200" alt="Paracetamol 500mg" />
         </div>
       </article>
     </section>
@@ -337,71 +361,67 @@
     <div id="toast" class="toast">Donation posted successfully!</div>
   </main>
 
-  <!-- FOOTER -->
-  <footer class="footer">
-    <div class="footer-container">
-      <div class="footer-about">
-        <h2 class="footer-logo">Donor<span>Medix</span></h2>
-        <p>Connecting communities to share life-saving medicines and reduce healthcare waste.</p>
-        <div class="social-icons">
-          <a href="#" aria-label="Facebook" title="Facebook">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M22 12.07C22 6.48 17.52 2 11.93 2S1.86 6.48 1.86 12.07C1.86 17 5.31 21.06 10 22v-7h-3v-3h3V9.5c0-3 1.79-4.67 4.53-4.67 1.31 0 2.68.23 2.68.23v3h-1.51c-1.49 0-1.96.93-1.96 1.89V12h3.34l-.53 3H16v7c4.69-.94 8.14-5 8.14-9.93z"/>
-            </svg>
-          </a>
-          <a href="#" aria-label="X" title="X">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M18.36 3H21l-6.52 7.45L22 21h-6.09l-4.77-5.74L5.67 21H3l7.12-8.14L2 3h6.18l4.33 5.23L18.36 3z"/>
-            </svg>
-          </a>
-          <a href="#" aria-label="Instagram" title="Instagram">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <rect x="3" y="3" width="18" height="18" rx="5" stroke="currentColor" stroke-width="2"/>
-              <circle cx="12" cy="12" r="5" stroke="currentColor" stroke-width="2"/>
-              <circle cx="18" cy="6" r="1.2" fill="currentColor"/>
-            </svg>
-          </a>
-          <a href="#" aria-label="LinkedIn" title="LinkedIn">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M6.94 7.5A2.44 2.44 0 1 1 7 2.63a2.44 2.44 0 0 1-.06 4.87ZM3.5 8.87h3.88V21H3.5V8.87Zm6.31 0h3.72v1.66h.05c.52-.98 1.78-2.02 3.67-2.02 3.92 0 4.64 2.58 4.64 5.93V21H18.7v-5.38c0-1.28-.03-2.91-1.78-2.91-1.78 0-2.05 1.39-2.05 2.82V21H9.81V8.87Z"/>
-            </svg>
-          </a>
+<footer class="footer">
+    <div class="wrap">
+      <div class="footer-top">
+        <div class="footer-about">
+          <h2 class="footer-logo">Donor<span>Medix</span></h2>
+          <p>Connecting communities to share life-saving medicines and reduce healthcare waste.</p>
+          <div class="social">
+            <!-- Facebook -->
+            <a href="#" aria-label="Facebook">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M22 12a10 10 0 1 0-11.6 9.9v-7h-2.2V12h2.2V9.8c0-2.2 1.3-3.5 3.3-3.5.95 0 1.95.17 1.95.17v2.15h-1.1c-1.08 0-1.42.67-1.42 1.36V12h2.42l-.39 2.9h-2.03v7A10 10 0 0 0 22 12Z"/></svg>
+            </a>
+            <!-- Telegram -->
+            <a href="#" aria-label="Telegram">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M9.04 15.28 8.9 19c.41 0 .59-.18.8-.4l1.93-1.86 4 2.93c.74.41 1.27.2 1.46-.69l2.65-12.44c.27-1.23-.45-1.71-1.17-1.41L3.86 10.4c-1.2.47-1.18 1.14-.2 1.44l3.73 1.16 8.65-5.46c.4-.26.77-.12.47.16"/></svg>
+            </a>
+            <!-- Instagram -->
+            <a href="#" aria-label="Instagram">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5Zm0 2a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V7a3 3 0 0 0-3-3H7Zm5 3a5 5 0 1 1 0 10 5 5 0 0 1 0-10Zm6.5-.75a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5Z"/></svg>
+            </a>
+            <!-- LinkedIn -->
+            <a href="#" aria-label="LinkedIn">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M6.94 7.5A2.44 2.44 0 1 1 7 2.63a2.44 2.44 0 0 1-.06 4.87ZM3.5 8.87h3.88V21H3.5V8.87Zm6.31 0h3.72v1.66h.05c.52-.98 1.78-2.02 3.67-2.02 3.92 0 4.64 2.58 4.64 5.93V21H18.7v-5.38c0-1.28-.03-2.91-1.78-2.91-1.78 0-2.05 1.39-2.05 2.82V21H9.81V8.87Z"/></svg>
+            </a>
+          </div>
+        </div>
+
+        <div class="footer-cols">
+          <div>
+            <h3>Quick Links</h3>
+            <ul>
+              <li><a href="#how">How It Works</a></li>
+              <li><a href="browse.html">Browse Medicines</a></li>
+              <li><a href="donate.html">Donate Medicine</a></li>
+              <li><a href="#blog">Health Blog</a></li>
+            </ul>
+          </div>
+          <div>
+            <h3>Support</h3>
+            <ul>
+              <li><a href="#">Help Center</a></li>
+              <li><a href="#">Safety Guidelines</a></li>
+              <li><a href="#">Community Guidelines</a></li>
+              <li><a href="#">Report Issue</a></li>
+            </ul>
+          </div>
+          <div>
+            <h3>Legal</h3>
+            <ul>
+              <li><a href="#">Privacy Policy</a></li>
+              <li><a href="#">Terms of Service</a></li>
+              <li><a href="#">Cookie Policy</a></li>
+              <li><a href="#">Disclaimer</a></li>
+            </ul>
+          </div>
         </div>
       </div>
 
-      <div class="footer-links">
-        <div>
-          <h3>Quick Links</h3>
-          <ul>
-            <li><a href="#">How It Works</a></li>
-            <li><a href="browse.html">Browse Medicines</a></li>
-            <li><a href="Donate.html">Donate Medicine</a></li>
-            <li><a href="#">Health Blog</a></li>
-          </ul>
-        </div>
-        <div>
-          <h3>Support</h3>
-          <ul>
-            <li><a href="#">Help Center</a></li>
-            <li><a href="#">Safety Guidelines</a></li>
-            <li><a href="#">Community Guidelines</a></li>
-            <li><a href="#">Report Issue</a></li>
-          </ul>
-        </div>
-        <div>
-          <h3>Legal</h3>
-          <ul>
-            <li><a href="#">Privacy Policy</a></li>
-            <li><a href="#">Terms of Service</a></li>
-            <li><a href="#">Cookie Policy</a></li>
-            <li><a href="#">Disclaimer</a></li>
-          </ul>
-        </div>
+      <hr/>
+      <div class="footer-bottom">
+        <p>© 2025 DonorMedix. All rights reserved.</p>
       </div>
-    </div>
-    <hr />
-    <div class="footer-bottom">
-      <p>© 2025 DonorMedix. All rights reserved.</p>
     </div>
   </footer>
 

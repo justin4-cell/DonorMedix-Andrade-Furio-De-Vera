@@ -15,13 +15,19 @@
   }
   *{margin:0;padding:0;box-sizing:border-box}
   body{
-    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
-    line-height:1.5;
-    color:var(--ink); /* GLOBAL text color #0f172a */
-    /* match donate page background */
-    background:linear-gradient(180deg,#0d99a0 0%, #93bec1 100%);
-    min-height:100vh;
-  }
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+  line-height:1.5;
+  color:var(--ink); /* GLOBAL text color #0f172a */
+
+  /* Background image */
+  background-image:url("hospital background2.jpg"); /* change to your file name */
+  background-size:cover;
+  background-position:center;
+  background-repeat:no-repeat;
+  background-attachment:fixed; /* nice subtle parallax effect */
+
+  min-height:100vh;
+}
 
   /* =========== NAV (match Donate page) =========== */
   header.site{
@@ -585,9 +591,6 @@
 
         <div class="row">
           <span class="muted" style="color:var(--muted)">
-            <span id="ratingDisplay">(0.0)</span>
-            Member since <span id="sinceDisplay">—</span>
-            <span class="muted"> · </span>
             <span id="donationsDisplay">0</span> donations
           </span>
         </div>
@@ -595,7 +598,7 @@
         <p class="bio" id="bioPreview">Default</p>
 
         <div class="metrics" aria-label="User metrics">
-          <div><div class="n" id="mDonations">0</div><div class="label">Total Donations</div></div>
+          <div><div class="n" id="donationsDisplay">0</div><div class="label">Total Donations</div></div>
           <div><div class="n" id="mRequests">0</div><div class="label">Total Requests</div></div>
           <div><div class="n" id="mRating">0.0</div><div class="label">Average Rating</div></div>
         </div>
