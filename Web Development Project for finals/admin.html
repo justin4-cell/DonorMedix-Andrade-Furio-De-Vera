@@ -203,6 +203,43 @@
       color: #e5e7eb;
     }
 
+    /* footer buttons bottom-left */
+    .nav-footer-actions {
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      margin-bottom:10px;
+    }
+
+    .footer-btn {
+      display:flex;
+      align-items:center;
+      gap:6px;
+      font-size:12px;
+      padding:7px 10px;
+      border-radius:999px;
+      border:1px solid rgba(148,163,184,.5);
+      background:rgba(15,23,42,.85);
+      color:#e5e7eb;
+      text-decoration:none;
+      cursor:pointer;
+      transition:background .1s ease,border-color .1s ease,transform .06s ease;
+    }
+
+    .footer-btn span.icon {
+      width:16px;
+      text-align:center;
+    }
+
+    .footer-btn:hover {
+      background:rgba(148,163,184,.18);
+      border-color:rgba(148,163,184,.8);
+    }
+
+    .footer-btn-outline {
+      background:transparent;
+    }
+
     .main {
       flex: 1;
       padding: 20px 16px 32px;
@@ -701,6 +738,19 @@
       </div>
 
       <div class="nav-footer">
+        <div class="nav-footer-actions">
+          <!-- HOMEPAGE BUTTON -->
+          <a href="index.html" class="footer-btn">
+            <span class="icon">🏠</span>
+            <span>Homepage</span>
+          </a>
+
+          <!-- LOG OUT BUTTON -->
+          <button id="logoutBtn" type="button" class="footer-btn footer-btn-outline">
+            <span class="icon">🚪</span>
+            <span>Log out</span>
+          </button>
+        </div>
         Logged in as<br />
         <strong>Admin</strong>
       </div>
@@ -1336,7 +1386,7 @@
     </main>
   </div>
 
-  <!-- Logic for sidebar navigation + requests filter & approve/reject + theme toggle -->
+  <!-- Logic for sidebar navigation + requests filter & approve/reject + theme toggle + logout -->
   <script>
     // Sidebar navigation: show/hide sections
     const navLinks = document.querySelectorAll('.nav-link');
@@ -1433,6 +1483,17 @@
         }
 
         filterTable();
+      });
+    }
+
+    // 🔒 LOG OUT BUTTON LOGIC
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', () => {
+        // Example: clear theme and redirect to login page
+        localStorage.removeItem('dm-theme');
+        // Change "login.html" to your actual login page path if different
+        window.location.href = 'login.html';
       });
     }
   </script>
