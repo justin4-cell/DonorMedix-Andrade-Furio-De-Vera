@@ -141,6 +141,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (sinceDisp) sinceDisp.textContent = data.since || '—';
     if (donsDisp) donsDisp.textContent = String(data.donations ?? donsDisp?.textContent ?? 0);
   }
+  // Add this helper after updateMetricsUI definition
+function setTotalDonationsCount(n){
+  // Support two common ids just in case: #totalDonations and #donationsDisplay (you already use donationsDisplay)
+  const el1 = document.getElementById('totalDonations');
+  const el2 = document.getElementById('donationsDisplay'); // existing element in file
+  if (el1) el1.textContent = String(n);
+  if (el2) el2.textContent = String(n);
+}
 
   /* ---------- Local donation templates / logic (legacy) ---------- */
   const donationItemTemplate = (d)=>`
@@ -161,7 +169,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!donationsList) return;
     const ds = getArr(uid,'donations');
     donationsList.innerHTML = (Array.isArray(ds) && ds.length) ? ds.map(donationItemTemplate).join('') : '<div class="muted">No donations yet.</div>';
-    updateMetricsUI({ donations: ds.length, requests: Number(mReq?.textContent || 0), rating: Number(mRat?.textContent || 0) });
+    updateMetricsUI({ donations: items.length, requests: Number(mReq?.textContent || 0), rating: Number(mRat?.textContent || 0) });
+    // ensure the "Total Donations" UI shows the same count
+    setTotalDonationsCount(items.length);
+
   }
 
   function bindDonationDeletes(uid, userData){
@@ -177,19 +188,32 @@ document.addEventListener('DOMContentLoaded', () => {
       if (before !== ds.length){
         pushActivity('Donation removed', `ID ${id}`);
         userData.donations = Math.max(0,(userData.donations||0)-1);
-        updateMetricsUI(userData);
+        // sync total donations number from users/{uid} (fallback)
+        setTotalDonationsCount(userData.donations || 0);
+
       }
     });
   }
 
-  /* ---------- Requests template ---------- */
+  /* ---------- Requests template (UPDATED: includes avatar image & request image) ---------- */
+  // NOTE: updated to prefer showing request.imageUrl as thumbnail; fallback to requester photo, then emoji.
   const requestItemTemplate = (r)=>`
-    <article class="request-card" data-id="${escapeHtml(r._id || r.id || '')}">
-      <div class="thumb">📝</div>
-      <div>
-        <div class="item-title">${escapeHtml(r.title || 'Request')}</div>
-        <div class="item-sub">${escapeHtml(r.description || r.subtitle || '')}</div>
-        <div class="item-date">${escapeHtml(r._when || '')}</div>
+    <article class="request-card" data-id="${escapeHtml(r._id || r.id || '')}" style="display:flex;gap:12px;align-items:flex-start;padding:12px;border-radius:12px;border:1px solid #e6edf2;background:#fff;">
+      <div style="width:76px;height:76px;border-radius:12px;overflow:hidden;flex-shrink:0;background:#f1f5f9;display:grid;place-items:center;">
+        ${ r.imageUrl ? `<img src="${escapeHtml(r.imageUrl)}" alt="request image" style="width:100%;height:100%;object-fit:cover">`
+         : ( r._photo ? `<img src="${escapeHtml(r._photo)}" alt="avatar" style="width:100%;height:100%;object-fit:cover">` : '📝' )
+        }
+      </div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+          <div style="min-width:0">
+            <div class="item-title" style="font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(r.title || 'Request')}</div>
+            <div class="item-sub muted" style="font-size:.95rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(r.description || r.subtitle || '')}</div>
+          </div>
+          <div style="text-align:right;min-width:90px;">
+            <div class="item-date muted" style="font-size:.85rem">${escapeHtml(r._when || '')}</div>
+          </div>
+        </div>
       </div>
       <div style="display:grid;gap:8px;justify-items:end">
         <div style="display:flex; gap:8px">
@@ -552,6 +576,17 @@ document.addEventListener('DOMContentLoaded', () => {
         if (profLine) profLine.textContent = updatedProfession || "Add your profession";
         const bp = document.getElementById('bioPreview'); if (bp) bp.textContent = updatedData.bio || '—';
 
+        // persist tiny cache for faster reads on other pages (requests)
+        try {
+          localStorage.setItem('userProfile', JSON.stringify({
+            location: updatedData.location || "",
+            name: updatedData.name || "",
+            photoURL: updatedData.photoURL || ""
+          }));
+        } catch (e) {
+          console.warn('Could not write userProfile to localStorage', e);
+        }
+
         inputs.forEach(i=> i.setAttribute("disabled","true"));
         ["selProfCat","selProfRole","profession","selRegion","selProvince","selCityMun","selBarangay"].forEach(id=>{
           const el=document.getElementById(id); if(el){ el.disabled=true; }
@@ -573,7 +608,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return `
       <article class="donation-card" data-id="${escapeHtml(d._id)}">
         <div class="thumb">
-          ${d.imageUrl ? `<img src="${escapeHtml(d.imageUrl)}" style="width:100%;height:100%;object-fit:cover;border-radius:12px">` : '🎁'}
+          ${d.imageUrl ? `<img src="${escapeHtml(d.imageUrl)}" style="width:100%;height:100%;object-fit:cover;border-radius:12px">` : (d.emoji || '🎁')}
         </div>
         <div>
           <div class="item-title">${escapeHtml(d.medicineName || 'Donation')}</div>
@@ -780,6 +815,10 @@ document.addEventListener('DOMContentLoaded', () => {
       if (unsubThreads) { unsubThreads(); unsubThreads = null; }
       if (unsubUserDoc) { unsubUserDoc(); unsubUserDoc = null; }
       if (unsubEvents) { unsubEvents(); unsubEvents = null; }
+
+      // Clear cached small profile for security / freshness on sign-out
+      try { localStorage.removeItem('userProfile'); } catch(e){ /* ignore */ }
+
       return;
     }
 
@@ -797,7 +836,7 @@ document.addEventListener('DOMContentLoaded', () => {
           uid: user.uid,
           name: data.name || user.displayName || "Anonymous User",
           email: data.email || user.email || "",
-          phone: data.phone || "",
+          phone: data.phone || user.phone || "",
           profession: data.profession || "Add your profession",
           location: data.location || "",
           bio: data.bio || "",
@@ -809,6 +848,18 @@ document.addEventListener('DOMContentLoaded', () => {
           showLocation: data.showLocation ?? false,
           publicProfile: data.publicProfile ?? false,
         };
+
+        // ---------- write a tiny local cache so request.js can read profile location fast ----------
+        try {
+          localStorage.setItem('userProfile', JSON.stringify({
+            location: userData.location || "",
+            name: userData.name || "",
+            photoURL: userData.photoURL || ""
+          }));
+        } catch (e) {
+          console.warn('Could not write userProfile to localStorage', e);
+        }
+        // -------------------------------------------------------------------------
 
         if (document.getElementById('profilePic')) document.getElementById('profilePic').src = userData.photoURL;
         if (nameDisplay) nameDisplay.textContent = userData.name;
@@ -843,7 +894,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }).catch(()=>{});
       });
 
-      /* My Requests — Firestore real-time */
+      /* My Requests — Firestore real-time (UPDATED: attach current user's photo to each request item and show request image) */
       if (unsubReq) unsubReq();
       unsubReq = onSnapshot(
         query(collection(db,'requests'), where('requesterId','==', user.uid)),
@@ -862,6 +913,19 @@ document.addEventListener('DOMContentLoaded', () => {
             d._when = 'Requested ' + new Date(ms).toLocaleString();
             d._ms   = ms;
             d._id   = s.id;
+
+            // Attach the requester's photo (current user) for display.
+            // Prefer the real-time userData if available via localStorage/user snapshot; otherwise fallback.
+            try {
+              const local = JSON.parse(localStorage.getItem('userProfile') || '{}');
+              d._photo = (local && local.photoURL) ? local.photoURL : (auth.currentUser?.photoURL || 'default-profile.png');
+            } catch(e){
+              d._photo = auth.currentUser?.photoURL || 'default-profile.png';
+            }
+
+            // ensure imageUrl property exists (if request included an uploaded image)
+            d.imageUrl = d.imageUrl || d.image || null;
+
             items.push(d);
           });
 
@@ -928,7 +992,7 @@ document.addEventListener('DOMContentLoaded', () => {
               const id = el.getAttribute('data-thread');
               const m = getReadMap(user.uid); m[id]=Date.now(); setReadMap(user.uid,m);
               closeNotifModal();
-              location.href = 'Request.html';
+              location.href = 'request.html';
             });
           });
 

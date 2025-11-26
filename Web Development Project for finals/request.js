@@ -1,3 +1,6 @@
+// request.js
+// DonorMedix · Requests page (Community + My Requests + Create)
+
 /* ========= Utilities ========= */
 var PSGC_BASE = "https://psgc.gitlab.io/api";
 
@@ -150,7 +153,11 @@ import {
   limit,
   getDoc,
 } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
-import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+import {
+  getAuth,
+  onAuthStateChanged,
+  signOut,
+} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 
 var firebaseConfig = {
   apiKey: "AIzaSyAaWN2gj3VJxT6kwOvCX4LIXkWlbt0LTHQ",
@@ -184,7 +191,7 @@ function displayNameFrom(u, data) {
   return (
     (data && data.name) ||
     (u && u.displayName) ||
-    (u && u.email ? u.email.split("@")[0] : "Profile")
+    "Profile"
   );
 }
 function firstTwo(str = "U") {
@@ -192,8 +199,10 @@ function firstTwo(str = "U") {
 }
 
 async function getCanonicalUser(u) {
-  if (!u) return { name: "Anonymous", photoURL: null };
-  let name = u.displayName || (u.email ? u.email.split("@")[0] : "Anonymous");
+  // NOTE: changed to avoid deriving username from email.
+  // We prefer users/{uid}.name or displayName, otherwise return {name: null}.
+  if (!u) return { name: null, photoURL: null };
+  let name = u.displayName || null;
   let photoURL = u.photoURL || null;
 
   try {
@@ -212,6 +221,72 @@ async function getCanonicalUser(u) {
 /* ========= Cloudinary ========= */
 var CLOUDINARY_CLOUD_NAME = "dsw0erpjx";
 var CLOUDINARY_UPLOAD_PRESET = "donormedix";
+
+/* ========= Usernames Cache & Batch preload ========= */
+/*
+  Behavior:
+  - userCache stores uid -> username (string) or null when not found
+  - preloadUsernames(uids) performs batch reads and fills cache
+  - getUsername(uid) returns cached value if present, otherwise fetches single doc and caches it.
+*/
+const userCache = {}; // uid -> name|string|null
+
+async function preloadUsernames(uids) {
+  if (!uids || !uids.length) return;
+  const uniq = Array.from(new Set(uids.filter(Boolean)));
+  const toFetch = uniq.filter((uid) => !userCache.hasOwnProperty(uid));
+  if (!toFetch.length) return;
+  try {
+    await Promise.all(
+      toFetch.map(async (uid) => {
+        try {
+          const snap = await getDoc(doc(db, "users", uid));
+          if (snap.exists()) {
+            const data = snap.data() || {};
+            // prefer name, then displayName (do NOT fallback to email).
+            const name =
+              (data.name && String(data.name).trim()) ||
+              (data.displayName && String(data.displayName).trim()) ||
+              null;
+            userCache[uid] = name || null;
+          } else {
+            userCache[uid] = null;
+          }
+        } catch (e) {
+          console.warn("preloadUsernames getDoc error for", uid, e);
+          userCache[uid] = null;
+        }
+      })
+    );
+  } catch (e) {
+    console.warn("preloadUsernames error:", e);
+  }
+}
+
+async function getUsername(uid) {
+  if (!uid) return null;
+  // if cached and non-empty string, return it
+  if (userCache.hasOwnProperty(uid) && userCache[uid]) return userCache[uid];
+  try {
+    const snap = await getDoc(doc(db, "users", uid));
+    if (!snap.exists()) {
+      userCache[uid] = null;
+      // no users/{uid} doc
+      return null;
+    }
+    const data = snap.data() || {};
+    const name =
+      (data.name && String(data.name).trim()) ||
+      (data.displayName && String(data.displayName).trim()) ||
+      null; // NOTE: intentionally do NOT use email local-part
+    userCache[uid] = name || null;
+    return name || null;
+  } catch (e) {
+    console.error("getUsername error for", uid, e);
+    userCache[uid] = null;
+    return null;
+  }
+}
 
 /* ========= Medicine Catalog ========= */
 var medicineCatalog = {
@@ -337,10 +412,9 @@ function ensureProfileModal() {
         <div id="dm_profile_email" style="color:#0f172a;font-size:.9rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>
       </div>
     </div>
-
     <div style="padding:12px; display:flex; gap:10px;">
       <a href="profile.html" style="flex:1; text-align:center; text-decoration:none; background:#0f172a; color:#fff; border-radius:10px; padding:10px 12px; font-weight:800;">Go to Profile</a>
-      <button id="dm_signout" style="flex:1; background:#ffffff; color:#0f172a; border:1px solid #e5e7eb; border-radius:10px; padding:10px 12px; font-weight:800; cursor:pointer;">Sign Out</button>
+      <button id="dm_signout" style="flex:1; background:#ffffff; color:#0f172a; border:1px solid #e2e8eb; border-radius:10px; padding:10px 12px; font-weight:800; cursor:pointer;">Sign Out</button>
     </div>
   `;
   document.body.appendChild(profileModal);
@@ -356,14 +430,16 @@ function ensureProfileModal() {
       return;
     hideProfileModal();
   });
-  profileModal.querySelector("#dm_signout").addEventListener("click", async () => {
-    try {
-      await signOut(auth);
-    } catch (e) {
-      console.warn("signOut error", e);
-    }
-    hideProfileModal();
-  });
+  profileModal
+    .querySelector("#dm_signout")
+    .addEventListener("click", async () => {
+      try {
+        await signOut(auth);
+      } catch (e) {
+        console.warn("signOut error", e);
+      }
+      hideProfileModal();
+    });
 
   return profileModal;
 }
@@ -471,7 +547,7 @@ function ensureNotifModal() {
       </div>
       <button id="dm_notif_close" style="border:none;background:transparent;cursor:pointer;color:#0f172a;font-weight:900;">×</button>
     </div>
-    <div id="dm_notif_list" style="padding:10px; overflow:auto; background:#f8fafc;">
+    <div id="dm_notif_list" style="padding:10px; overflow:auto; background:#f8faff;">
       <div style="padding:10px; color:#0f172a;">No notifications yet.</div>
     </div>
   `;
@@ -531,9 +607,7 @@ function renderEventsList(items) {
     .map((ev) => {
       const icon = iconForType(ev.type);
       const when = ev.createdAt
-        ? timeAgo(
-            ev.createdAt.toDate ? ev.createdAt.toDate() : ev.createdAt
-          )
+        ? timeAgo(ev.createdAt.toDate ? ev.createdAt.toDate() : ev.createdAt)
         : "";
       const who = ev.userName
         ? `<strong style="color:#0f172a">${ev.userName}</strong> — `
@@ -586,11 +660,7 @@ function listenToEvents() {
     unsubEvents = null;
   }
   try {
-    const qy = query(
-      collection(db, "events"),
-      orderBy("createdAt", "desc"),
-      limit(20)
-    );
+    const qy = query(collection(db, "events"), orderBy("createdAt", "desc"), limit(20));
     unsubEvents = onSnapshot(
       qy,
       (snap) => {
@@ -620,6 +690,11 @@ function listenToEvents() {
 }
 
 /* ========= Main Init ========= */
+
+// Aesthetic default medicine image for cards + modal
+const DEFAULT_MEDICINE_IMAGE =
+  "https://images.unsplash.com/photo-1584306670954-dbb2a7e4aa0f?q=80&w=1200&auto=format&fit=crop";
+
 window.addEventListener("DOMContentLoaded", function () {
   // Auto-highlight current nav link by filename
   try {
@@ -638,8 +713,7 @@ window.addEventListener("DOMContentLoaded", function () {
     ensureBellBadge();
     bellBtn.addEventListener("click", (e) => {
       e.preventDefault();
-      if (!notifModal || notifModal.style.display === "none")
-        showNotifModal();
+      if (!notifModal || notifModal.style.display === "none") showNotifModal();
       else hideNotifModal();
     });
     listenToEvents();
@@ -940,7 +1014,9 @@ window.addEventListener("DOMContentLoaded", function () {
   }
   function uploadFileToCloudinary(file) {
     if (!hasCloudinaryConfig()) {
-      alert("Set CLOUDINARY_CLOUD_NAME and CLOUDINARY_UPLOAD_PRESET in the code.");
+      alert(
+        "Set CLOUDINARY_CLOUD_NAME and CLOUDINARY_UPLOAD_PRESET in the code."
+      );
     }
     var form = new FormData();
     form.append("file", file);
@@ -967,7 +1043,9 @@ window.addEventListener("DOMContentLoaded", function () {
       return false;
     }
     if (!hasCloudinaryConfig()) {
-      alert("Set CLOUDINARY_CLOUD_NAME and CLOUDINARY_UPLOAD_PRESET in the code.");
+      alert(
+        "Set CLOUDINARY_CLOUD_NAME and CLOUDINARY_UPLOAD_PRESET in the code."
+      );
       return false;
     }
     if (!cloudinaryWidget) {
@@ -1067,34 +1145,95 @@ window.addEventListener("DOMContentLoaded", function () {
     return "badge badge--urg-medium";
   }
 
-  // ---- CHAT MODAL ----
+  // ---- CHAT MODAL (User-to-user, aesthetic) ----
   var modal, modalBody, modalTitle, inputMsg, btnSend, btnClose;
+
+  function ensureChatStyles() {
+    if (document.getElementById("dmx_chat_styles")) return;
+    var s = document.createElement("style");
+    s.id = "dmx_chat_styles";
+    s.textContent = [
+      ".chat-modal-card{max-width:520px;width:100%;border-radius:20px;overflow:hidden;background:#0f172a;box-shadow:0 24px 60px rgba(15,23,42,.5);border:1px solid rgba(148,163,184,.3);}",
+      ".chat-header{padding:12px 16px;background:linear-gradient(135deg,#0f172a,#020617);color:#e5e7eb;display:flex;align-items:center;justify-content:space-between;gap:10px;}",
+      ".chat-header-main{display:flex;flex-direction:column;gap:2px;min-width:0;}",
+      ".chat-title-label{font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;color:#38bdf8;font-weight:800;}",
+      ".chat-title{font-weight:700;font-size:1.05rem;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;color:#f9fafb;}",
+      ".chat-sub{font-size:.8rem;color:#9ca3af;}",
+      ".chat-close-btn{border:none;background:rgba(15,23,42,.9);color:#e5e7eb;border-radius:999px;padding:4px 10px;font-size:.8rem;cursor:pointer;font-weight:700;}",
+      ".chat-body-wrap{padding:10px 12px 8px;background:radial-gradient(circle at 0 0,#1f2937 0,#020617 55%);}",
+      ".chat-scroll{max-height:360px;min-height:180px;overflow-y:auto;padding:8px 4px;display:flex;flex-direction:column;gap:6px;scrollbar-width:thin;}",
+      ".chat-scroll::-webkit-scrollbar{width:6px;}",
+      ".chat-scroll::-webkit-scrollbar-track{background:transparent;}",
+      ".chat-scroll::-webkit-scrollbar-thumb{background:#4b5563;border-radius:999px;}",
+      ".chat-empty{font-size:.85rem;color:#9ca3af;text-align:center;padding:18px 4px;}",
+      ".msg{max-width:80%;padding:7px 10px;border-radius:14px;border:1px solid rgba(148,163,184,.4);background:rgba(15,23,42,.85);color:#e5e7eb;font-size:.87rem;line-height:1.4;align-self:flex-start;box-shadow:0 8px 22px rgba(15,23,42,.4);}",
+      ".msg.me{align-self:flex-end;background:#22c55e;color:#022c22;border-color:rgba(73, 189, 210, 1);box-shadow:0 10px 28px rgba(34,197,94,.45);}",
+      ".chat-footer{padding:10px 12px 12px;background:#020617;border-top:1px solid rgba(148,163,184,.35);display:flex;gap:8px;align-items:center;}",
+      ".chat-input{flex:1;border-radius:999px;border:1px solid rgba(148,163,184,.7);background:#020617;color:#e5e7eb;font-size:.85rem;padding:8px 12px;outline:none;}",
+      ".chat-input::placeholder{color:#6b7280;}",
+      ".chat-input:focus{border-color:#38bdf8;box-shadow:0 0 0 1px rgba(56,189,248,.5);}",
+      ".chat-send-btn{border:none;border-radius:999px;padding:8px 14px;font-size:.85rem;font-weight:700;background:linear-gradient(135deg,#22c55e,#16a34a);color:#ecfdf5;cursor:pointer;display:inline-flex;align-items:center;gap:6px;box-shadow:0 14px 34px rgba(34,197,94,.5);}",
+      ".chat-send-btn:hover{transform:translateY(-1px);box-shadow:0 18px 40px rgba(73, 189, 210, 1);}",
+      ".chat-send-btn:active{transform:translateY(0);box-shadow:0 8px 22px rgba(73, 189, 210, 1);}",
+      ".chat-send-icon{font-size:1rem;}",
+      "@media (max-width:640px){.chat-modal-card{max-width:100%;margin:0 10px;}}"
+    ].join("\n");
+    document.head.appendChild(s);
+  }
+
   function ensureModal() {
     if (modal) return;
+    ensureChatStyles();
+
     modal = document.createElement("div");
-    modal.className = "modal";
+    modal.id = "dm_chat_modal";
+    modal.className = "modal chat-modal";
     modal.innerHTML = `
-      <div class="modal-card">
-        <div class="modal-header">
-          <div class="modal-title" id="chatTitle">Conversation</div>
-          <button class="btn btn-ghost" id="chatClose">Close</button>
+      <div class="modal-card chat-modal-card">
+        <div class="chat-header">
+          <div class="chat-header-main">
+            <div class="chat-title-label">Private message</div>
+            <div class="chat-title" id="chatTitle">Conversation</div>
+            <div class="chat-sub" id="chatSub">User-to-user conversation</div>
+          </div>
+          <button class="chat-close-btn" id="chatClose">Close</button>
         </div>
-        <div class="modal-body"><div class="chat" id="chatBody"></div></div>
-        <div class="modal-footer">
-          <input id="chatInput" class="input" placeholder="Write a message…"/>
-          <button id="chatSend" class="btn btn-primary">Send</button>
+        <div class="chat-body-wrap">
+          <div class="chat-scroll" id="chatBody">
+            <div class="chat-empty">No messages yet. Be the first to say hello </div>
+          </div>
         </div>
-      </div>`;
+        <div class="chat-footer">
+          <input id="chatInput" class="chat-input" placeholder="Write a message" />
+          <button id="chatSend" class="chat-send-btn">
+            <span>Send</span>
+          </button>
+        </div>
+      </div>
+    `;
     document.body.appendChild(modal);
+
     modalBody = modal.querySelector("#chatBody");
     modalTitle = modal.querySelector("#chatTitle");
     inputMsg = modal.querySelector("#chatInput");
     btnSend = modal.querySelector("#chatSend");
     btnClose = modal.querySelector("#chatClose");
+
     btnClose.addEventListener("click", function () {
       closeChat();
     });
+
+    modal.addEventListener("click", function (e) {
+      if (e.target === modal) closeChat();
+    });
+
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && modal && modal.classList.contains("open")) {
+        closeChat();
+      }
+    });
   }
+
   var activeThread = { id: null, unsub: null, peerLabel: "", participants: [] };
 
   async function openOrCreateThreadForRequest(requestDoc) {
@@ -1117,7 +1256,6 @@ window.addEventListener("DOMContentLoaded", function () {
       return;
     }
 
-    // Simple: always create a new thread (can be optimized later)
     var newThreadId = crypto.randomUUID();
     var participants = [me.uid, peerId];
     var participantsMap = {};
@@ -1141,9 +1279,16 @@ window.addEventListener("DOMContentLoaded", function () {
   function openChat(threadId, requestDoc, participants) {
     ensureModal();
     modal.classList.add("open");
-    modalTitle.textContent =
-      "Conversation — " + (requestDoc.title || "Request");
-    modalBody.innerHTML = "Loading…";
+
+    var subEl = modal.querySelector("#chatSub");
+    modalTitle.textContent = requestDoc.title || "Request conversation";
+    if (subEl) {
+      subEl.textContent =
+        "Chat about “" + (requestDoc.title || "this request") + "”";
+    }
+
+    modalBody.innerHTML =
+      '<div class="chat-empty">Loading conversation…</div>';
     inputMsg.value = "";
 
     if (activeThread.unsub) {
@@ -1159,16 +1304,20 @@ window.addEventListener("DOMContentLoaded", function () {
       query(msgsRef, orderBy("createdAt", "asc")),
       function (ss) {
         modalBody.innerHTML = "";
+        if (ss.empty) {
+          var empty = document.createElement("div");
+          empty.className = "chat-empty";
+          empty.textContent = "No messages yet. Start the conversation 👋";
+          modalBody.appendChild(empty);
+          return;
+        }
         ss.forEach(function (docSnap) {
           var m = docSnap.data();
-          var div = document.createElement("div");
-          div.className =
-            "msg" +
-            (auth.currentUser && m.senderId === auth.currentUser.uid
-              ? " me"
-              : "");
-          div.textContent = m.text || "";
-          modalBody.appendChild(div);
+          var wrap = document.createElement("div");
+          var isMe = auth.currentUser && m.senderId === auth.currentUser.uid;
+          wrap.className = "msg" + (isMe ? " me" : "");
+          wrap.textContent = m.text || "";
+          modalBody.appendChild(wrap);
         });
         modalBody.parentElement.scrollTop =
           modalBody.parentElement.scrollHeight;
@@ -1196,6 +1345,7 @@ window.addEventListener("DOMContentLoaded", function () {
       }
     };
   }
+
   function closeChat() {
     if (activeThread.unsub) {
       try {
@@ -1207,150 +1357,397 @@ window.addEventListener("DOMContentLoaded", function () {
     if (modal) modal.classList.remove("open");
   }
 
+  /* ====== Request Card + Detail Modal Styles ====== */
+  function ensureRequestStyles() {
+    if (document.getElementById("dmx_request_styles")) return;
+    var s = document.createElement("style");
+    s.id = "dmx_request_styles";
+    s.textContent = [
+      // Card layout
+      ".request-card{display:flex;flex-direction:row;align-items:stretch;gap:16px;padding:14px 16px;border-radius:18px;background:#ffffff;box-shadow:0 14px 40px rgba(15,23,42,.12);border:1px solid rgba(148,163,184,.35);}",
+      ".request-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px;}",
+      ".request-header-row{display:flex;flex-direction:column;align-items:flex-start;gap:2px;}",
+      ".request-requester{font-size:.85rem;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:260px;}",
+      ".request-open-btn{align-self:flex-start;margin-top:6px;padding:6px 16px;border-radius:999px;border:none;background:#0f172a;color:#ffffff;font-weight:600;font-size:.85rem;cursor:pointer;display:inline-flex;align-items:center;gap:6px;box-shadow:0 8px 24px rgba(15,23,42,.25);transition:transform .12s ease,box-shadow .12s ease,background .12s ease;}",
+      ".request-open-btn:hover{transform:translateY(-1px);box-shadow:0 14px 34px rgba(15,23,42,.28);background:#020617;}",
+      ".request-open-btn:active{transform:translateY(0);box-shadow:0 6px 18px rgba(15,23,42,.24);}",
+      ".request-open-btn-icon{font-size:1rem;}",
+      // Right side image (larger & aesthetic)
+      ".request-image-wrap{width:160px;height:115px;flex-shrink:0;border-radius:16px;overflow:hidden;background:radial-gradient(circle at 10% 20%,#e0f2fe 0,#f1f5f9 40%,#e2e8f0 100%);display:grid;place-items:center;box-shadow:0 10px 28px rgba(15,23,42,.25);}",
+      ".request-image-wrap img{width:100%;height:100%;object-fit:cover;display:block;}",
+      "@media (max-width:640px){.request-card{padding:12px 12px;}.request-image-wrap{width:130px;height:100px;}.request-title{max-width:180px;}.request-requester{max-width:180px;}}",
+      // Detail modal card
+      ".detail-modal-card{max-width:560px;width:100%;border-radius:20px;overflow:hidden;background:#f9fafb;}",
+      ".detail-header{padding:14px 18px;background:linear-gradient(135deg,#0f172a,#020617);color:#e5e7eb;display:flex;align-items:center;justify-content:space-between;gap:10px;}",
+      ".detail-header-main{display:flex;flex-direction:column;gap:2px;min-width:0;}",
+      ".detail-title{font-weight:700;font-size:1.05rem;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;}",
+      ".detail-sub{font-size:.8rem;color:#cbd5f5;}",
+      ".detail-close-btn{border:none;background:rgba(15,23,42,.7);color:#e5e7eb;border-radius:999px;padding:4px 10px;font-size:.8rem;cursor:pointer;}",
+      ".detail-body{padding:16px 18px 10px;display:flex;gap:16px;}",
+      ".detail-body-main{flex:1;min-width:0;}",
+      ".detail-pill-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;}",
+      ".detail-img-wrap{width:140px;flex-shrink:0;border-radius:16px;overflow:hidden;background:radial-gradient(circle at 10% 20%,#e0f2fe 0,#f1f5f9 40%,#e2e8f0 100%);display:grid;place-items:center;box-shadow:0 10px 28px rgba(15,23,42,.25);}",
+      ".detail-img-wrap img{width:100%;height:100%;object-fit:cover;display:block;}",
+      ".detail-meta{font-size:.85rem;color:#0f172a;margin-top:6px;}",
+      ".detail-meta strong{color:#0f172a;}",
+      ".detail-desc{margin-top:10px;font-size:.9rem;color:#111827;line-height:1.45;background:#ffffff;border-radius:12px;padding:10px 12px;border:1px solid #e5e7eb;}",
+      ".detail-footer{padding:12px 18px 16px;display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;border-top:1px solid #e5e7eb;background:#f9fafb;}",
+      ".detail-footer .btn{font-size:.85rem;}",
+      // Like button accent
+      ".btn-like.active{background:#fecaca;border-color:#fca5a5;}"
+    ].join("\n");
+    document.head.appendChild(s);
+  }
+
+  /* ====== Detail Modal Helpers ====== */
+  var detailModal = null;
+  var detailCardEl = null;
+
+  function hideRequestDetails() {
+    if (detailModal) detailModal.classList.remove("open");
+  }
+
+  function ensureDetailModal() {
+    if (detailModal) return;
+    detailModal = document.createElement("div");
+    detailModal.id = "dm_request_detail_modal";
+    detailModal.className = "modal";
+    detailModal.innerHTML = '<div class="modal-card detail-modal-card"></div>';
+    detailCardEl = detailModal.querySelector(".detail-modal-card");
+    document.body.appendChild(detailModal);
+
+    detailModal.addEventListener("click", function (e) {
+      if (e.target === detailModal) hideRequestDetails();
+    });
+    document.addEventListener("keydown", function (e) {
+      if (
+        e.key === "Escape" &&
+        detailModal &&
+        detailModal.classList.contains("open")
+      ) {
+        hideRequestDetails();
+      }
+    });
+  }
+
+  function showRequestDetails(data, id) {
+    ensureRequestStyles();
+    ensureDetailModal();
+
+    var title = data.title || "Medicine Request";
+
+    // Start with a placeholder requester while we resolve the username
+    var requesterDisplay = "Loading...";
+
+    var cat = data.category || "Other";
+    var urgText = (data.urgency || "medium").toUpperCase();
+    var statusText = (data.status || "open").toUpperCase();
+    var loc = data.location || "Not specified";
+    var when = data._when || "";
+    var imgSrc = data.imageUrl || DEFAULT_MEDICINE_IMAGE;
+
+    var isMine =
+      auth.currentUser && data.requesterId === auth.currentUser.uid;
+
+    detailCardEl.innerHTML = "";
+
+    // Header
+    var header = document.createElement("div");
+    header.className = "detail-header";
+
+    var headerMain = document.createElement("div");
+    headerMain.className = "detail-header-main";
+
+    var titleEl = document.createElement("div");
+    titleEl.className = "detail-title";
+    titleEl.textContent = title;
+
+    var subEl = document.createElement("div");
+    subEl.className = "detail-sub";
+    subEl.innerHTML = "Requested by <strong>" + requesterDisplay + "</strong>" + (when ? " · " + when : "");
+
+    headerMain.appendChild(titleEl);
+    headerMain.appendChild(subEl);
+
+    var closeTop = document.createElement("button");
+    closeTop.type = "button";
+    closeTop.className = "detail-close-btn";
+    closeTop.id = "detailCloseTop";
+    closeTop.textContent = "Close";
+    closeTop.onclick = hideRequestDetails;
+
+    header.appendChild(headerMain);
+    header.appendChild(closeTop);
+
+    // Body
+    var body = document.createElement("div");
+    body.className = "detail-body";
+
+    var bodyMain = document.createElement("div");
+    bodyMain.className = "detail-body-main";
+
+    var pillRow = document.createElement("div");
+    pillRow.className = "detail-pill-row";
+
+    var catSpan = document.createElement("span");
+    catSpan.className = "badge badge--cat";
+    catSpan.textContent = cat;
+
+    var urgSpan = document.createElement("span");
+    urgSpan.className = urgencyBadgeClass(data.urgency || "medium");
+    urgSpan.textContent = urgText;
+
+    var statusChip = document.createElement("span");
+    statusChip.className = "status-chip";
+    statusChip.textContent = statusText;
+    if (data.status === "matched") {
+      statusChip.style.background = "#16a34a";
+      statusChip.style.color = "#ecfdf5";
+    }
+
+    pillRow.appendChild(catSpan);
+    pillRow.appendChild(urgSpan);
+    pillRow.appendChild(statusChip);
+
+    var meta = document.createElement("div");
+    meta.className = "detail-meta";
+    meta.innerHTML =
+      "<div><strong>Location:</strong> " +
+      loc +
+      "</div><div><strong>Requester:</strong> " +
+      requesterDisplay +
+      "</div>";
+
+    var desc = document.createElement("div");
+    desc.className = "detail-desc";
+    if (data.description) {
+      var safe = data.description
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+      desc.innerHTML = safe;
+    } else {
+      desc.innerHTML = "<em>No description provided.</em>";
+    }
+
+    bodyMain.appendChild(pillRow);
+    bodyMain.appendChild(meta);
+    bodyMain.appendChild(desc);
+
+    var imgWrap = document.createElement("div");
+    imgWrap.className = "detail-img-wrap";
+    var img = document.createElement("img");
+    img.src = imgSrc;
+    img.alt = "Medicine image";
+    imgWrap.appendChild(img);
+
+    body.appendChild(bodyMain);
+    body.appendChild(imgWrap);
+
+    // Footer
+    var footer = document.createElement("div");
+    footer.className = "detail-footer";
+
+    // Message button (opens chat modal)
+    var msgBtn = document.createElement("button");
+    msgBtn.type = "button";
+    msgBtn.className = "btn btn-ghost";
+    msgBtn.id = "detailMsgBtn";
+    msgBtn.textContent = "Message";
+    if (isMine) {
+      msgBtn.style.display = "none";
+    } else {
+      msgBtn.onclick = function () {
+        openOrCreateThreadForRequest(data);
+      };
+    }
+
+    var delBtn = document.createElement("button");
+    delBtn.type = "button";
+    delBtn.className = "btn btn-danger";
+    delBtn.id = "detailDeleteBtn";
+    delBtn.textContent = "Delete";
+    if (!isMine) {
+      delBtn.style.display = "none";
+    } else {
+      delBtn.onclick = async function () {
+        var ok = confirm("Delete this request? This cannot be undone.");
+        if (!ok) return;
+        try {
+          await deleteDoc(doc(db, "requests", id));
+          hideRequestDetails();
+        } catch (e) {
+          console.error(e);
+          alert("Failed to delete: " + (e.message || e));
+        }
+      };
+    }
+
+    // NOTE: per request, removed the lower-right "Close" button in the footer,
+    // removed the "Share" button, and removed the "I can help" action and the Like button.
+    // Only keep Message (for non-owners) and Delete (for owner).
+
+    footer.appendChild(msgBtn);
+    footer.appendChild(delBtn);
+
+    detailCardEl.appendChild(header);
+    detailCardEl.appendChild(body);
+    detailCardEl.appendChild(footer);
+
+    // Resolve username and update modal UI when ready (use consistent fallback)
+    var legacyName = data.requesterName && String(data.requesterName).trim();
+    if (data.requesterId) {
+      getUsername(data.requesterId).then(function (name) {
+        var resolved = name || legacyName || ("User " + (data.requesterId ? data.requesterId.slice(0, 6) : "??"));
+        if (detailModal && detailModal.classList.contains("open")) {
+          subEl.innerHTML = "Requested by <strong>" + resolved + "</strong>" + (when ? " · " + when : "");
+          meta.innerHTML = "<div><strong>Location:</strong> " + loc + "</div><div><strong>Requester:</strong> " + resolved + "</div>";
+        }
+      }).catch(function(err){
+        // fallback to legacy or uid short
+        var fallback = legacyName || (data.requesterId ? "User " + data.requesterId.slice(0,6) : "Anonymous");
+        subEl.innerHTML = "Requested by <strong>" + fallback + "</strong>" + (when ? " · " + when : "");
+        meta.innerHTML = "<div><strong>Location:</strong> " + loc + "</div><div><strong>Requester:</strong> " + fallback + "</div>";
+        console.warn("Error resolving username for modal:", err);
+      });
+    } else {
+      var fallback = legacyName || "Anonymous";
+      subEl.innerHTML = "Requested by <strong>" + fallback + "</strong>" + (when ? " · " + when : "");
+      meta.innerHTML = "<div><strong>Location:</strong> " + loc + "</div><div><strong>Requester:</strong> " + fallback + "</div>";
+    }
+
+    detailModal.classList.add("open");
+  }
+
+  // Like button logic for requests (modal)
+  // NOTE: kept function for potential reuse but not currently used by the modal,
+  // because we removed the Like button from the detail footer as requested.
+  function setupRequestLike(requestId, requesterId, likeBtn) {
+    if (!likeBtn) return;
+    const likesCol = collection(db, "requests", requestId, "likes");
+
+    onSnapshot(likesCol, function (snap) {
+      const countSpan = likeBtn.querySelector(".like-count");
+      if (countSpan) countSpan.textContent = String(snap.size);
+
+      if (currentUser) {
+        const liked = snap.docs.some(function (d) {
+          return d.id === currentUser.uid;
+        });
+        if (liked) likeBtn.classList.add("active");
+        else likeBtn.classList.remove("active");
+      } else {
+        likeBtn.classList.remove("active");
+      }
+    });
+
+    likeBtn.addEventListener("click", async function () {
+      if (!auth.currentUser) {
+        alert("Please sign in to like requests.");
+        return;
+      }
+      if (auth.currentUser.uid === requesterId) {
+        alert("You can't like your own request.");
+        return;
+      }
+
+      const likeRef = doc(
+        db,
+        "requests",
+        requestId,
+        "likes",
+        auth.currentUser.uid
+      );
+      const isActive = likeBtn.classList.contains("active");
+      try {
+        if (isActive) {
+          await deleteDoc(likeRef);
+        } else {
+          await setDoc(likeRef, {
+            userId: auth.currentUser.uid,
+            createdAt: serverTimestamp(),
+          });
+        }
+      } catch (e) {
+        console.error("Like toggle failed:", e);
+      }
+    });
+  }
+
   /* CARD RENDERER */
   function renderRequestCard(data, id, authObj, dbObj) {
+    ensureRequestStyles();
+
     var card = document.createElement("div");
-    card.className = "browse-card";
+    card.className = "browse-card request-card";
 
     data._id = id;
 
+    // Right side: image (larger)
     var imgWrap = document.createElement("div");
-    imgWrap.className = "browse-card-image";
-    var imgSrc =
-      data.imageUrl ||
-      "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?q=80&w=1200&auto=format&fit=crop";
+    imgWrap.className = "request-image-wrap";
+    var imgSrc = data.imageUrl || DEFAULT_MEDICINE_IMAGE;
     imgWrap.innerHTML = '<img src="' + imgSrc + '" alt="Medicine">';
 
-    var badgebar = document.createElement("div");
-    badgebar.className = "badgebar";
-    var b1 = document.createElement("span");
-    b1.className = "badge badge--cat";
-    b1.textContent = data.category || "Other";
-    var b2 = document.createElement("span");
-    b2.className = urgencyBadgeClass(data.urgency || "medium");
-    b2.textContent = (data.urgency || "medium").toUpperCase();
-    badgebar.appendChild(b1);
-    badgebar.appendChild(b2);
-    imgWrap.appendChild(badgebar);
+    // Left side: name + requester + Open button (Open below text)
+    var main = document.createElement("div");
+    main.className = "request-main";
 
-    var status = document.createElement("div");
-    status.className = "status-chip";
-    status.textContent = (data.status || "open").toUpperCase();
-    if (data.status === "matched") {
-      status.style.background = "#16a34a";
-    }
-    imgWrap.appendChild(status);
+    var headerRow = document.createElement("div");
+    headerRow.className = "request-header-row";
 
-    var body = document.createElement("div");
-    body.className = "browse-card-content";
+    var titleEl2 = document.createElement("div");
+    titleEl2.className = "request-title";
+    titleEl2.textContent = data.title || "Medicine Request";
 
-    var h = document.createElement("h3");
-    h.textContent = data.title || "Request";
-    body.appendChild(h);
+    var requesterEl = document.createElement("div");
+    requesterEl.className = "request-requester";
 
-    var p1 = document.createElement("p");
-    p1.textContent = data.description || "";
-    body.appendChild(p1);
+    // Robust username resolution:
+    // 1) prefer users/{uid}.name or displayName (via getUsername)
+    // 2) fallback to stored data.requesterName (legacy)
+    // 3) fallback to short uid "User abc123"
+    var legacyName = data.requesterName && String(data.requesterName).trim();
+    var uidShort = data.requesterId ? "User " + data.requesterId.slice(0, 6) : "Anonymous";
+    requesterEl.textContent = legacyName || uidShort;
 
-    var meta = document.createElement("div");
-    meta.className = "meta";
-    var m1 = document.createElement("span");
-    m1.innerHTML = "📍 <strong>" + (data.location || "—") + "</strong>";
-    var m2 = document.createElement("span");
-    m2.innerHTML = "⏱ " + (data._when || "");
-    var m3 = document.createElement("span");
-    m3.innerHTML =
-      "👤 Requested by <strong>" + (data.requesterName || "Anonymous") + "</strong>";
-    meta.appendChild(m1);
-    meta.appendChild(m2);
-    meta.appendChild(m3);
-    body.appendChild(meta);
-
-    var actions = document.createElement("div");
-    actions.className = "card-actions";
-
-    var isMine =
-      authObj.currentUser && data.requesterId === authObj.currentUser.uid;
-
-    var helpBtn = document.createElement("button");
-    helpBtn.className = "btn btn-primary";
-    helpBtn.textContent = data.status === "matched" ? "Matched" : "Help";
-    helpBtn.disabled = data.status === "matched" || isMine;
-    if (isMine) helpBtn.title = "You can't help your own request";
-    helpBtn.addEventListener("click", function () {
-      if (helpBtn.disabled) return;
-      if (!authObj.currentUser) {
-        alert("Please sign in to help with a request.");
-        return;
+    if (data.requesterId) {
+      // If cache already has it and non-empty, show it immediately
+      if (userCache.hasOwnProperty(data.requesterId) && userCache[data.requesterId]) {
+        requesterEl.textContent = userCache[data.requesterId];
       }
-      updateDoc(doc(dbObj, "requests", id), {
-        status: "matched",
-        matchedBy: authObj.currentUser.uid,
-        matchedAt: serverTimestamp(),
-      }).catch(function (e) {
-        console.error(e);
-        alert("Failed to mark matched.");
-      });
-    });
 
-    var share = document.createElement("button");
-    share.className = "btn btn-ghost";
-    share.textContent = "Share";
-    share.addEventListener("click", function () {
-      var text =
-        "Need: " +
-        (data.title || "Medicine") +
-        " — " +
-        (data.description || "") +
-        " | " +
-        (data.location || "");
-      if (navigator.share) {
-        navigator
-          .share({ title: "DonorMedix Request", text, url: location.href })
-          .catch(function () {});
-      } else {
-        navigator.clipboard
-          .writeText(text)
-          .then(function () {
-            alert("Copied!");
-          })
-          .catch(function () {});
-      }
-    });
-
-    if (!isMine) {
-      var messageBtn = document.createElement("button");
-      messageBtn.className = "btn btn-ghost";
-      messageBtn.textContent = "Message";
-      messageBtn.addEventListener("click", function () {
-        openOrCreateThreadForRequest(data);
+      // Attempt to fetch canonical name and update the UI if it differs
+      getUsername(data.requesterId).then(function (nameFromUsers) {
+        var resolved = nameFromUsers || legacyName || uidShort;
+        if (requesterEl && requesterEl.textContent !== resolved) {
+          requesterEl.textContent = resolved;
+        }
+      }).catch(function(err){
+        // If error, keep legacyName or uidShort already set
+        console.warn("renderRequestCard getUsername error for", data.requesterId, err);
       });
-      actions.appendChild(messageBtn);
+    } else {
+      // no requesterId: keep data.requesterName or anonymous
+      requesterEl.textContent = legacyName || "Anonymous";
     }
 
-    var del = document.createElement("button");
-    del.className = "btn btn-danger";
-    del.textContent = "Delete";
-    del.style.marginLeft = "auto";
-    if (!isMine) del.style.display = "none";
-    del.addEventListener("click", async function () {
-      var ok = confirm("Delete this request? This cannot be undone.");
-      if (!ok) return;
-      try {
-        await deleteDoc(doc(dbObj, "requests", id));
-      } catch (e) {
-        console.error(e);
-        alert("Failed to delete: " + (e.message || e));
-      }
+    var openBtn = document.createElement("button");
+    openBtn.type = "button";
+    openBtn.className = "request-open-btn";
+    openBtn.innerHTML =
+      '<span class="request-open-btn-icon">↗</span><span>Open</span>';
+    openBtn.addEventListener("click", function () {
+      showRequestDetails(data, id);
     });
 
-    actions.appendChild(helpBtn);
-    actions.appendChild(share);
-    actions.appendChild(del);
-    body.appendChild(actions);
+    headerRow.appendChild(titleEl2);
+    headerRow.appendChild(requesterEl);
+    main.appendChild(headerRow);
+    main.appendChild(openBtn);
 
+    card.appendChild(main);
     card.appendChild(imgWrap);
-    card.appendChild(body);
+
     return card;
   }
 
@@ -1369,21 +1766,55 @@ window.addEventListener("DOMContentLoaded", function () {
       filtered.length +
       " active request" +
       (filtered.length !== 1 ? "s" : "");
-    filtered.forEach(function (item) {
-      requestsList.appendChild(
-        renderRequestCard(item.data, item.id, auth, db)
-      );
-    });
+
+    // Batch preload usernames for visible items to avoid per-card flashes
+    var idsToPreload = filtered
+      .map(function (f) {
+        return f.data.requesterId;
+      })
+      .filter(Boolean);
+    preloadUsernames(idsToPreload)
+      .then(function () {
+        filtered.forEach(function (item) {
+          requestsList.appendChild(
+            renderRequestCard(item.data, item.id, auth, db)
+          );
+        });
+      })
+      .catch(function () {
+        // fallback if preload fails
+        filtered.forEach(function (item) {
+          requestsList.appendChild(
+            renderRequestCard(item.data, item.id, auth, db)
+          );
+        });
+      });
   }
 
   function renderMyList(docs) {
     if (!myList || !myCount) return;
     myList.innerHTML = "";
     myCount.textContent =
-      "Showing " + docs.length + " of your request" + (docs.length !== 1 ? "s" : "");
-    docs.forEach(function (item) {
-      myList.appendChild(renderRequestCard(item.data, item.id, auth, db));
-    });
+      "Showing " +
+      docs.length +
+      " of your request" +
+      (docs.length !== 1 ? "s" : "");
+
+    // Preload usernames for these docs too
+    var idsToPreload = docs.map(function (d) {
+      return d.data.requesterId;
+    }).filter(Boolean);
+    preloadUsernames(idsToPreload)
+      .then(function () {
+        docs.forEach(function (item) {
+          myList.appendChild(renderRequestCard(item.data, item.id, auth, db));
+        });
+      })
+      .catch(function () {
+        docs.forEach(function (item) {
+          myList.appendChild(renderRequestCard(item.data, item.id, auth, db));
+        });
+      });
   }
 
   var unsubscribeAll = null;
@@ -1396,28 +1827,34 @@ window.addEventListener("DOMContentLoaded", function () {
       qy,
       function (snapshot) {
         var docs = [];
+        var ids = [];
         snapshot.forEach(function (s) {
           var d = s.data();
-          var ms = d.createdAt && d.createdAt.toMillis
-            ? d.createdAt.toMillis()
-            : d.createdAt
-            ? d.createdAt.seconds * 1000
-            : Date.now();
+          var ms =
+            d.createdAt && d.createdAt.toMillis
+              ? d.createdAt.toMillis()
+              : d.createdAt
+              ? d.createdAt.seconds * 1000
+              : Date.now();
           d._when = timeAgo(ms);
           docs.push({ id: s.id, data: d });
+          if (d.requesterId) ids.push(d.requesterId);
         });
-        renderList(docs);
+        // Preload usernames for visible list to reduce flashes / "User abc" fallback
+        preloadUsernames(ids).finally(function () {
+          renderList(docs);
+        });
       },
       function (err) {
         console.error("Community listener error:", err);
-        var msg = "⚠️ Failed to load requests.";
+        var msg = " Failed to load requests.";
         if (
           err &&
           (err.code === "permission-denied" ||
             /Missing or insufficient permissions/i.test(err.message || ""))
         ) {
           msg =
-            "🔒 Missing or insufficient permissions. Update your Firestore rules to allow reading /requests.";
+            " Missing or insufficient permissions. Update your Firestore rules to allow reading /requests.";
         }
         if (requestsList) requestsList.innerHTML = "<p>" + msg + "</p>";
       }
@@ -1442,24 +1879,29 @@ window.addEventListener("DOMContentLoaded", function () {
       qy,
       function (snapshot) {
         var docs = [];
+        var ids = [];
         snapshot.forEach(function (s) {
           var d = s.data();
-          var ms = d.createdAt && d.createdAt.toMillis
-            ? d.createdAt.toMillis()
-            : d.createdAt
-            ? d.createdAt.seconds * 1000
-            : Date.now();
+          var ms =
+            d.createdAt && d.createdAt.toMillis
+              ? d.createdAt.toMillis()
+              : d.createdAt
+              ? d.createdAt.seconds * 1000
+              : Date.now();
           d._when = timeAgo(ms);
           docs.push({ id: s.id, data: d, _ms: ms });
+          if (d.requesterId) ids.push(d.requesterId);
         });
         docs.sort(function (a, b) {
           return b._ms - a._ms;
         });
-        renderMyList(docs);
+        preloadUsernames(ids).finally(function () {
+          renderMyList(docs);
+        });
       },
       function (err) {
         console.error("My listener error:", err);
-        var msg = "⚠️ Failed to load your requests.";
+        var msg = " Failed to load your requests.";
         if (myList) myList.innerHTML = "<p>" + msg + "</p>";
       }
     );
@@ -1499,13 +1941,15 @@ window.addEventListener("DOMContentLoaded", function () {
         return;
       }
 
-      var titleEl = document.getElementById("title");
+      var titleEl3 = document.getElementById("title");
       var descriptionEl = document.getElementById("description");
       var categoryEl = document.getElementById("category");
       var urgencyEl = document.getElementById("urgency");
 
-      var title = titleEl ? (titleEl.value || "").trim() : "";
-      var description = descriptionEl ? (descriptionEl.value || "").trim() : "";
+      var title = titleEl3 ? (titleEl3.value || "").trim() : "";
+      var description = descriptionEl
+        ? (descriptionEl.value || "").trim()
+        : "";
       var category = categoryEl ? categoryEl.value : "Other";
       var urgency = urgencyEl ? urgencyEl.value : "medium";
       if (!title || !description) {
@@ -1524,53 +1968,64 @@ window.addEventListener("DOMContentLoaded", function () {
         (locationText && locationText.value
           ? locationText.value.trim()
           : "");
-      var profileSavedLocation2 = (function () {
+      // fallback to profile.js saved location if form didn't provide one
+      (async function () {
         try {
-          var c = JSON.parse(localStorage.getItem("userProfile") || "{}");
-          return c.location || "";
-        } catch (e) {
-          return "";
+          if ((!finalLocation || finalLocation.trim() === "") && auth.currentUser) {
+            // fetch users/{uid} doc and use its location if present
+            const userSnap = await getDoc(doc(db, "users", auth.currentUser.uid));
+            if (userSnap && userSnap.exists()) {
+              const ud = userSnap.data() || {};
+              if (ud.location && String(ud.location).trim()) {
+                finalLocation = String(ud.location).trim();
+              }
+            }
+          }
+        } catch (err) {
+          console.warn("Could not fetch profile location:", err);
         }
-      })();
-      if (!finalLocation && profileSavedLocation2)
-        finalLocation = profileSavedLocation2;
 
-      addDoc(collection(db, "requests"), {
-        title: title,
-        description: description,
-        category: category,
-        urgency: urgency,
-        location: finalLocation || null,
-        imageUrl: uploadedImageUrl || null,
-        requesterId: auth.currentUser.uid,
-        requesterName: auth.currentUser.email || null,
-        status: "open",
-        createdAt: serverTimestamp(),
-      })
-        .then(function () {
-          uploadedImageUrl = null;
-          setThumb(null);
-          var arr = getArr(auth.currentUser.uid, "requests");
-          arr.unshift({
-            id: String(Date.now()),
-            title,
-            subtitle: description,
-            date: nowStr(),
-            status: "pending",
-            statusClass: "status--reserved",
-            emoji: "📝",
+        getCanonicalUser(auth.currentUser)
+          .then(function (canonical) {
+            var requesterNameToSave = (canonical && canonical.name) ? canonical.name : null;
+
+            return addDoc(collection(db, "requests"), {
+              title: title,
+              description: description,
+              category: category,
+              urgency: urgency,
+              location: finalLocation || null,
+              imageUrl: uploadedImageUrl || null,
+              requesterId: auth.currentUser.uid,
+              // store the resolved username from users/{uid} if available (avoid email fallback)
+              requesterName: requesterNameToSave || null,
+              status: "open",
+              createdAt: serverTimestamp(),
+            });
+          })
+          .then(function () {
+            uploadedImageUrl = null;
+            setThumb(null);
+            var arr = getArr(auth.currentUser.uid, "requests");
+            arr.unshift({
+              id: String(Date.now()),
+              title: title,
+              subtitle: description,
+              date: nowStr(),
+              status: "pending",
+              statusClass: "status--reserved",
+            });
+            setArr(auth.currentUser.uid, "requests", arr);
+            showPanel("mine");
+          })
+          .catch(function (err) {
+            console.error(err);
+            alert("Failed to create request: " + (err.message || err));
           });
-          setArr(auth.currentUser.uid, "requests", arr);
-          showPanel("mine");
-        })
-        .catch(function (err) {
-          console.error(err);
-          alert("Failed to create request: " + (err.message || err));
-        });
+      })();
     });
   });
 
-  // “Back” button returns to Community panel
   const backBtnBottom = document.getElementById("backBtnBottom");
   if (backBtnBottom)
     backBtnBottom.addEventListener("click", function () {

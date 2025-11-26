@@ -1,6 +1,5 @@
 // auth.js
 // Final single-file auth + admin + profile + notifications helpers + UI wiring
-// Firebase v12 modular imports (browser)
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-analytics.js";
 import {
@@ -30,7 +29,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
 /* -----------------------------
-   Firebase config - keep your values
+   Firebase config
    ----------------------------- */
 const firebaseConfig = {
   apiKey: "AIzaSyAaWN2gj3VJxT6kwOvCX4LIXkWlbt0LTHQ",
@@ -84,12 +83,12 @@ function setLoading(btn, loadingEl, on) {
   btn.disabled = !!on;
 }
 
-/* Shared elements (safe lookups) */
+/* Shared elements */
 const els = {
   loginForm: byAny("loginForm"),
   loginBtn: byAny("loginBtn"),
-  loginEmail: byAny("loginEmail", "email"),
-  loginPassword: byAny("loginPassword", "password"),
+  loginEmail: byAny("loginEmail"),
+  loginPassword: byAny("loginPassword"),
   loginError: byAny("loginErr"),
   loginLoading: byAny("loadingText"),
 
@@ -104,11 +103,10 @@ const els = {
   adminCreateName: byAny("adminCreateName"),
   adminCreateEmail: byAny("adminCreateEmail"),
   adminCreatePassword: byAny("adminCreatePassword"),
-  adminCreateRole: byAny("adminCreateRole"),
   adminCreateError: byAny("adminCreateErr"),
   adminCreateSuccess: byAny("adminCreateOk"),
 
-  // profile elements (if present on pages)
+  // profile elements (used on other pages)
   displayName: byAny("displayName"),
   displayEmail: byAny("displayEmail"),
   profilePic: byAny("profilePic"),
@@ -125,10 +123,6 @@ const isPermErr = (e) =>
    Auth role helpers
    ----------------------------- */
 
-/**
- * isUserAdmin(user)
- * checks Firestore users/{uid}.role and token claims for admin
- */
 async function isUserAdmin(user) {
   if (!user) return false;
   try {
@@ -141,15 +135,10 @@ async function isUserAdmin(user) {
   try {
     const token = await user.getIdTokenResult();
     if (token?.claims?.admin) return true;
-  } catch (e) {
-    // ignore token errors
-  }
+  } catch (e) {}
   return false;
 }
 
-/**
- * redirectAfterLogin(user)
- */
 async function redirectAfterLogin(user) {
   if (!user) return;
   try {
@@ -182,7 +171,6 @@ if (els.loginForm) {
       setLoading(els.loginBtn, els.loginLoading, true);
       const cred = await signInWithEmailAndPassword(auth, email, password);
       const user = cred.user;
-      console.log("Logged in:", user?.email);
 
       // Upsert basic user doc (non-fatal)
       try {
@@ -198,12 +186,15 @@ if (els.loginForm) {
 
       // Optional login history
       try {
-        await addDoc(collection(db, "login_history"), { uid: user.uid, email: user.email, ts: serverTimestamp() });
+        await addDoc(collection(db, "login_history"), {
+          uid: user.uid,
+          email: user.email,
+          ts: serverTimestamp(),
+        });
       } catch (e) {
         if (!isPermErr(e)) console.warn("login_history write error:", e);
       }
 
-      // Role-aware redirect fallback
       if (!window.__auth_wants_createdByAdmin) {
         await redirectAfterLogin(user);
       }
@@ -267,10 +258,8 @@ if (els.signupForm) {
         console.warn("could not create user doc (permission):", e);
       }
 
-      // Sign out new user so admin/owner flow is secure (keep existing behavior for normal signup)
       await signOut(auth);
 
-      // If you have a tabbed UI, prefer switching to login tab, otherwise redirect
       const loginTab = document.getElementById("tab-login");
       const loginActions = document.querySelector("#panel-login .actions");
       if (loginTab) {
@@ -301,10 +290,14 @@ if (els.signupForm) {
 }
 
 /* -----------------------------
-   ADMIN: Create Account (fast path)
-   Now: after creation we KEEP the browser signed in as the newly-created user,
-   write their Firestore role, and then redirect them immediately to the appropriate page.
-   This makes the creation flow fast: click create -> you're the new admin right away.
+   ADMIN: Create Admin Account (modal)
+   Flow:
+   - verify current user is admin
+   - create new admin user
+   - set Firestore role="admin"
+   - signOut
+   - close modal, switch to Login tab, prefill email
+   - show banner
    ----------------------------- */
 if (els.adminCreateForm) {
   els.adminCreateForm.addEventListener("submit", async (e) => {
@@ -320,7 +313,6 @@ if (els.adminCreateForm) {
       return showError(els.adminCreateError, "You must be logged in as admin to create accounts.");
     }
 
-    // Verify creator is admin (best-effort)
     const creatorIsAdmin = await isUserAdmin(currentUser);
     if (!creatorIsAdmin) {
       return showError(els.adminCreateError, "Admins only (creator not an admin).");
@@ -329,7 +321,7 @@ if (els.adminCreateForm) {
     const name = els.adminCreateName?.value?.trim();
     const email = els.adminCreateEmail?.value?.trim();
     const password = els.adminCreatePassword?.value;
-    const role = (els.adminCreateRole?.value || "user").trim() || "user";
+    const role = "admin"; // admin-only
 
     if (!name || !email || !password) {
       return showError(els.adminCreateError, "Please fill out all fields.");
@@ -338,13 +330,17 @@ if (els.adminCreateForm) {
       return showError(els.adminCreateError, "Password must be at least 8 characters.");
     }
 
+    // show "Processing..." line
+    if (els.adminCreateSuccess) {
+      els.adminCreateSuccess.style.display = "block";
+      els.adminCreateSuccess.classList.add("processing");
+      els.adminCreateSuccess.textContent = "Processing admin creation…";
+    }
+
     try {
-      // Create the user - this will sign the browser in as the NEW user automatically.
       const { user: newUser } = await createUserWithEmailAndPassword(auth, email, password);
-      // Set display name
       await updateProfile(newUser, { displayName: name });
 
-      // Write Firestore users/{uid} doc with role
       try {
         await setDoc(doc(db, "users", newUser.uid), {
           uid: newUser.uid,
@@ -355,27 +351,45 @@ if (els.adminCreateForm) {
           createdBy: currentUser.uid,
         }, { merge: true });
       } catch (writeErr) {
-        // If we can't write role (permissions), still proceed — the account exists and user is signed in.
         console.warn("Could not write user doc (permission?):", writeErr);
       }
 
-      // Try to send verification (non-fatal)
       try { await sendEmailVerification(newUser); } catch (_) {}
 
-      // Show success message in UI if available
+      await signOut(auth);
+
+      // reset form
+      els.adminCreateForm.reset();
+
+      // close modal
+      const adminPanelEl = document.getElementById("adminPanel");
+      if (adminPanelEl) {
+        adminPanelEl.classList.remove("open");
+        adminPanelEl.setAttribute("aria-hidden", "true");
+      }
+
+      // switch to login tab
+      const tabLogin = document.getElementById("tab-login");
+      if (tabLogin) tabLogin.click();
+
+      // prefill login email
+      const loginEmailEl = document.getElementById("loginEmail");
+      if (loginEmailEl && email) loginEmailEl.value = email;
+
+      // success message text
       if (els.adminCreateSuccess) {
-        showInfo(els.adminCreateSuccess, `✅ Account created for ${email} with role "${role}". Signing in now...`);
+        els.adminCreateSuccess.classList.remove("processing");
+        els.adminCreateSuccess.style.display = "block";
+        els.adminCreateSuccess.textContent =
+          `✅ Admin account created for ${email}. Please log in with this account.`;
       }
 
-      // FAST PATH: remain signed in as the created user and redirect immediately.
-      // If the created user is admin, go to ADMIN_REDIRECT_URL; otherwise go to REDIRECT_URL.
-      if ((role || "").toLowerCase() === "admin") {
-        window.location.href = ADMIN_REDIRECT_URL;
-      } else {
-        window.location.href = REDIRECT_URL;
-      }
-
-      // (Do NOT signOut here — we intentionally leave the session as the new user so they can use it immediately.)
+      // banner
+      const banner = document.createElement("div");
+      banner.className = "banner";
+      banner.textContent = `Admin account created for ${email}. Please log in.`;
+      document.body.appendChild(banner);
+      setTimeout(() => banner.remove(), 4000);
 
     } catch (err) {
       console.error("Admin create account failed:", err);
@@ -385,7 +399,13 @@ if (els.adminCreateForm) {
         "auth/weak-password": "Password is too weak.",
         "auth/network-request-failed": "Network error. Check your connection.",
       };
-      showError(els.adminCreateError, map[err?.code] || "Unable to create account.");
+      showError(els.adminCreateError, map[err?.code] || "Unable to create admin account.");
+
+      if (els.adminCreateSuccess) {
+        els.adminCreateSuccess.style.display = "none";
+        els.adminCreateSuccess.textContent = "";
+        els.adminCreateSuccess.classList.remove("processing");
+      }
     }
   });
 }
@@ -458,7 +478,12 @@ export async function updateUserDoc(uid, data) {
 export async function fetchNotifications(uid, opts = { limit: 20 }) {
   if (!uid) return [];
   try {
-    const q = query(collection(db, "notifications"), where("uid", "==", uid), orderBy("ts", "desc"), limit(opts.limit || 20));
+    const q = query(
+      collection(db, "notifications"),
+      where("uid", "==", uid),
+      orderBy("ts", "desc"),
+      limit(opts.limit || 20)
+    );
     const snap = await getDocs(q);
     return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
   } catch (e) {
@@ -469,19 +494,31 @@ export async function fetchNotifications(uid, opts = { limit: 20 }) {
 
 export function listenNotifications(uid, onChange) {
   if (!uid) return () => {};
-  const q = query(collection(db, "notifications"), where("uid", "==", uid), orderBy("ts", "desc"), limit(50));
-  return onSnapshot(q, (snap) => {
-    const arr = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-    onChange(arr);
-  }, (err) => {
-    console.warn("listenNotifications error", err);
-  });
+  const q = query(
+    collection(db, "notifications"),
+    where("uid", "==", uid),
+    orderBy("ts", "desc"),
+    limit(50)
+  );
+  return onSnapshot(
+    q,
+    (snap) => {
+      const arr = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      onChange(arr);
+    },
+    (err) => {
+      console.warn("listenNotifications error", err);
+    }
+  );
 }
 
 export async function markNotificationRead(notificationId) {
   if (!notificationId) return;
   try {
-    await updateDoc(doc(db, "notifications", notificationId), { read: true, readAt: serverTimestamp() });
+    await updateDoc(doc(db, "notifications", notificationId), {
+      read: true,
+      readAt: serverTimestamp(),
+    });
   } catch (e) {
     console.warn("markNotificationRead error", e);
   }
@@ -490,7 +527,14 @@ export async function markNotificationRead(notificationId) {
 export async function createNotification({ uid, title, body, metadata = {} } = {}) {
   if (!uid) throw new Error("uid required");
   try {
-    await addDoc(collection(db, "notifications"), { uid, title: title || "Notification", body: body || "", metadata, read: false, ts: serverTimestamp() });
+    await addDoc(collection(db, "notifications"), {
+      uid,
+      title: title || "Notification",
+      body: body || "",
+      metadata,
+      read: false,
+      ts: serverTimestamp(),
+    });
   } catch (e) {
     console.warn("createNotification error", e);
   }
@@ -540,26 +584,28 @@ export function bindNotificationBadge(user, opts = {}) {
   }
 
   const unsub = listenNotifications(user.uid, (notifications) => {
-    const unreadCount = notifications.filter(n => !n.read).length;
+    const unreadCount = notifications.filter((n) => !n.read).length;
     if (badgeEl) {
       badgeEl.textContent = unreadCount > 0 ? String(unreadCount) : "";
       badgeEl.style.display = unreadCount > 0 ? "inline-block" : "none";
     }
     if (listEl) {
-      listEl.innerHTML = notifications.map((n) => {
-        const cls = n.read ? "notif read" : "notif unread";
-        const time = n.ts?.toDate ? new Date(n.ts.toDate()).toLocaleString() : "";
-        return `<li class="${cls}" data-id="${escapeHtml(n.id)}" role="button" tabindex="0">
+      listEl.innerHTML = notifications
+        .map((n) => {
+          const cls = n.read ? "notif read" : "notif unread";
+          const time = n.ts?.toDate ? new Date(n.ts.toDate()).toLocaleString() : "";
+          return `<li class="${cls}" data-id="${escapeHtml(n.id)}" role="button" tabindex="0">
                   <strong>${escapeHtml(n.title || "Notification")}</strong>
                   <div class="meta">${escapeHtml(time)}</div>
                   <div class="body">${escapeHtml(n.body || "")}</div>
                 </li>`;
-      }).join("");
+        })
+        .join("");
 
-      listEl.querySelectorAll("li[data-id]").forEach(li => {
+      listEl.querySelectorAll("li[data-id]").forEach((li) => {
         li.onclick = async () => {
           const id = li.dataset.id;
-          const notif = notifications.find(x => x.id === id);
+          const notif = notifications.find((x) => x.id === id);
           if (notif && !notif.read) await markNotificationRead(id);
           if (onItemClick) onItemClick(notif);
         };
@@ -576,30 +622,37 @@ export function bindNotificationBadge(user, opts = {}) {
   return unsub;
 }
 
-/* safe escape helper */
 function escapeHtml(s = "") {
-  return String(s).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+  return String(s)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
 }
 
 /* =============================
-   NEW: Admin & page helpers (exports)
+   Extra helpers / guards
    ============================= */
 export async function createAdminAccount({ email, password, name } = {}) {
-  if (!email || !password || (password.length < 8)) {
+  if (!email || !password || password.length < 8) {
     throw new Error("email and password(>=8) required");
   }
   const cred = await createUserWithEmailAndPassword(auth, email, password);
   const user = cred.user;
   if (name) await updateProfile(user, { displayName: name });
-  await setDoc(doc(db, "users", user.uid), {
-    uid: user.uid,
-    email: user.email,
-    name: name || "",
-    role: "admin",
-    createdAt: serverTimestamp(),
-  }, { merge: true });
-  try { await sendEmailVerification(user); } catch (_) {}
-  // keep signed in as created user
+  await setDoc(
+    doc(db, "users", user.uid),
+    {
+      uid: user.uid,
+      email: user.email,
+      name: name || "",
+      role: "admin",
+      createdAt: serverTimestamp(),
+    },
+    { merge: true }
+  );
+  try {
+    await sendEmailVerification(user);
+  } catch (_) {}
   return user.uid;
 }
 
@@ -634,7 +687,13 @@ export function requireAdmin(options = {}) {
 }
 
 export function wirePageAuth(opts = {}) {
-  const { profile = {}, badge = {}, requireAdmin: rAdmin = false, requireLogin: rLogin = false, redirectTo = "login.html" } = opts;
+  const {
+    profile = {},
+    badge = {},
+    requireAdmin: rAdmin = false,
+    requireLogin: rLogin = false,
+    redirectTo = "login.html",
+  } = opts;
   return onAuthState(async (user) => {
     if (!user) {
       if (rLogin || rAdmin) window.location.href = redirectTo;
@@ -656,19 +715,20 @@ export function wirePageAuth(opts = {}) {
 }
 
 /* =============================
-   UI wiring (moved from HTML)
+   UI wiring (tabs + admin modal)
    ============================= */
 (function uiWireUp() {
   const onLoginPage = !!document.getElementById("loginForm");
 
-  // createdByAdmin banner (kept but optional)
+  // createdByAdmin banner (kept, optional)
   try {
     const params = new URLSearchParams(window.location.search);
     const createdByAdminFlag = params.get("createdByAdmin") === "1";
     if (createdByAdminFlag && onLoginPage) {
       const banner = document.createElement("div");
       banner.className = "auth-created-by-admin-banner";
-      banner.style.cssText = "position:fixed;top:12px;left:50%;transform:translateX(-50%);background:#f0fdf4;color:#064e3b;padding:10px 14px;border-radius:10px;box-shadow:0 8px 20px rgba(2,6,23,.08);z-index:10000;font-weight:700";
+      banner.style.cssText =
+        "position:fixed;top:12px;left:50%;transform:translateX(-50%);background:#f0fdf4;color:#064e3b;padding:10px 14px;border-radius:10px;box-shadow:0 8px 20px rgba(2,6,23,.08);z-index:10000;font-weight:700";
       banner.textContent = "Admin account created — please log in.";
       document.body.appendChild(banner);
       setTimeout(() => {
@@ -712,16 +772,22 @@ export function wirePageAuth(opts = {}) {
       }
       tabLogin.addEventListener("click", () => selectTab("login"));
       tabSignup.addEventListener("click", () => selectTab("signup"));
-      document.getElementById("toLogin")?.addEventListener("click", (e) => { e.preventDefault(); selectTab("login"); });
+      document
+        .getElementById("toLogin")
+        ?.addEventListener("click", (e) => {
+          e.preventDefault();
+          selectTab("login");
+        });
     }
-  } catch (e) { console.warn("tab wiring error:", e); }
+  } catch (e) {
+    console.warn("tab wiring error:", e);
+  }
 
   // admin modal wiring
   try {
     const adminBtn = document.getElementById("adminBtnTop");
     const adminPanel = document.getElementById("adminPanel");
     const closeAdmin = document.getElementById("closeAdmin");
-    const adminForm = document.getElementById("adminCreateForm");
     const adminOk = document.getElementById("adminCreateOk");
     const adminErr = document.getElementById("adminCreateErr");
 
@@ -730,6 +796,15 @@ export function wirePageAuth(opts = {}) {
         ev.preventDefault();
         adminPanel.classList.add("open");
         adminPanel.setAttribute("aria-hidden", "false");
+        if (adminErr) {
+          adminErr.style.display = "none";
+          adminErr.textContent = "";
+        }
+        if (adminOk) {
+          adminOk.style.display = "none";
+          adminOk.textContent = "";
+          adminOk.classList.remove("processing");
+        }
         setTimeout(() => document.getElementById("adminCreateEmail")?.focus(), 120);
       });
     }
@@ -745,30 +820,44 @@ export function wirePageAuth(opts = {}) {
         adminPanel.setAttribute("aria-hidden", "true");
       }
     });
+  } catch (e) {
+    console.warn("admin panel wiring error:", e);
+  }
 
-    if (adminForm) {
-      adminForm.addEventListener("submit", (ev) => {
-        if (adminErr) { adminErr.style.display = "none"; adminErr.textContent = ""; }
-        if (adminOk) { adminOk.style.display = "block"; adminOk.textContent = "Processing..."; }
-      });
-    }
-  } catch (e) { console.warn("admin panel wiring error:", e); }
-
-  // populate profile UI if present
+  // profile UI on other pages
   try {
-    const hasProfileEls = !!(els.displayName || els.displayEmail || els.profilePic || els.roleEl);
+    const hasProfileEls =
+      !!(els.displayName || els.displayEmail || els.profilePic || els.roleEl);
     if (hasProfileEls) {
       onAuthState(async (user) => {
         if (!user) {
-          populateProfileUI(null, { nameElId: "displayName", emailElId: "displayEmail", avatarElId: "profilePic", roleElId: "role" }).catch(()=>{});
-          bindNotificationBadge(null, { badgeElId: "notifBadge", listElId: "notifList" });
+          populateProfileUI(null, {
+            nameElId: "displayName",
+            emailElId: "displayEmail",
+            avatarElId: "profilePic",
+            roleElId: "role",
+          }).catch(() => {});
+          bindNotificationBadge(null, {
+            badgeElId: "notifBadge",
+            listElId: "notifList",
+          });
           return;
         }
-        populateProfileUI(user, { nameElId: "displayName", emailElId: "displayEmail", avatarElId: "profilePic", roleElId: "role" }).catch(()=>{});
-        bindNotificationBadge(user, { badgeElId: "notifBadge", listElId: "notifList" });
+        populateProfileUI(user, {
+          nameElId: "displayName",
+          emailElId: "displayEmail",
+          avatarElId: "profilePic",
+          roleElId: "role",
+        }).catch(() => {});
+        bindNotificationBadge(user, {
+          badgeElId: "notifBadge",
+          listElId: "notifList",
+        });
       });
     }
-  } catch (e) { console.warn("profile UI wiring error:", e); }
+  } catch (e) {
+    console.warn("profile UI wiring error:", e);
+  }
 })();
 
 /* =============================
