@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Messenger UI · Tailwind + Soft SVG Icons</title>
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 min-h-screen flex items-center justify-center">
+
+  <div class="w-full max-w-[1100px] h-[600px] bg-white rounded-2xl shadow-2xl overflow-hidden flex">
+
+    <!-- LEFT MENU -->
+    <aside class="w-[230px] bg-slate-950 text-slate-100 flex flex-col gap-4 px-4 py-4">
+
+      <!-- Avatar + dropdown -->
+      <details class="group">
+        <summary class="flex items-center gap-3 cursor-pointer px-1 py-1 rounded-full hover:bg-slate-900 list-none">
+          <div class="w-11 h-11 rounded-full overflow-hidden border-2 border-sky-400 flex-shrink-0">
+            <img src="https://i.pravatar.cc/150?img=3" alt="Avatar" class="w-full h-full object-cover">
+          </div>
+          <div class="flex flex-col">
+            <span class="text-sm font-semibold">Justinnpo</span>
+            <span class="text-xs text-slate-400">View settings</span>
+          </div>
+        </summary>
+
+        <!-- Settings panel -->
+        <div class="mt-2 bg-zinc-900/95 border border-zinc-800 rounded-xl py-2 space-y-1 shadow-2xl">
+
+          <!-- Preferences -->
+          <button class="w-full flex items-center gap-2 px-4 py-2 text-xs text-slate-100 hover:bg-zinc-800">
+            <span class="flex items-center justify-center w-7 h-7 rounded-full bg-slate-800">
+              <!-- cog -->
+              <svg class="w-4 h-4 text-slate-100" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10.5 3.3a1 1 0 0 1 3 0l.2 1a1 1 0 0 0 1.4.7l.9-.5a1 1 0 0 1 1.3.5l1 1.7a1 1 0 0 1-.4 1.4l-.9.5a1 1 0 0 0 0 1.7l.9.5a1 1 0 0 1 .4 1.4l-1 1.7a1 1 0 0 1-1.3.5l-.9-.5a1 1 0 0 0-1.4.7l-.2 1a1 1 0 0 1-3 0l-.2-1a1 1 0 0 0-1.4-.7l-.9.5a1 1 0 0 1-1.3-.5l-1-1.7a1 1 0 0 1 .4-1.4l.9-.5a1 1 0 0 0 0-1.7l-.9-.5a1 1 0 0 1-.4-1.4l1-1.7a1 1 0 0 1 1.3-.5l.9.5a1 1 0 0 0 1.4-.7z" />
+                <circle cx="12" cy="12" r="2.6" />
+              </svg>
+            </span>
+            <span>Preferences</span>
+          </button>
+
+          <!-- Edit username -->
+          <button class="w-full flex items-center gap-2 px-4 py-2 text-xs text-slate-100 hover:bg-zinc-800">
+            <span class="flex items-center justify-center w-7 h-7 rounded-full bg-slate-800">
+              <!-- pencil -->
+              <svg class="w-4 h-4 text-slate-100" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M16.5 3.5 20 7l-9.5 9.5L7 13z" />
+                <path d="M7 17l3.5-.5L7 13z" />
+              </svg>
+            </span>
+            <span>Edit username</span>
+          </button>
+
+          <!-- Restricted accounts -->
+          <button class="w-full flex items-center gap-2 px-4 py-2 text-xs text-slate-100 hover:bg-zinc-800">
+            <span class="flex items-center justify-center w-7 h-7 rounded-full bg-slate-800">
+              <!-- no entry -->
+              <svg class="w-4 h-4 text-slate-100" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="7" />
+                <path d="M9 9l6 6" />
+              </svg>
+            </span>
+            <span>Restricted accounts</span>
+          </button>
+
+          <!-- Privacy & safety -->
+          <button class="w-full flex items-center gap-2 px-4 py-2 text-xs text-slate-100 hover:bg-zinc-800">
+            <span class="flex items-center justify-center w-7 h-7 rounded-full bg-slate-800">
+              <!-- shield -->
+              <svg class="w-4 h-4 text-slate-100" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 3 6 5v6c0 3.4 2.2 6.5 6 8 3.8-1.5 6-4.6 6-8V5z" />
+              </svg>
+            </span>
+            <span>Privacy &amp; safety</span>
+          </button>
+
+          <!-- Accessibility -->
+          <button class="w-full flex items-center gap-2 px-4 py-2 text-xs text-slate-100 hover:bg-zinc-800">
+            <span class="flex items-center justify-center w-7 h-7 rounded-full bg-slate-800">
+              <!-- accessibility -->
+              <svg class="w-4 h-4 text-slate-100" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="5" r="1.8" />
+                <path d="M6 9h12M10 9.5l-1 7.5M14 9.5l1 7.5M10 19h4" />
+              </svg>
+            </span>
+            <span>Accessibility</span>
+          </button>
+
+          <!-- Family Center -->
+          <button class="w-full flex items-center gap-2 px-4 py-2 text-xs text-slate-100 hover:bg-zinc-800">
+            <span class="flex items-center justify-center w-7 h-7 rounded-full bg-slate-800">
+              <!-- users -->
+              <svg class="w-4 h-4 text-slate-100" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="9" cy="9" r="2.6" />
+                <path d="M4.5 18a4.6 4.6 0 0 1 9 0" />
+                <circle cx="17" cy="9" r="2.1" />
+                <path d="M16.5 15a3.4 3.4 0 0 1 3.5 3" />
+              </svg>
+            </span>
+            <span>Family Center</span>
+          </button>
+
+          <!-- Help -->
+          <button class="w-full flex items-center gap-2 px-4 py-2 text-xs text-slate-100 hover:bg-zinc-800">
+            <span class="flex items-center justify-center w-7 h-7 rounded-full bg-slate-800">
+              <!-- question-circle -->
+              <svg class="w-4 h-4 text-slate-100" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="7" />
+                <path d="M10.8 10a1.5 1.5 0 1 1 2.4 1.2c-.7.4-1.2.8-1.2 1.6v.2" />
+                <circle cx="12" cy="15.7" r=".4" />
+              </svg>
+            </span>
+            <span>Help</span>
+          </button>
+
+          <!-- Report a problem -->
+          <button class="w-full flex items-center gap-2 px-4 py-2 text-xs text-slate-100 hover:bg-zinc-800">
+            <span class="flex items-center justify-center w-7 h-7 rounded-full bg-slate-800">
+              <!-- exclamation -->
+              <svg class="w-4 h-4 text-slate-100" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="7" />
+                <path d="M12 8v4" />
+                <circle cx="12" cy="15.5" r=".4" />
+              </svg>
+            </span>
+            <span>Report a problem</span>
+          </button>
+
+          <div class="h-px bg-zinc-800 my-1"></div>
+
+          <!-- Terms -->
+          <button class="w-full flex items-center gap-2 px-4 py-2 text-xs text-slate-100 hover:bg-zinc-800">
+            <span class="flex items-center justify-center w-7 h-7 rounded-full bg-slate-800">
+              <!-- document -->
+              <svg class="w-4 h-4 text-slate-100" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 4h5l3 3v9a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" />
+                <path d="M9 9h6M9 12h4" />
+              </svg>
+            </span>
+            <span>Terms</span>
+          </button>
+
+          <!-- Privacy Policy -->
+          <button class="w-full flex items-center gap-2 px-4 py-2 text-xs text-slate-100 hover:bg-zinc-800">
+            <span class="flex items-center justify-center w-7 h-7 rounded-full bg-slate-800">
+              <!-- lock -->
+              <svg class="w-4 h-4 text-slate-100" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="6.5" y="10" width="11" height="8" rx="2" />
+                <path d="M9 10V8a3 3 0 0 1 6 0v2" />
+              </svg>
+            </span>
+            <span>Privacy Policy</span>
+          </button>
+
+          <!-- Cookie Policy -->
+          <button class="w-full flex items-center gap-2 px-4 py-2 text-xs text-slate-100 hover:bg-zinc-800">
+            <span class="flex items-center justify-center w-7 h-7 rounded-full bg-slate-800">
+              <!-- cookie -->
+              <svg class="w-4 h-4 text-slate-100" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 4a7 7 0 1 0 7 7 3 3 0 0 1-3-3 3 3 0 0 1-3-3z" />
+                <circle cx="10" cy="10" r=".4" />
+                <circle cx="9" cy="14" r=".4" />
+                <circle cx="14" cy="13" r=".4" />
+              </svg>
+            </span>
+            <span>Cookie Policy</span>
+          </button>
+
+          <div class="h-px bg-zinc-800 my-1"></div>
+
+          <!-- Log out -->
+          <button class="w-full flex items-center gap-2 px-4 py-2 text-xs text-rose-400 hover:bg-zinc-800">
+            <span class="flex items-center justify-center w-7 h-7 rounded-full bg-slate-800">
+              <!-- arrow-right-on-rectangle -->
+              <svg class="w-4 h-4 text-rose-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10 6H7a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h3" />
+                <path d="M14 9l3 3-3 3" />
+                <path d="M17 12H10" />
+              </svg>
+            </span>
+            <span>Log out</span>
+          </button>
+        </div>
+      </details>
+
+      <!-- Main menu -->
+      <div>
+        <h3 class="text-[11px] uppercase tracking-[0.18em] text-slate-500 mb-2 px-1">Menu</h3>
+        <nav class="flex flex-col gap-2 text-sm">
+          <!-- Settings -->
+          <button class="flex items-center gap-2 px-2 py-2 rounded-xl hover:bg-slate-900">
+            <span class="flex items-center justify-center w-6 h-6 rounded-full bg-slate-900">
+              <svg class="w-4 h-4 text-slate-100" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10.5 3.3a1 1 0 0 1 3 0l.2 1a1 1 0 0 0 1.4.7l.9-.5a1 1 0 0 1 1.3.5l1 1.7a1 1 0 0 1-.4 1.4l-.9.5a1 1 0 0 0 0 1.7l.9.5a1 1 0 0 1 .4 1.4l-1 1.7a1 1 0 0 1-1.3.5l-.9-.5a1 1 0 0 0-1.4.7l-.2 1a1 1 0 0 1-3 0l-.2-1a1 1 0 0 0-1.4-.7l-.9.5a1 1 0 0 1-1.3-.5l-1-1.7a1 1 0 0 1 .4-1.4l.9-.5a1 1 0 0 0 0-1.7l-.9-.5a1 1 0 0 1-.4-1.4l1-1.7a1 1 0 0 1 1.3-.5l.9.5a1 1 0 0 0 1.4-.7z" />
+                <circle cx="12" cy="12" r="2.6" />
+              </svg>
+            </span>
+            <span>Settings</span>
+          </button>
+
+          <!-- Marketplace -->
+          <button class="flex items-center gap-2 px-2 py-2 rounded-xl hover:bg-slate-900">
+            <span class="flex items-center justify-center w-6 h-6 rounded-full bg-slate-900">
+              <svg class="w-4 h-4 text-slate-100" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 7h14l-1 11H6z" />
+                <path d="M9 7 8 4h8l-1 3" />
+              </svg>
+            </span>
+            <span>Marketplace</span>
+          </button>
+
+          <!-- Archive -->
+          <button class="flex items-center gap-2 px-2 py-2 rounded-xl hover:bg-slate-900">
+            <span class="flex items-center justify-center w-6 h-6 rounded-full bg-slate-900">
+              <svg class="w-4 h-4 text-slate-100" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="4" y="5" width="16" height="4" rx="1" />
+                <path d="M6 9v8h12V9" />
+                <path d="M10 13h4" />
+              </svg>
+            </span>
+            <span>Archive</span>
+          </button>
+
+          <!-- Facebook Groups -->
+          <button class="flex items-center gap-2 px-2 py-2 rounded-xl hover:bg-slate-900">
+            <span class="flex items-center justify-center w-6 h-6 rounded-full bg-slate-900">
+              <svg class="w-4 h-4 text-slate-100" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="8" cy="9" r="2.4" />
+                <circle cx="16" cy="9" r="2.4" />
+                <path d="M4.5 17a3.8 3.8 0 0 1 7 0" />
+                <path d="M12.5 17a3.8 3.8 0 0 1 7 0" />
+              </svg>
+            </span>
+            <span>Facebook Groups</span>
+          </button>
+        </nav>
+      </div>
+    </aside>
+
+    <!-- MIDDLE CONTACT LIST -->
+    <section class="w-[260px] border-r border-slate-200 bg-slate-50 flex flex-col">
+      <div class="px-4 py-3 border-b border-slate-200">
+        <h2 class="text-lg font-semibold text-slate-900">Messages</h2>
+      </div>
+
+      <div class="px-4 py-3">
+        <div class="bg-white rounded-2xl border border-slate-200 flex items-center px-3 py-2 shadow-sm">
+          <input
+            type="text"
+            placeholder="Search conversations..."
+            class="w-full text-sm outline-none bg-transparent text-slate-800 placeholder:text-slate-400"
+          />
+        </div>
+      </div>
+
+      <div class="flex-1 overflow-y-auto px-3 pb-4 space-y-2">
+        <button class="w-full flex items-center gap-3 px-3 py-3 rounded-2xl bg-slate-200 text-slate-900">
+          <div class="w-9 h-9 rounded-full bg-gradient-to-br from-sky-400 to-sky-500 text-slate-900 flex items-center justify-center font-semibold shadow">
+            A
+          </div>
+          <span class="text-sm font-medium">Alex Johnson</span>
+        </button>
+
+        <button class="w-full flex items-center gap-3 px-3 py-3 rounded-2xl hover:bg-slate-200 text-slate-900">
+          <div class="w-9 h-9 rounded-full bg-gradient-to-br from-sky-400 to-sky-500 text-slate-900 flex items-center justify-center font-semibold shadow">
+            S
+          </div>
+          <span class="text-sm font-medium">Sarah Lee</span>
+        </button>
+
+        <button class="w-full flex items-center gap-3 px-3 py-3 rounded-2xl hover:bg-slate-200 text-slate-900">
+          <div class="w-9 h-9 rounded-full bg-gradient-to-br from-sky-400 to-sky-500 text-slate-900 flex items-center justify-center font-semibold shadow">
+            M
+          </div>
+          <span class="text-sm font-medium">Marketing Group</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- MAIN CHAT -->
+    <main class="flex-1 flex flex-col bg-slate-100">
+      <!-- header -->
+      <header class="flex items-center justify-between px-4 py-3 bg-white border-b border-slate-200">
+        <div class="flex items-center gap-3">
+          <img
+            src="https://i.pravatar.cc/150?img=32"
+            alt="Alex"
+            class="w-10 h-10 rounded-full object-cover shadow"
+          />
+          <div class="flex flex-col">
+            <span class="text-sm font-semibold text-slate-900">Alex Johnson</span>
+            <span class="text-xs text-emerald-500">Online</span>
+            <span class="text-[11px] text-slate-500">Tap to chat</span>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 text-slate-700">
+          <!-- search -->
+          <button class="flex items-center justify-center w-8 h-8 rounded-full hover:bg-slate-100">
+            <svg class="w-4 h-4 text-slate-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="5" />
+              <path d="M15.5 15.5 19 19" />
+            </svg>
+          </button>
+
+          <!-- phone -->
+          <button class="flex items-center justify-center w-8 h-8 rounded-full hover:bg-slate-100">
+            <svg class="w-4 h-4 text-slate-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M8 4h2l1 4-2 1a10.5 10.5 0 0 0 4 4l1-2 4 1v2a2 2 0 0 1-2.2 2A12.5 12.5 0 0 1 5 8.2 2 2 0 0 1 7 6z" />
+            </svg>
+          </button>
+
+          <!-- more -->
+          <button class="flex items-center justify-center w-8 h-8 rounded-full hover:bg-slate-100">
+            <svg class="w-4 h-4 text-slate-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="6.5" cy="12" r=".9" />
+              <circle cx="12" cy="12" r=".9" />
+              <circle cx="17.5" cy="12" r=".9" />
+            </svg>
+          </button>
+
+          <!-- message button -->
+          <button class="ml-1 px-4 py-1.5 rounded-full bg-sky-500 text-white text-xs font-semibold shadow hover:bg-sky-600 hover:shadow-lg transition">
+            Message
+          </button>
+        </div>
+      </header>
+
+      <!-- messages -->
+      <section class="flex-1 overflow-y-auto px-6 py-6 space-y-4">
+        <div class="flex">
+          <div class="max-w-[70%] bg-white rounded-2xl rounded-bl-md shadow px-4 py-2.5 text-sm text-slate-900">
+            Hey! Did you finish the messenger UI already?
+          </div>
+        </div>
+
+        <div class="flex justify-end">
+          <div class="max-w-[70%] bg-sky-400 rounded-2xl rounded-br-md shadow px-4 py-2.5 text-sm text-slate-900">
+            Yes! I fixed the settings dropdown so it doesn’t overlap. 🙂
+          </div>
+        </div>
+
+        <div class="flex">
+          <div class="max-w-[70%] bg-white rounded-2xl rounded-bl-md shadow px-4 py-2.5 text-sm text-slate-900">
+            Nice! Looks clean now.
+          </div>
+        </div>
+      </section>
+
+      <!-- input -->
+      <footer class="px-4 py-3 bg-white border-t border-slate-200 flex items-center gap-3">
+        <textarea
+          rows="1"
+          placeholder="Type a message..."
+          class="flex-1 resize-none text-sm px-3 py-2 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-sky-400 focus:border-sky-400"
+        ></textarea>
+        <button class="px-4 py-2 rounded-lg bg-sky-500 text-white text-xs font-semibold shadow hover:bg-sky-600 hover:shadow-lg transition">
+          Send
+        </button>
+      </footer>
+    </main>
+  </div>
+
+</body>
+</html>

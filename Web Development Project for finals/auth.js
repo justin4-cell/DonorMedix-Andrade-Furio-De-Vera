@@ -85,6 +85,7 @@ function setLoading(btn, loadingEl, on) {
 
 /* Shared elements */
 const els = {
+  // normal login
   loginForm: byAny("loginForm"),
   loginBtn: byAny("loginBtn"),
   loginEmail: byAny("loginEmail"),
@@ -92,6 +93,7 @@ const els = {
   loginError: byAny("loginErr"),
   loginLoading: byAny("loadingText"),
 
+  // signup
   signupForm: byAny("signupForm"),
   signupBtn: byAny("signupBtn"),
   signupName: byAny("name", "signupName"),
@@ -99,12 +101,20 @@ const els = {
   signupPassword: byAny("signupPassword"),
   signupError: byAny("signupErr"),
 
+  // admin account creation (modal)
   adminCreateForm: byAny("adminCreateForm"),
   adminCreateName: byAny("adminCreateName"),
   adminCreateEmail: byAny("adminCreateEmail"),
   adminCreatePassword: byAny("adminCreatePassword"),
   adminCreateError: byAny("adminCreateErr"),
   adminCreateSuccess: byAny("adminCreateOk"),
+
+  // NEW: admin login tab elements
+  adminLoginForm: byAny("adminLoginForm"),
+  adminLoginEmail: byAny("adminLoginEmail"),
+  adminLoginPassword: byAny("adminLoginPassword"),
+  adminLoginBtn: byAny("adminLoginBtn"),
+  adminLoginError: byAny("adminLoginErr"),
 
   // profile elements (used on other pages)
   displayName: byAny("displayName"),
@@ -118,6 +128,50 @@ const els = {
 const isPermErr = (e) =>
   e?.code === "permission-denied" ||
   /insufficient permissions|missing or insufficient permissions/i.test(e?.message || "");
+
+/* -----------------------------
+   Role / UI state
+   ----------------------------- */
+let selectedRole = "User"; // default
+
+function updateRoleUI() {
+  // update role pill visuals
+  document.querySelectorAll(".role-pill").forEach((p) => {
+    const txt = p.textContent?.trim();
+    if (!txt) return;
+    if (txt.toLowerCase() === selectedRole.toLowerCase()) p.classList.add("active");
+    else p.classList.remove("active");
+  });
+
+  // update button labels if present
+  const loginBtn = $("#loginBtn");
+  const signupBtn = $("#signupBtn");
+  if (loginBtn) loginBtn.textContent = selectedRole === "Admin" ? "Login as Admin" : "Login";
+  if (signupBtn)
+    signupBtn.textContent = selectedRole === "Admin" ? "Request Admin" : "Create Account";
+}
+
+// bind role pills (User / Admin)
+function bindRolePills() {
+  document.querySelectorAll(".role-pill").forEach((pill) => {
+    pill.addEventListener("click", () => {
+      const txt = pill.textContent?.trim();
+      if (!txt) return;
+      selectedRole = txt;
+      updateRoleUI();
+      if (selectedRole === "Admin") {
+        const adminPanel = $("#adminPanel");
+        if (!auth.currentUser && adminPanel) {
+          const adminHint = document.createElement("div");
+          adminHint.className = "banner";
+          adminHint.textContent = "To create or log in as Admin, please use the Admin panel or contact an existing admin.";
+          document.body.appendChild(adminHint);
+          setTimeout(() => adminHint.remove(), 3500);
+        }
+      }
+    });
+  });
+}
 
 /* -----------------------------
    Auth role helpers
@@ -152,7 +206,7 @@ async function redirectAfterLogin(user) {
 }
 
 /* -----------------------------
-   LOGIN
+   LOGIN (normal user / also supports Admin pill)
    ----------------------------- */
 if (els.loginForm) {
   els.loginForm.addEventListener("submit", async (ev) => {
@@ -195,6 +249,17 @@ if (els.loginForm) {
         if (!isPermErr(e)) console.warn("login_history write error:", e);
       }
 
+      // Enforce admin-only when Admin role is selected via pills
+      const wantsAdmin = selectedRole?.toLowerCase() === "admin";
+      if (wantsAdmin) {
+        const isAdmin = await isUserAdmin(user);
+        if (!isAdmin) {
+          await signOut(auth);
+          showError(els.loginError, "This account is not an admin.");
+          return;
+        }
+      }
+
       if (!window.__auth_wants_createdByAdmin) {
         await redirectAfterLogin(user);
       }
@@ -217,6 +282,53 @@ if (els.loginForm) {
 }
 
 /* -----------------------------
+   ADMIN LOGIN (Admin tab)
+   ----------------------------- */
+if (els.adminLoginForm) {
+  els.adminLoginForm.addEventListener("submit", async (ev) => {
+    ev.preventDefault();
+    hideError(els.adminLoginError);
+
+    const email = els.adminLoginEmail?.value?.trim();
+    const password = els.adminLoginPassword?.value;
+
+    if (!email || !password) {
+      showError(els.adminLoginError, "Please enter email and password.");
+      return;
+    }
+
+    try {
+      setLoading(els.adminLoginBtn, null, true);
+      const cred = await signInWithEmailAndPassword(auth, email, password);
+      const user = cred.user;
+
+      const admin = await isUserAdmin(user);
+      if (!admin) {
+        await signOut(auth);
+        showError(els.adminLoginError, "This account is not an admin.");
+        return;
+      }
+
+      await redirectAfterLogin(user); // will send admins to admin.html
+    } catch (err) {
+      console.error("Admin login failed:", err);
+      const map = {
+        "auth/invalid-credential": "Invalid email or password.",
+        "auth/invalid-email": "Invalid email format.",
+        "auth/user-disabled": "This account is disabled.",
+        "auth/user-not-found": "No account found for that email.",
+        "auth/wrong-password": "Wrong password.",
+        "auth/too-many-requests": "Too many attempts. Try again later.",
+        "auth/network-request-failed": "Network error. Check your connection.",
+      };
+      showError(els.adminLoginError, map[err?.code] || "Admin login failed.");
+    } finally {
+      setLoading(els.adminLoginBtn, null, false);
+    }
+  });
+}
+
+/* -----------------------------
    SIGNUP
    ----------------------------- */
 if (els.signupForm) {
@@ -227,6 +339,7 @@ if (els.signupForm) {
     const name = els.signupName?.value?.trim();
     const email = els.signupEmail?.value?.trim();
     const password = els.signupPassword?.value;
+    const role = selectedRole?.toLowerCase() === "admin" ? "admin" : "user";
 
     if (!name || !email || !password) {
       showError(els.signupError, "Please fill out all fields.");
@@ -237,6 +350,12 @@ if (els.signupForm) {
       return;
     }
 
+    // Disallow creating admin accounts via public signup
+    if (role === "admin") {
+      showError(els.signupError, "Admin accounts must be created by an existing admin. Open the Admin panel or contact an admin.");
+      return;
+    }
+
     try {
       if (els.signupBtn) els.signupBtn.disabled = true;
       const cred = await createUserWithEmailAndPassword(auth, email, password);
@@ -244,7 +363,7 @@ if (els.signupForm) {
       await updateProfile(user, { displayName: name });
       try { await sendEmailVerification(user); } catch (_) {}
 
-      // Create user doc in Firestore
+      // Create user doc in Firestore with role user
       try {
         await setDoc(doc(db, "users", user.uid), {
           uid: user.uid,
@@ -291,13 +410,6 @@ if (els.signupForm) {
 
 /* -----------------------------
    ADMIN: Create Admin Account (modal)
-   Flow:
-   - verify current user is admin
-   - create new admin user
-   - set Firestore role="admin"
-   - signOut
-   - close modal, switch to Login tab, prefill email
-   - show banner
    ----------------------------- */
 if (els.adminCreateForm) {
   els.adminCreateForm.addEventListener("submit", async (e) => {
@@ -330,7 +442,6 @@ if (els.adminCreateForm) {
       return showError(els.adminCreateError, "Password must be at least 8 characters.");
     }
 
-    // show "Processing..." line
     if (els.adminCreateSuccess) {
       els.adminCreateSuccess.style.display = "block";
       els.adminCreateSuccess.classList.add("processing");
@@ -358,25 +469,20 @@ if (els.adminCreateForm) {
 
       await signOut(auth);
 
-      // reset form
       els.adminCreateForm.reset();
 
-      // close modal
       const adminPanelEl = document.getElementById("adminPanel");
       if (adminPanelEl) {
         adminPanelEl.classList.remove("open");
         adminPanelEl.setAttribute("aria-hidden", "true");
       }
 
-      // switch to login tab
       const tabLogin = document.getElementById("tab-login");
       if (tabLogin) tabLogin.click();
 
-      // prefill login email
       const loginEmailEl = document.getElementById("loginEmail");
       if (loginEmailEl && email) loginEmailEl.value = email;
 
-      // success message text
       if (els.adminCreateSuccess) {
         els.adminCreateSuccess.classList.remove("processing");
         els.adminCreateSuccess.style.display = "block";
@@ -384,7 +490,6 @@ if (els.adminCreateForm) {
           `✅ Admin account created for ${email}. Please log in with this account.`;
       }
 
-      // banner
       const banner = document.createElement("div");
       banner.className = "banner";
       banner.textContent = `Admin account created for ${email}. Please log in.`;
@@ -446,9 +551,15 @@ function bindPasswordToggles() {
 }
 
 if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", bindPasswordToggles);
+  document.addEventListener("DOMContentLoaded", () => {
+    bindPasswordToggles();
+    bindRolePills();
+    updateRoleUI();
+  });
 } else {
   bindPasswordToggles();
+  bindRolePills();
+  updateRoleUI();
 }
 
 /* -----------------------------
@@ -515,7 +626,7 @@ export function listenNotifications(uid, onChange) {
 export async function markNotificationRead(notificationId) {
   if (!notificationId) return;
   try {
-    await updateDoc(doc(db, "notifications", notificationId), {
+    await updateDoc(doc(db, "notifications"), notificationId, {
       read: true,
       readAt: serverTimestamp(),
     });
@@ -756,22 +867,36 @@ export function wirePageAuth(opts = {}) {
     console.warn("createdByAdmin banner logic failed:", e);
   }
 
-  // tabs
+  // tabs (Login / Signup / Admin)
   try {
-    const tabLogin = document.getElementById("tab-login");
+    const tabLogin  = document.getElementById("tab-login");
     const tabSignup = document.getElementById("tab-signup");
-    const panelLogin = document.getElementById("panel-login");
+    const tabAdmin  = document.getElementById("tab-admin");
+    const panelLogin  = document.getElementById("panel-login");
     const panelSignup = document.getElementById("panel-signup");
+    const panelAdmin  = document.getElementById("panel-admin");
+
     if (tabLogin && tabSignup && panelLogin && panelSignup) {
       function selectTab(which) {
-        const isLogin = which === "login";
-        tabLogin.setAttribute("aria-selected", String(isLogin));
-        tabSignup.setAttribute("aria-selected", String(!isLogin));
-        panelLogin.classList.toggle("hidden", !isLogin);
-        panelSignup.classList.toggle("hidden", isLogin);
+        const isLogin  = which === "login";
+        const isSignup = which === "signup";
+        const isAdmin  = which === "admin";
+
+        if (tabLogin)  tabLogin.setAttribute("aria-selected", String(isLogin));
+        if (tabSignup) tabSignup.setAttribute("aria-selected", String(isSignup));
+        if (tabAdmin)  tabAdmin.setAttribute("aria-selected", String(isAdmin));
+
+        if (panelLogin)  panelLogin.classList.toggle("hidden", !isLogin);
+        if (panelSignup) panelSignup.classList.toggle("hidden", !isSignup);
+        if (panelAdmin)  panelAdmin.classList.toggle("hidden", !isAdmin);
       }
+
       tabLogin.addEventListener("click", () => selectTab("login"));
       tabSignup.addEventListener("click", () => selectTab("signup"));
+      if (tabAdmin) {
+        tabAdmin.addEventListener("click", () => selectTab("admin"));
+      }
+
       document
         .getElementById("toLogin")
         ?.addEventListener("click", (e) => {
