@@ -52,7 +52,7 @@ console.log("✅ Firebase initialized:", app.name);
    Redirect targets
    ----------------------------- */
 const REDIRECT_URL = "home.html";
-const ADMIN_REDIRECT_URL = "admin.html";
+const ADMIN_REDIRECT_URL = "admin-dashboard.html";
 
 /* -----------------------------
    Small DOM helpers

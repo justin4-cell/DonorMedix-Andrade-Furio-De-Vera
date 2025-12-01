@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DonorMedix · User Management</title>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --brand:#3472a1;
+      --brand-2:#0b90ab;
+      --ink:#0f172a;
+      --muted:#64748b;
+      --line:#e2e8f0;
+      --bg:#f8fafc;
+      --card:#ffffff;
+      --shadow:0 8px 22px rgba(2,6,23,.06);
+      --radius:14px;
+      --danger:#ef4444;
+      --danger-2:#dc2626;
+      --warning:#f59e0b;
+      --info:#3b82f6;
+      --success:#22c55e;
+    }
+
+    body {
+      min-height: 100vh;
+      font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+      background: radial-gradient(circle at top left, #ecfeff 0, #f8fafc 45%, #e2fbe8 100%);
+      color: var(--ink);
+      transition: background .15s ease, color .15s ease;
+    }
+
+    body.dark { background:#020617; color:#e5e7eb; }
+    body.dark .card { background:#020617; border-color:#1f2937; }
+    body.dark .brand-text-main { color:#e5e7eb; }
+    body.dark .brand-text-sub,
+    body.dark .card-subtitle,
+    body.dark .summary-label,
+    body.dark .summary-trend,
+    body.dark .footer-note { color:#9ca3af; }
+
+    .app { display: flex; min-height: 100vh; }
+
+    .sidebar {
+      width: 230px;
+      background: linear-gradient(160deg, #020617, #0b1120, #1e293b);
+      color: #e2e8f0;
+      padding: 20px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      box-shadow: 8px 0 24px rgba(15,23,42,.4);
+    }
+
+    .sidebar-brand { display: flex; align-items: center; gap: 10px; }
+    .sidebar-mark {
+      width: 34px; height: 34px; border-radius: 999px;
+      background: conic-gradient(from 140deg, var(--brand), var(--brand-2));
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 14px; color: #ecfdf5;
+      box-shadow: 0 10px 25px rgba(37, 99, 235, 0.5);
+    }
+
+    .sidebar-title {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+    .sidebar-sub {
+      font-size: 11px;
+      color: #9ca3af;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+    }
+    .sidebar-section-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .16em;
+      color: #6b7280;
+      margin-bottom: 6px;
+    }
+
+    .nav { display: flex; flex-direction: column; gap: 4px; }
+
+    .nav-link {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 10px; border-radius: 999px; font-size: 13px;
+      color: #e5e7eb; text-decoration: none;
+      border: 1px solid transparent; opacity: .85; cursor: pointer;
+      transition: background .1s ease, border-color .1s ease, transform .06s ease;
+    }
+    .nav-link span.icon {
+      font-size: 14px; width: 18px; min-width: 18px;
+      text-align: center; display: inline-flex; align-items: center; justify-content: center;
+    }
+    .nav-link span.icon i { color: currentColor; }
+    .nav-link:hover {
+      background: rgba(148,163,184,.18);
+      border-color: rgba(148,163,184,.5);
+      opacity: 1;
+    }
+    .nav-link.active {
+      background: linear-gradient(135deg, var(--brand), var(--brand-2));
+      border-color: rgba(129,140,248,.2);
+      color: #ecfdf5;
+      box-shadow: 0 10px 25px rgba(15,23,42,.6);
+      opacity: 1;
+    }
+
+    .nav-footer {
+      margin-top: auto;
+      font-size: 11px;
+      color: #6b7280;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .home-link {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 8px 12px; border-radius: 999px; font-size: 12px;
+      text-decoration: none; border: 1px solid rgba(148,163,184,.6);
+      background: rgba(15,23,42,.7); color: #e5e7eb;
+      cursor: pointer; transition: background .1s ease, border-color .1s ease, transform .06s ease;
+    }
+    .home-link span.icon {
+      width: 18px; min-width: 18px;
+      display: inline-flex; justify-content: center; align-items: center;
+    }
+    .home-link span.icon i { color: currentColor; font-size: 13px; }
+    .home-link:hover {
+      background: rgba(148,163,184,.24);
+      border-color: rgba(148,163,184,.9);
+    }
+
+    .main { flex: 1; padding: 20px 16px 32px; }
+    .shell { max-width: 1120px; margin: 0 auto; }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; }
+    .brand-mark {
+      width: 32px; height: 32px; border-radius: 999px;
+      background: conic-gradient(from 140deg, var(--brand), var(--brand-2));
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 8px 18px rgba(45, 73, 164, 0.436);
+      color: #ecfdf5; font-weight: 700; font-size: 14px;
+    }
+    .brand-text-main {
+      font-weight: 700;
+      letter-spacing: .04em;
+      font-size: 16px;
+      text-transform: uppercase;
+      color: var(--ink);
+    }
+    .brand-text-sub {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      color: var(--muted);
+    }
+
+    .topbar-right { display: flex; align-items: center; gap: 12px; }
+    .pill {
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(15,23,42,.04);
+      border: 1px solid rgba(148,163,184,.6);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .14em;
+      color: var(--muted);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .pill-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: var(--brand);
+      box-shadow: 0 0 0 4px rgba(34,197,94,.25);
+    }
+
+    .admin-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border-radius: 999px;
+      padding: 6px 12px;
+      background: #ecfdf5;
+      border: 1px solid rgba(16,185,129,.4);
+      font-size: 12px;
+      color: var(--brand-2);
+      font-weight: 500;
+    }
+    .admin-avatar {
+      width: 22px;
+      height: 22px;
+      border-radius: 999px;
+      background: linear-gradient(135deg,#2547b8,#447fe5db);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      color: #ecfdf5;
+      font-weight: 600;
+    }
+    .admin-role {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .14em;
+      color: var(--muted);
+    }
+
+    .btn {
+      border-radius: 999px;
+      border: none;
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: 500;
+      background: linear-gradient(135deg,var(--brand),var(--brand-2));
+      color: #ecfdf5;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 10px 18px rgba(0, 0, 0, 0);
+      transition: transform .08s ease, box-shadow .08s ease;
+    }
+    .btn:active {
+      transform: translateY(1px) scale(.99);
+      box-shadow: 0 4px 10px rgba(51, 54, 145, 0.68);
+    }
+
+    .btn-sm {
+      border-radius: 999px;
+      border: none;
+      padding: 4px 10px;
+      font-size: 11px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .btn-danger {
+      background:#ef4444;
+      color:#fff;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      border: 1px solid rgba(148,163,184,.3);
+      box-shadow: var(--shadow);
+      padding: 16px 18px;
+      margin-bottom: 18px;
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      gap: 8px;
+    }
+    .card-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--ink);
+    }
+    .card-subtitle {
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .card-tag {
+      font-size: 10px;
+      padding: 4px 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,.55);
+      text-transform: uppercase;
+      letter-spacing: .14em;
+      color: var(--muted);
+      background: rgba(248,250,252,.7);
+    }
+
+    /* table */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #ffffff;
+      border-radius: 12px;
+      overflow: hidden;
+      font-size: 12px;
+      margin-top: 8px;
+    }
+    th, td {
+      padding: 10px;
+      text-align: left;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    th {
+      background: #e5f7ef;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      color: var(--muted);
+    }
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    .status-pill {
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:3px 8px;
+      border-radius:999px;
+      font-size:11px;
+    }
+    .status-online {
+      background:#dcfce7;
+      color:#166534;
+    }
+    .status-offline {
+      background:#f1f5f9;
+      color:#64748b;
+    }
+    .dot {
+      width:6px;
+      height:6px;
+      border-radius:999px;
+    }
+    .dot-green { background:#22c55e; }
+    .dot-gray { background:#9ca3af; }
+
+    .meta-row {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:8px;
+      font-size:11px;
+      color:var(--muted);
+      margin-top:6px;
+    }
+
+    .footer-note {
+      margin-top: 18px;
+      font-size: 11px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    @media (max-width: 880px) {
+      .app { flex-direction: column; }
+      .sidebar {
+        width: 100%;
+        flex-direction: row;
+        align-items: center;
+        gap: 16px;
+        padding: 12px 14px;
+      }
+      .nav { flex-direction: row; flex-wrap: wrap; }
+      .nav-footer { display: none; }
+      table { font-size:11px; }
+      th, td { padding:8px; }
+    }
+  </style>
+
+    
+ 
+</head>
+<body>
+  <!-- (Keep the same HTML you already provided up to the script) -->
+  <div class="app">
+    <aside class="sidebar">
+      <div>
+        <div class="sidebar-brand">
+          <div class="sidebar-mark">DM</div>
+          <div>
+            <div class="sidebar-title">DonorMedix</div>
+            <div class="sidebar-sub">Admin Panel</div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <nav class="nav">
+          <a href="admin-dashboard.html" class="nav-link">
+            <span class="icon"><i class="fa-solid fa-gauge"></i></span>
+            Dashboard
+          </a>
+          <a href="admin-users.html" class="nav-link active">
+            <span class="icon"><i class="fa-solid fa-users"></i></span>
+            User Management
+          </a>
+          <a href="admin-requests.html" class="nav-link">
+            <span class="icon"><i class="fa-solid fa-list-check"></i></span>
+            Requests
+          </a>
+          <a href="admin-donations.html" class="nav-link">
+            <span class="icon"><i class="fa-solid fa-hand-holding-heart"></i></span>
+            Donations
+          </a>
+          <a href="admin-settings.html" class="nav-link">
+            <span class="icon"><i class="fa-solid fa-gear"></i></span>
+            Settings
+          </a>
+        </nav>
+      </div>
+
+      <div class="nav-footer">
+        <a href="home.html" class="home-link">
+          <span class="icon"><i class="fa-solid fa-house"></i></span>
+          Home
+        </a>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="shell">
+        <!-- Topbar -->
+
+
+          <div class="topbar-right">
+            <div class="pill">
+              <span class="pill-dot"></span>
+              USER MANAGEMENT
+            </div>
+            <button id="themeToggle" class="btn" type="button">🌙 Dark Mode</button>
+            <div class="admin-chip">
+              <div class="admin-avatar">A</div>
+              <div>
+                <div style="font-size:12px;font-weight:600;">Admin</div>
+                <div class="admin-role">System</div>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <section class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">User Management</div>
+              <div class="card-subtitle">
+                Manage registered donors, recipients, and admins.<br>
+                <small>Includes <strong>Profession</strong> from user profile.</small>
+              </div>
+            </div>
+            <span class="card-tag">Users</span>
+          </div>
+
+          <div class="meta-row">
+            <div id="usersMeta">Loading users…</div>
+            <div>Sorted by <strong>Newest</strong></div>
+          </div>
+
+          <table>
+            <thead>
+            <tr>
+              <th>Name</th>
+              <th>Role</th>
+              <th>Profession</th>
+              <th>Email</th>
+              <th>Status</th>
+              <th style="text-align:right;">Actions</th>
+            </tr>
+            </thead>
+            <tbody id="usersTableBody">
+              <!-- filled by script -->
+            </tbody>
+          </table>
+        </section>
+
+        <p class="footer-note">
+          User Management page. Data is loaded from Firestore
+          <code>users</code> docs (including <code>profession</code> from profile.js).
+        </p>
+      </div>
+    </main>
+  </div>
+
+  <script type="module">
+    // Try to use your AppBridge from auth.js if present, otherwise initialize Firebase here.
+    import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      query,
+      orderBy,
+      onSnapshot,
+      doc,
+      deleteDoc
+    } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+
+    // Your Firebase config (keeps same project used previously)
+    const firebaseConfig = {
+      apiKey: "AIzaSyAaWN2gj3VJxT6kwOvCX4LIXkWlbt0LTHQ",
+      authDomain: "donormedix.firebaseapp.com",
+      projectId: "donormedix",
+      storageBucket: "donormedix.appspot.com",
+      messagingSenderId: "627472172279",
+      appId: "1:627472172279:web:9bf645b54d33075a0d7ff2",
+      measurementId: "G-NTNPR4FPT7"
+    };
+
+    // DOM
+    const tbody = document.getElementById("usersTableBody");
+    const meta = document.getElementById("usersMeta");
+    const themeToggle = document.getElementById("themeToggle");
+
+    // safe escape helper
+    function escapeHtml(s = "") {
+      return String(s)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;");
+    }
+
+    // render a user row (same as your existing renderRow)
+    function renderRow(id, data) {
+      const name = data.name || data.displayName || "Unnamed user";
+      const role = (data.role || "user").toLowerCase();
+      const email = data.email || "";
+      const profession = data.profession || "—";
+      const isOnline = !!data.isOnline;
+
+      const statusClass = isOnline ? "status-online" : "status-offline";
+      const dotClass = isOnline ? "dot-green" : "dot-gray";
+      const statusText = isOnline ? "Online" : "Offline";
+
+      return `
+        <tr data-uid="${escapeHtml(id)}">
+          <td>${escapeHtml(name)}</td>
+          <td style="text-transform:capitalize;">${escapeHtml(role)}</td>
+          <td>${escapeHtml(profession)}</td>
+          <td>${escapeHtml(email)}</td>
+          <td>
+            <span class="status-pill ${statusClass}">
+              <span class="dot ${dotClass}"></span>
+              ${statusText}
+            </span>
+          </td>
+          <td style="text-align:right;">
+            <button class="btn-sm btn-danger" data-action="delete" data-uid="${escapeHtml(id)}">
+              <i class="fa-solid fa-trash"></i> Delete
+            </button>
+          </td>
+        </tr>
+      `;
+    }
+
+    // We'll attempt to import ./auth.js and use AppBridge if available; otherwise fallback.
+    (async function init() {
+      let db = null;
+      let requireAdmin = null;
+
+      // 1) attempt to load AppBridge from auth.js (your app may provide db there)
+      try {
+        const mod = await import('./auth.js');
+        if (mod && mod.AppBridge) {
+          // support both named export and default shape
+          const bridge = mod.AppBridge;
+          if (bridge.db) db = bridge.db;
+          if (bridge.requireAdmin) requireAdmin = bridge.requireAdmin;
+        }
+      } catch (err) {
+        // auth.js not present or failed to load — we'll fallback below
+        console.info('auth.js AppBridge not available, falling back to client init.');
+      }
+
+      // 2) fallback: initialize Firebase locally if we don't have db yet
+      if (!db) {
+        const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+        db = getFirestore(app);
+      }
+
+      // 3) require admin if available (safe - it may be undefined)
+      try {
+        if (typeof requireAdmin === 'function') {
+          requireAdmin({ redirectTo: 'auth.html' });
+        }
+      } catch (err) {
+        console.warn('requireAdmin call failed or unavailable:', err);
+      }
+
+      // 4) attach real-time listener to users collection
+      try {
+        const qUsers = query(collection(db, 'users'), orderBy('createdAt', 'desc'));
+        onSnapshot(qUsers,
+          (snap) => {
+            if (snap.empty) {
+              tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:14px;">No users found.</td></tr>';
+              meta.textContent = '0 users';
+              return;
+            }
+
+            let rows = '';
+            snap.forEach((docSnap) => {
+              rows += renderRow(docSnap.id, docSnap.data() || {});
+            });
+            tbody.innerHTML = rows;
+            meta.textContent = `${snap.size} user${snap.size > 1 ? 's' : ''}`;
+          },
+          (err) => {
+            console.error('users snapshot error:', err);
+            meta.textContent = 'Failed to load users.';
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#ef4444;padding:14px;">Error loading users</td></tr>';
+          }
+        );
+      } catch (err) {
+        console.error('Failed to attach users snapshot:', err);
+        meta.textContent = 'Error initializing users listener.';
+      }
+
+      // 5) deletion handler for table (uses Firestore deleteDoc)
+      tbody.addEventListener('click', async (e) => {
+        const btn = e.target.closest('[data-action="delete"]');
+        if (!btn) return;
+        const uid = btn.dataset.uid;
+        if (!uid) return;
+
+        if (!confirm('Delete this user document? (This will remove the Firestore user document but will NOT delete the Authentication user account.)')) return;
+
+        try {
+          await deleteDoc(doc(db, 'users', uid));
+          // success: realtime listener will update UI
+        } catch (err) {
+          console.error('Delete user doc failed:', err);
+          alert('Failed to delete user. Check Firestore rules and console.');
+        }
+      });
+
+      // 6) theme toggle (UI)
+      if (themeToggle) {
+        themeToggle.addEventListener('click', () => {
+          document.body.classList.toggle('dark');
+          themeToggle.textContent = document.body.classList.contains('dark') ? '☀️ Light Mode' : '🌙 Dark Mode';
+        });
+      }
+    })();
+  </script>
+</body>
+</html>

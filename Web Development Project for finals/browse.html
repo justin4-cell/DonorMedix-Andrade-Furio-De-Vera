@@ -1,31 +1,40 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>DonorMedix · Browse Available Medicines</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DonorMedix · Browse Donations</title>
   <style>
-    html, body { height: 100%; }
-    *{margin:0;padding:0;box-sizing:border-box}
-    :root{
-      --ink:#0f172a; --muted:#64748b; --line:#e2e8f0;
-      --bg:#f8fafc; --card:#ffffff;
-      --shadow:0 8px 22px rgba(2,6,23,.06);
-      --radius:16px;
-      --pill:#ecfdf5; --pill-border:#a7f3d0; --pill-ink:#065f46;
-      --like-bg:#ecfdf5; --like-border:#a7f3d0; --like-ink:#065f46;
-      --like-active-bg:#10b981; --like-active-ink:#ffffff;
-    }
-    body{
-      font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
-      line-height:1.55;color:var(--ink);
-      background: url("hospital background.jpg") center/cover no-repeat fixed;
-      min-height:100vh;
-      display:flex;
-      flex-direction:column;
+    :root {
+      --bg: #f5f7fb;
+      --card-bg: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #6b7280;
+      --accent: #0f172a;
+      --accent-soft: #e2e8f0;
+      --border-soft: #e5e7eb;
+      --shadow-soft: 0 18px 40px rgba(15, 23, 42, 0.08);
+      --btn-green: #0f172a;
     }
 
-    /* HEADER / NAV */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text-main);
+      background-image: url('hospital background.jpg');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      background-repeat: no-repeat;
+    }
+
+    /* HEADER */
     header.site{
       position:sticky;top:0;z-index:30;background:#0f172a;
       border-bottom:1px solid rgba(226,232,240,.15);
@@ -35,49 +44,23 @@
       max-width:72rem;margin:0 auto;padding:.9rem 1.25rem;
       display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:.9rem
     }
-
     .logo{
-      display:flex;
-      align-items:center;
-      gap:.6rem;
-      color:#fff;
-      text-decoration:none;
-      font-weight:800;
-      font-size:1.15rem;
-      letter-spacing:.2px;
+      display:flex;align-items:center;gap:.6rem;
+      color:#fff;text-decoration:none;font-weight:800;font-size:1.15rem;letter-spacing:.2px;
     }
     .logo-img{
-      width:40px;
-      height:40px;
-      object-fit:contain;
-      border-radius:8px;
-      box-shadow:0 2px 8px rgba(0,0,0,.12);
-      background:#fff0;
-      flex:0 0 40px;
+      width:40px;height:40px;object-fit:contain;border-radius:8px;
+      box-shadow:0 2px 8px rgba(0,0,0,.12);background:#fff0;flex:0 0 40px;
     }
-    .logo-text{
-      color:#fff;
-      font-weight:800;
-      font-size:1.18rem;
-    }
-
-    nav.nav{
-      display:flex;justify-content:center;gap:.5rem;flex-wrap:wrap
-    }
+    .logo-text{color:#fff;font-weight:800;font-size:1.18rem}
+    nav.nav{display:flex;justify-content:center;gap:.5rem;flex-wrap:wrap}
     .nav-link{
-      display:inline-flex;align-items:center;gap:.5rem;
-      color:#fff;text-decoration:none;font-weight:800;
-      padding:.5rem .7rem;border-radius:10px;transition:all .15s
+      display:inline-flex;align-items:center;gap:.5rem;color:#fff;text-decoration:none;
+      font-weight:800;padding:.5rem .7rem;border-radius:10px;transition:all .15s
     }
-    .nav-link svg{width:18px;height:18px;fill:currentColor;transition:color .15s}
-    .nav-link:hover{
-      background:#ffffff;color:#0f172a;transform:translateY(-1px)
-    }
-    .nav-link.active{
-      background:rgba(255,255,255,.16);
-      color:#ffffff;
-    }
-
+    .nav-link svg{width:18px;height:18px;fill:currentColor}
+    .nav-link:hover{background:#ffffff;color:#0f172a;transform:translateY(-1px)}
+    .nav-link.active{background:rgba(255,255,255,.16);color:#ffffff}
     .header-actions{display:flex;gap:.5rem;align-items:center}
     .bell-btn{
       position:relative;border:none;background:transparent;color:#fff;
@@ -96,320 +79,333 @@
       background:#ffffff;color:#0f172a;border:1px solid #e2e8f0;transition:transform .15s
     }
     .sign-in-btn:hover{transform:translateY(-1px)}
-
     @media(max-width:720px){
-      .header-container{
-        grid-template-columns:1fr auto;
-        grid-template-rows:auto auto;
-      }
+      .header-container{grid-template-columns:1fr auto;grid-template-rows:auto auto}
       .logo{grid-column:1/2;grid-row:1}
       .header-actions{grid-column:2/3;grid-row:1;justify-self:end}
       nav.nav{grid-column:1/3;grid-row:2;justify-content:center;margin-top:.5rem}
     }
 
-    .hero{
-      width:100%;
-      background:linear-gradient(180deg,rgba(56,189,248,0.06) 0%, #ffffff 100%);
-      border-bottom:1px solid var(--line);
-      box-shadow:0 10px 30px rgba(56,189,248,.08)
-    }
-    .hero-inner{
-      max-width:1100px;margin:0 auto;padding:1.1rem 1.5rem 1rem;text-align:center
-    }
-    .hero h1{font-size:2rem;color:#0f172a}
-    .hero p{color:#0f172a;margin-top:.25rem}
-
-    /* PAGE */
-    main.page{
-      max-width:1100px;margin:0 auto;padding:1rem 1.5rem 2rem;
-      flex:1 0 auto;
-    }
-    .search{display:flex;gap:.5rem;margin:0 0 1rem;flex-wrap:wrap}
-    .input{
-      flex:1;min-width:220px;padding:.7rem .9rem;border:1px solid var(--line);border-radius:12px;
-      font-size:.95rem;background:#fff;color:#0f172a
-    }
-    .input::placeholder{color:#6b7280}
-    .input:focus{outline:none;border-color:#94a3b8;box-shadow:0 0 0 3px rgba(15,23,42,.15)}
-    .btn-search{
-      display:inline-flex;align-items:center;gap:.5rem;
-      padding:.7rem 1rem;border-radius:12px;border:1px solid #0f172a;
-      background:#0f172a;color:#fff;font-weight:800;cursor:pointer
-    }
-    .btn-search:hover{filter:brightness(1.06)}
-
-.browse-switcher{
-  display:inline-flex;
-  align-items:center;
-  gap:.4rem;
-  padding:0;                 /* remove padding frame */
-  border-radius:999px;
-  background:transparent;    /* 🔹 transparent background */
-  border:none;               /* 🔹 no border */
-  margin-bottom:1rem;
-}
-
-.browse-pill{
-  border:none;
-  border-radius:999px;
-  padding:.45rem 1rem;
-  font-size:.8rem;
-  font-weight:800;
-  letter-spacing:.08em;
-  text-transform:uppercase;
-  background:transparent;
-  color:var(--muted);
-  cursor:pointer;
-  transition:background .15s,color .15s,transform .12s;
-}
-
-.browse-pill:hover{
-  background:#e5f2ff;
-  color:#0f172a;
-  transform:translateY(-1px);
-}
-
-.browse-pill.active{
-  background:#0f172a;
-  color:#ffffff;
-}
-
-
-    /* GRID + CARD */
-    .browse-grid{
-      display:grid;
-      grid-template-columns:1fr;
-      gap:1rem;
-      margin-bottom:1.5rem;
-    }
-    @media(min-width:640px){
-      .browse-grid{grid-template-columns:repeat(2,1fr)}
-    }
-    @media(min-width:1024px){
-      .browse-grid{grid-template-columns:repeat(3,1fr)}
+    /* PAGE CONTENT */
+    .page {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 32px 16px 48px;
     }
 
-    .card{
-      background:var(--card);
-      border:1px solid var(--line);
-      border-radius:16px;
-      box-shadow:0 16px 32px rgba(2,6,23,.06), 0 4px 12px rgba(2,6,23,.04);
-      overflow:hidden;
-      display:flex;
-      flex-direction:column;
-      justify-content:space-between;
-      transition:transform .15s, box-shadow .15s;
-    }
-    .card:hover{
-      transform:translateY(-2px);
-      box-shadow:0 20px 42px rgba(2,6,23,.10);
+    .page-title {
+      font-size: 2rem;
+      font-weight: 800;
+      color: #0f172a;
+      text-align: center;
+      margin-bottom: 6px;
     }
 
-    .card__body{
-      padding:1rem;
-      display:flex;
-      flex-direction:column;
-      gap:.4rem;
+    .page-subtitle {
+      font-size: 1rem;
+      color: #0f172a;
+      text-align: center;
+      margin-top: .25rem;
+      margin-bottom: 16px;
+      max-width: 520px;
+      margin-left: auto;
+      margin-right: auto;
+      opacity: .9;
     }
 
-    .card__footer{
-      margin-top:auto;
-      padding:0 1rem 1rem;
-      display:flex;
-      justify-content:flex-end;
-    }
-    .card__btn-open{
-      padding:.45rem .95rem;
-      border-radius:999px;
-      border:1px solid #0f172a;
-      background:#0f172a;
-      color:#ffffff;
-      font-size:.8rem;
-      font-weight:800;
-      letter-spacing:.06em;
-      text-transform:uppercase;
-      cursor:pointer;
-    }
-    .card__btn-open:hover{
-      filter:brightness(1.05);
+    .search-section {
+      margin-bottom: 20px;
     }
 
-    .title{
-      font-weight:900;margin:0;color:#0f172a;font-size:1.05rem;letter-spacing:.1px;
-    }
-    .muted{color:var(--muted);font-size:.9rem}
-
-    .toast{
-      position:fixed; top:78px; left:50%; transform:translateX(-50%);
-      background:#38bdf8; color:#ecfdf5; border:1px solid #38bdf8;
-      padding:.6rem .9rem; border-radius:10px; box-shadow:var(--shadow);
-      z-index:50; font-weight:700; display:none; min-width:240px; text-align:center
-    }
-    .toast.show{display:block}
-
-    /* MODAL */
-    .modal-backdrop{
-      position:fixed;
-      inset:0;
-      background:rgba(15,23,42,.65);
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      z-index:60;
-      padding:1.5rem;
-    }
-    .modal-backdrop[hidden]{
-      display:none;
-    }
-    .modal-card{
-      max-width:780px;
-      width:100%;
-      background:#ffffff;
-      border-radius:18px;
-      box-shadow:0 24px 60px rgba(15,23,42,.4);
-      display:flex;
-      flex-direction:row;
-      overflow:hidden;
-      border:1px solid #e2e8f0;
-    }
-    .modal-main{
-      flex:1;
-      padding:1.25rem 1.3rem;
-      display:flex;
-      flex-direction:column;
-      gap:.75rem;
-    }
-    .modal-header{
-      display:flex;
-      justify-content:space-between;
-      align-items:flex-start;
-      gap:.75rem;
-      border-bottom:1px solid #e5e7eb;
-      padding-bottom:.5rem;
-    }
-    .modal-title{
-      font-size:1.05rem;
-      font-weight:800;
-      color:#0f172a;
-    }
-    .modal-chip{
-      display:inline-flex;
-      align-items:center;
-      padding:.25rem .7rem;
-      border-radius:999px;
-      font-size:.72rem;
-      font-weight:800;
-      text-transform:uppercase;
-      letter-spacing:.08em;
-      background:#eff6ff;
-      color:#1d4ed8;
-      border:1px solid #bfdbfe;
-    }
-    .modal-close{
-      border:none;
-      background:transparent;
-      font-size:1.2rem;
-      line-height:1;
-      cursor:pointer;
-      color:#64748b;
-    }
-    .modal-section-title{
-      font-size:.8rem;
-      text-transform:uppercase;
-      letter-spacing:.09em;
-      color:#94a3b8;
-      font-weight:800;
-    }
-    .modal-details{
-      display:grid;
-      grid-template-columns:repeat(2,minmax(0,1fr));
-      gap:.55rem .75rem;
-      margin-top:.3rem;
-    }
-    .modal-details-row label{
-      font-size:.78rem;
-      font-weight:700;
-      color:#64748b;
-      text-transform:uppercase;
-      letter-spacing:.06em;
-      display:block;
-    }
-    .modal-details-row span{
-      font-size:.9rem;
-      color:#0f172a;
-      font-weight:500;
-    }
-    .modal-description{
-      margin-top:.5rem;
-      font-size:.9rem;
-      color:#111827;
-      line-height:1.5;
-      background:#f9fafb;
-      border-radius:12px;
-      padding:.65rem .75rem;
-      border:1px solid #e5e7eb;
+    .search-card {
+      background: #ffffff;
+      border-radius: 10px;
+      border: 1px solid #e5e7eb;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04);
+      padding: 14px 16px 10px;
     }
 
-    .modal-right{
-      width:260px;
-      background:#f1f5f9;
-      display:grid;
-      place-items:center;
-      border-left:1px solid #e5e7eb;
-      position:relative; /* for buttons bottom-right */
-      overflow:hidden;
-    }
-    .modal-right img{
-      width:100%;
-      height:100%;
-      object-fit:cover;
-      display:block;
-    }
-    .modal-image-actions{
-      position:absolute;
-      right:10px;
-      bottom:10px;
-      display:flex;
-      gap:6px;
-    }
-    .modal-btn-small{
-      border:none;
-      border-radius:999px;
-      padding:.25rem .6rem;
-      font-size:.75rem;
-      font-weight:800;
-      letter-spacing:.06em;
-      text-transform:uppercase;
-      cursor:pointer;
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      text-decoration:none;
-      white-space:nowrap;
-    }
-    .modal-btn-edit{
-      background:#0f172a;
-      color:#ffffff;
-    }
-    .modal-btn-delete{
-      background:#fee2e2;
-      color:#b91c1c;
-    }
-    .modal-btn-message{
-      background:#38bdf8;
-      color:#0f172a;
+    .search-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
     }
 
-    @media(max-width:720px){
-      .modal-card{
-        flex-direction:column;
-      }
-      .modal-right{
-        width:100%;
-        max-height:260px;
-      }
+    .search-input-wrap {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #f9fafb;
+      border-radius: 999px;
+      border: 1px solid #e5e7eb;
+      padding: 8px 14px;
     }
 
+    .search-icon {
+      font-size: 14px;
+      color: #9ca3af;
+    }
+
+    #searchInput {
+      border: none;
+      outline: none;
+      width: 100%;
+      background: transparent;
+      font-size: 14px;
+      color: var(--text-main);
+    }
+
+    .search-btn {
+      padding: 9px 18px;
+      border-radius: 999px;
+      border: none;
+      background: #0f172a;
+      color: #ffffff;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .search-btn:hover {
+      background: #020617;
+    }
+
+    .filters-toggle {
+      margin-top: 8px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: none;
+      background: transparent;
+      color: #0f172a;
+      font-size: 13px;
+      cursor: pointer;
+      padding: 4px 2px;
+    }
+
+    .filters-toggle-icon {
+      font-size: 14px;
+    }
+
+    .filters-panel {
+      margin-top: 10px;
+      border-top: 1px solid #e5e7eb;
+      padding-top: 10px;
+    }
+
+    .filters-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .filter-field {
+      min-width: 160px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 12px;
+    }
+
+    .filter-field label {
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .filter-select {
+      border-radius: 999px;
+      border: 1px solid #e5e7eb;
+      padding: 6px 10px;
+      font-size: 13px;
+      background: #f9fafb;
+      outline: none;
+    }
+
+    .top-bar {
+      margin-top: 10px;
+      margin-bottom: 18px;
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+    }
+
+    @media (max-width: 1024px) {
+      .cards { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 720px) {
+      .search-row { flex-direction: column; align-items: stretch; }
+      .search-btn { width: 100%; text-align: center; }
+      .cards { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 20px;
+      box-shadow: var(--shadow-soft);
+      border: 1px solid rgba(15, 23, 42, 0.04);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: 0.15s;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 22px 45px rgba(15, 23, 42, 0.12);
+    }
+
+    .card-image {
+      width: 100%;
+      height: 170px;
+      background-size: cover;
+      background-position: center;
+    }
+
+    .card-body {
+      padding: 18px 20px 14px;
+    }
+
+    .name-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 5px;
+    }
+
+    .item-name {
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .badge-available {
+      background: var(--accent-soft);
+      color: var(--accent);
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+    }
+
+    .item-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.55;
+      margin-bottom: 6px;
+    }
+
+    .details-list {
+      list-style: none;
+      margin: 6px 0 10px;
+      padding: 0;
+    }
+
+    .details-list li {
+      font-size: 13px;
+      color: var(--text-muted);
+      padding-left: 18px;
+      position: relative;
+      margin-bottom: 4px;
+    }
+
+    .details-list li::before {
+      content: "•";
+      position: absolute;
+      left: 6px;
+      top: 0;
+      color: #0f172a;
+      font-weight: 700;
+    }
+
+    .divider {
+      border-top: 1px solid var(--border-soft);
+      margin: 10px 0;
+    }
+
+    .donor {
+      font-size: 13px;
+      margin-bottom: 6px;
+    }
+    .donor span { font-weight: 600; }
+
+    .donor-meta {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+      font-size: 11px;
+    }
+
+    .pill {
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+    }
+
+    .verified {
+      background: #1e293b;
+      color: #e5e7eb;
+    }
+
+    .bronze {
+      background: #fef3c7;
+      color: #b45309;
+    }
+
+    .silver {
+      background: #e5e7eb;
+      color: #374151;
+    }
+
+    .card-footer {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .btn-request {
+      flex: 1;
+      padding: 10px 0;
+      border-radius: 999px;
+      border: none;
+      background: var(--btn-green);
+      color: white;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-request:hover {
+      background: #020617;
+    }
+
+    .btn-icon {
+      width: 44px;
+      height: 40px;
+      border-radius: 999px;
+      background: #ffffff;
+      border: 1px solid #d4d4d8;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .btn-icon:hover {
+      background: #f3f4f6;
+    }
+
+    .btn-icon svg {
+      width: 18px;
+      height: 18px;
+      fill: #0f172a; /* same color as footer background */
+    }
+
+    /* FOOTER */
     .footer{background:#0f172a;color:#cbd5e1;padding:3.25rem 1rem 1.25rem}
     .footer .wrap{max-width:1100px;margin:0 auto}
     .footer-top{
@@ -423,8 +419,8 @@
     .social{display:flex;gap:12px}
     .social a{
       display:inline-flex;align-items:center;justify-content:center;
-      width:38px;height:38px;border-radius:10px;background:#0b1220;color:#e2e8f0;
-      text-decoration:none;transition:.2s;border:1px solid #1e293b;
+      width:38px;height:38px;border-radius:10px;background:#0b1220;
+      color:#e2e8f0;text-decoration:none;transition:.2s;border:1px solid #1e293b;
     }
     .social a:hover{background:#111827}
     .footer-cols{
@@ -436,19 +432,32 @@
     .footer li+li{margin-top:.5rem}
     .footer a{color:#cbd5e1;text-decoration:none}
     .footer a:hover{color:#38bdf8}
-    .footer hr{border:none;border-top:1px solid #1e293b;margin:2rem 0 1.25rem}
-    .footer-bottom{display:flex;justify-content:space-between;flex-wrap:wrap;color:#ffffff;font-size:.9rem}
+    .footer-hr{border:none;border-top:1px solid #1e293b;margin:2rem 0 1.25rem}
+    .footer-bottom{
+      display:flex;
+      justify-content:center;
+      flex-wrap:wrap;
+      color:#ffffff;
+      font-size:.9rem;
+      text-align:center;
+    }
     @media(max-width:768px){
-      .footer-bottom{flex-direction:column;gap:.5rem;align-items:center;text-align:center}
+      .footer-bottom{
+        flex-direction:column;
+        gap:.5rem;
+        align-items:center;
+        text-align:center;
+      }
     }
   </style>
 </head>
 <body>
+
   <!-- NAV -->
   <header class="site">
     <div class="header-container">
       <a class="logo" href="index.html" aria-label="DonorMedix Home">
-        <img class="logo-img" src="donormedix.logo.png" alt="DonorMedix logo">
+        <img class="logo-img" src="donormedix.logo.png" alt="DonorMedix logo" />
         <span class="logo-text">DonorMedix</span>
       </a>
 
@@ -479,247 +488,100 @@
       </nav>
 
       <div class="header-actions">
-        <div id="profile" style="display:flex;align-items:center;gap:.7rem;color:#fff;margin-right:.7rem;">
-          <div class="profile-info" style="line-height:1;"></div>
-        </div>
+        <button class="bell-btn" aria-label="Notifications" id="notifBtn">
+          <svg class="bell-icon" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 22a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22Zm6-6V11a6 6 0 1 0-12 0v5l-2 2v1h16v-1l-2-2Z"/>
+          </svg>
+          <span class="badge" id="notifBadge">0</span>
+        </button>
 
-        <div id="notifications" style="position:relative;">
-          <button id="notifBtn" class="bell-btn" aria-haspopup="true" aria-expanded="false" title="Notifications" style="color:#fff;">
-            <svg class="bell-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22a2.5 2.5 0 0 0 2.5-2.5h-5A2.5 2.5 0 0 0 12 22Zm6-6V11c0-3.07-1.63-5.64-4.5-6.32V4a1.5 1.5 0 1 0-3 0v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
-            <span id="notifBadge" class="badge" style="display:none"></span>
-          </button>
-
-          <div id="notifPanel" class="panel" aria-hidden="true" style="display:none; right:0; top:48px;">
-            <ul id="notifList"></ul>
-          </div>
-        </div>
-
-        <button class="sign-in-btn">Profile</button>
+        <button class="sign-in-btn">Sign In</button>
       </div>
     </div>
   </header>
 
-  <!-- HERO -->
-  <section class="hero">
-    <div class="hero-inner">
-      <h1>Browse Available Medicines</h1>
-      <p>Find donated medicines and requests from your community.</p>
-    </div>
-  </section>
-
+  <!-- MAIN PAGE CONTENT -->
   <main class="page">
-    <form class="search" id="searchForm" action="#">
-      <input class="input" id="q" name="q" placeholder="Search for medicines, medical supplies…" />
-      <button class="btn-search" type="submit">
-        Search
-      </button>
-    </form>
+    <section class="page-hero">
+      <h1 class="page-title">Browse Available Medicines</h1>
+      <p class="page-subtitle">Find medicines and medical supplies donated by your community.</p>
+    </section>
 
-    <!-- Switcher -->
-    <div class="browse-switcher">
-      <button class="browse-pill active" data-browse-category="donation">All Medicines</button>
-      <button class="browse-pill" data-browse-category="request">Donations</button>
-      <button class="browse-pill" data-browse-category="all">Request</button>
+    <!-- Search + Filters card -->
+    <section class="search-section">
+      <div class="search-card">
+        <div class="search-row">
+          <div class="search-input-wrap">
+            <span class="search-icon">🔍</span>
+            <input
+              id="searchInput"
+              type="text"
+              placeholder="Search for medicines, medical supplies..."
+            />
+          </div>
+          <button class="search-btn" id="searchBtn">Search</button>
+        </div>
+
+        <button class="filters-toggle" id="filtersToggle" type="button">
+          <span class="filters-toggle-icon">⚙️</span>
+          <span id="filtersToggleText">Show Filters</span>
+        </button>
+
+        <div class="filters-panel" id="filtersPanel" hidden>
+          <div class="filters-grid">
+            <!-- Category -->
+            <div class="filter-field">
+              <label for="filterCategory">Category</label>
+              <select id="filterCategory" class="filter-select">
+                <option value="">All categories</option>
+                <option value="Pain Relief">Pain Relief</option>
+                <option value="Vitamins">Vitamins</option>
+                <option value="First Aid">First Aid</option>
+              </select>
+            </div>
+
+            <!-- Urgency -->
+            <div class="filter-field">
+              <label for="filterUrgency">Urgency</label>
+              <select id="filterUrgency" class="filter-select">
+                <option value="">Any urgency</option>
+                <option value="High">High</option>
+                <option value="Medium">Medium</option>
+                <option value="Low">Low</option>
+              </select>
+            </div>
+
+            <!-- Available -->
+            <div class="filter-field">
+              <label for="filterAvailable">Available</label>
+              <select id="filterAvailable" class="filter-select">
+                <option value="">All</option>
+                <option value="yes">Only available</option>
+              </select>
+            </div>
+
+            <!-- Verified -->
+            <div class="filter-field">
+              <label for="filterVerified">Verified donor</label>
+              <select id="filterVerified" class="filter-select">
+                <option value="">All</option>
+                <option value="yes">Verified only</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="top-bar">
+      Showing <strong id="resultsCount">0</strong> available items
     </div>
 
-    <!-- DONATION CARDS LIST -->
-    <h2>Donations</h2>
-    <div class="browse-grid">
-      <!-- current user donation -->
-      <article class="card"
-        data-type="donation"
-        data-owner="me"
-        data-name="Amoxicillin 500mg Capsules"
-        data-category="Antibiotic"
-        data-dosage="Capsules · 500mg"
-        data-description="Broad-spectrum antibiotic used for many common bacterial infections."
-        data-quantity="2 boxes (20 capsules each)"
-        data-expiration="December 2025"
-        data-condition="Sealed blister packs, stored at room temperature"
-        data-urgency="Medium"
-        data-pickup="Quezon City, Metro Manila"
-        data-image="amoxicillin.jpg">
-        <div class="card__body">
-          <h3 class="title">Amoxicillin 500mg Capsules</h3>
-          <p class="muted">Donated by Maria Santos</p>
-        </div>
-        <div class="card__footer">
-          <button class="card__btn-open">Open</button>
-        </div>
-      </article>
-
-      <!-- other user donation -->
-      <article class="card"
-        data-type="donation"
-        data-owner="other"
-        data-name="Losartan 50mg Tablets"
-        data-category="Antihypertensive"
-        data-dosage="Tablets · 50mg"
-        data-description="Used to treat high blood pressure and help protect the kidneys."
-        data-quantity="1 bottle (30 tablets)"
-        data-expiration="August 2026"
-        data-condition="Unopened original bottle"
-        data-urgency="Low"
-        data-pickup="Makati City"
-        data-image="losartan.jpg">
-        <div class="card__body">
-          <h3 class="title">Losartan 50mg Tablets</h3>
-          <p class="muted">Donated by Juan Dela Cruz</p>
-        </div>
-        <div class="card__footer">
-          <button class="card__btn-open">Open</button>
-        </div>
-      </article>
-
-      <!-- other user donation -->
-      <article class="card"
-        data-type="donation"
-        data-owner="other"
-        data-name="Salbutamol Inhaler"
-        data-category="Bronchodilator"
-        data-dosage="Metered-dose inhaler"
-        data-description="Relieves bronchospasm in patients with asthma or COPD."
-        data-quantity="1 inhaler"
-        data-expiration="May 2025"
-        data-condition="Box slightly worn, inhaler unused"
-        data-urgency="High"
-        data-pickup="Pasig City"
-        data-image="inhaler.jpg">
-        <div class="card__body">
-          <h3 class="title">Salbutamol Inhaler</h3>
-          <p class="muted">Donated by City Pharmacy Partner</p>
-        </div>
-        <div class="card__footer">
-          <button class="card__btn-open">Open</button>
-        </div>
-      </article>
-    </div>
-
-    <!-- REQUEST CARDS LIST -->
-    <h2>Requests</h2>
-    <div class="browse-grid">
-      <!-- current user request -->
-      <article class="card"
-        data-type="request"
-        data-owner="me"
-        data-name="Metformin 500mg Tablets"
-        data-description="For an elderly patient needing maintenance for type 2 diabetes."
-        data-category="Antidiabetic"
-        data-urgency="High"
-        data-location="Caloocan City"
-        data-image="metformin.jpg">
-        <div class="card__body">
-          <h3 class="title">Metformin 500mg Tablets</h3>
-          <p class="muted">Requested by Ana Reyes</p>
-        </div>
-        <div class="card__footer">
-          <button class="card__btn-open">Open</button>
-        </div>
-      </article>
-
-      <!-- other user request -->
-      <article class="card"
-        data-type="request"
-        data-owner="other"
-        data-name="Cefalexin Syrup (Pediatric)"
-        data-description="Antibiotic syrup needed for a 3-year-old with recurrent infections."
-        data-category="Antibiotic"
-        data-urgency="Medium"
-        data-location="Taguig City Health Center"
-        data-image="cefalexin-syrup.jpg">
-        <div class="card__body">
-          <h3 class="title">Cefalexin Syrup (Pediatric)</h3>
-          <p class="muted">Requested by Barangay Health Worker</p>
-        </div>
-        <div class="card__footer">
-          <button class="card__btn-open">Open</button>
-        </div>
-      </article>
-
-      <!-- other user request -->
-      <article class="card"
-        data-type="request"
-        data-owner="other"
-        data-name="Paracetamol 250mg Suspension"
-        data-description="Needed for fever management for children in the community clinic."
-        data-category="Analgesic / Antipyretic"
-        data-urgency="Low"
-        data-location="Community Nurse Station, Manila"
-        data-image="paracetamol-suspension.jpg">
-        <div class="card__body">
-          <h3 class="title">Paracetamol 250mg Suspension</h3>
-          <p class="muted">Requested by Community Nurse</p>
-        </div>
-        <div class="card__footer">
-          <button class="card__btn-open">Open</button>
-        </div>
-      </article>
-    </div>
-
-    <div id="toast" class="toast">Donation posted successfully!</div>
+    <!-- Cards will be filled by browse.js from Firestore -->
+    <section class="cards" id="cardsGrid"></section>
   </main>
 
-  <!-- MODAL ROOT -->
-  <div id="dmModal" class="modal-backdrop" hidden>
-    <div class="modal-card">
-      <div class="modal-main">
-        <div class="modal-header">
-          <div>
-            <div class="modal-section-title" id="modalTypeLabel">Donation</div>
-            <div class="modal-title" id="modalName">Medicine name</div>
-          </div>
-          <div style="display:flex;align-items:flex-start;gap:.4rem;">
-            <span class="modal-chip" id="modalCategoryChip">Category</span>
-            <button class="modal-close" type="button" id="modalCloseBtn">&times;</button>
-          </div>
-        </div>
-
-        <!-- Donation / Request shared details -->
-        <div class="modal-details" id="modalDetails">
-          <!-- Donation-only rows have data-role="donation-only" -->
-          <div class="modal-details-row" data-role="donation-only">
-            <label>Dosage Form</label>
-            <span id="modalDosage">—</span>
-          </div>
-          <div class="modal-details-row" data-role="donation-only">
-            <label>Quantity</label>
-            <span id="modalQuantity">—</span>
-          </div>
-          <div class="modal-details-row" data-role="donation-only">
-            <label>Expiration Date</label>
-            <span id="modalExpiration">—</span>
-          </div>
-          <div class="modal-details-row" data-role="donation-only">
-            <label>Condition</label>
-            <span id="modalCondition">—</span>
-          </div>
-          <div class="modal-details-row">
-            <label>Urgency</label>
-            <span id="modalUrgency">—</span>
-          </div>
-          <div class="modal-details-row">
-            <label>Location</label>
-            <span id="modalLocation">—</span>
-          </div>
-        </div>
-
-        <div class="modal-description" id="modalDescription">
-          Description goes here.
-        </div>
-      </div>
-
-      <div class="modal-right">
-        <img id="modalImage" src="" alt="Medicine image" />
-        <!-- Buttons inside modal image, lower-right -->
-        <div class="modal-image-actions">
-          <button id="modalEditBtn" class="modal-btn-small modal-btn-edit">Edit</button>
-          <button id="modalDeleteBtn" class="modal-btn-small modal-btn-delete">Delete</button>
-          <a id="modalMessageBtn" href="message.html" class="modal-btn-small modal-btn-message">Message</a>
-        </div>
-      </div>
-    </div>
-  </div>
-
+  <!-- FOOTER -->
   <footer class="footer">
     <div class="wrap">
       <div class="footer-top">
@@ -773,134 +635,14 @@
         </div>
       </div>
 
-      <hr/>
+      <hr class="footer-hr" />
       <div class="footer-bottom">
-        <p>© 2025 DonorMedix. All rights reserved。</p>
+        <p>© 2025 DonorMedix. All rights reserved.</p>
       </div>
     </div>
   </footer>
 
-  <!-- SIMPLE FRONT-END SCRIPT FOR MODALS + OWNER BUTTONS -->
-  <script>
-    (function () {
-      const modal = document.getElementById("dmModal");
-      const modalName = document.getElementById("modalName");
-      const modalTypeLabel = document.getElementById("modalTypeLabel");
-      const modalCategoryChip = document.getElementById("modalCategoryChip");
-      const modalDosage = document.getElementById("modalDosage");
-      const modalQuantity = document.getElementById("modalQuantity");
-      const modalExpiration = document.getElementById("modalExpiration");
-      const modalCondition = document.getElementById("modalCondition");
-      const modalUrgency = document.getElementById("modalUrgency");
-      const modalLocation = document.getElementById("modalLocation");
-      const modalDescription = document.getElementById("modalDescription");
-      const modalImage = document.getElementById("modalImage");
-      const modalCloseBtn = document.getElementById("modalCloseBtn");
-
-      const modalEditBtn = document.getElementById("modalEditBtn");
-      const modalDeleteBtn = document.getElementById("modalDeleteBtn");
-      const modalMessageBtn = document.getElementById("modalMessageBtn");
-
-      const donationOnlyRows = modal.querySelectorAll("[data-role='donation-only']");
-      let activeCard = null;
-
-      function openModalFromCard(card) {
-        activeCard = card;
-        const type = card.getAttribute("data-type") || "donation";
-        const owner = card.getAttribute("data-owner") || "other";
-        const isDonation = type === "donation";
-
-        const name = card.getAttribute("data-name") || "";
-        const category = card.getAttribute("data-category") || "";
-        const dosage = card.getAttribute("data-dosage") || "";
-        const description = card.getAttribute("data-description") || "";
-        const quantity = card.getAttribute("data-quantity") || "";
-        const expiration = card.getAttribute("data-expiration") || "";
-        const condition = card.getAttribute("data-condition") || "";
-        const urgency = card.getAttribute("data-urgency") || "";
-        const location = card.getAttribute("data-location") || card.getAttribute("data-pickup") || "";
-        const image = card.getAttribute("data-image") || "placeholder-medicine.jpg";
-
-        modalName.textContent = name || "Medicine";
-        modalTypeLabel.textContent = isDonation ? "Donation" : "Request";
-        modalCategoryChip.textContent = category || "Category";
-
-        donationOnlyRows.forEach(function (row) {
-          row.style.display = isDonation ? "" : "none";
-        });
-
-        if (isDonation) {
-          modalDosage.textContent = dosage || "—";
-          modalQuantity.textContent = quantity || "—";
-          modalExpiration.textContent = expiration || "—";
-          modalCondition.textContent = condition || "—";
-        }
-
-        modalUrgency.textContent = urgency || "—";
-        modalLocation.textContent = location || "—";
-        modalDescription.textContent = description || "No description provided.";
-        modalImage.src = image;
-        modalImage.alt = name || "Medicine image";
-
-        // Toggle action buttons inside modal according to owner
-        if (owner === "me") {
-          modalEditBtn.style.display = "inline-flex";
-          modalDeleteBtn.style.display = "inline-flex";
-          modalMessageBtn.style.display = "none";
-        } else {
-          modalEditBtn.style.display = "none";
-          modalDeleteBtn.style.display = "none";
-          modalMessageBtn.style.display = "inline-flex";
-        }
-
-        modal.removeAttribute("hidden");
-      }
-
-      function closeModal() {
-        if (!modal.hasAttribute("hidden")) {
-          modal.setAttribute("hidden", "hidden");
-        }
-      }
-
-      // Attach to all Open buttons
-      document.querySelectorAll(".card").forEach(function (card) {
-        const btn = card.querySelector(".card__btn-open");
-        if (!btn) return;
-        btn.addEventListener("click", function () {
-          openModalFromCard(card);
-        });
-      });
-
-      // Edit inside modal → go to donate.html or request.html
-      modalEditBtn.addEventListener("click", function () {
-        if (!activeCard) return;
-        const type = activeCard.getAttribute("data-type") || "donation";
-        if (type === "donation") {
-          window.location.href = "donate.html";
-        } else {
-          window.location.href = "request.html";
-        }
-      });
-
-      // Delete inside modal → simple front-end remove
-      modalDeleteBtn.addEventListener("click", function () {
-        if (!activeCard) return;
-        if (confirm("Delete this item?")) {
-          activeCard.remove();
-          closeModal();
-        }
-      });
-
-      modalCloseBtn.addEventListener("click", closeModal);
-      modal.addEventListener("click", function (e) {
-        if (e.target === modal) closeModal();
-      });
-      document.addEventListener("keydown", function (e) {
-        if (e.key === "Escape") closeModal();
-      });
-    })();
-  </script>
-
-  <script type="module" src=".js"></script>
+  <!-- Firestore-powered browse logic -->
+  <script type="module" src="browse.js"></script>
 </body>
 </html>

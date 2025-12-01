@@ -1,8 +1,8 @@
-// donate.js — combined Firebase + UI + Firestore-only All Donations (module)
-// Panels separated / registrable via registerDonationPanels()
-// Required in donate.html:
-//   <script src="https://widget.cloudinary.com/v2.0/global/all.js"></script>
-//   <script type="module" src="donate.js"></script>
+// donate.js
+// Connects donate.html UI (cards + modal) to Firebase Firestore.
+// - All donations + My donations loaded from "donations" collection
+// - Modal content & buttons wired to database
+// - Form posts new donations (and can edit existing)
 
 import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
 import {
@@ -11,17 +11,15 @@ import {
   addDoc,
   doc,
   getDoc,
+  getDocs,
   onSnapshot,
   query,
   where,
   orderBy,
-  limit,
   serverTimestamp,
   updateDoc,
-  setDoc,
-  increment,
   deleteDoc,
-  getDocs,
+  limit,
 } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 import {
   getAuth,
@@ -39,127 +37,137 @@ const firebaseConfig = {
   appId: "1:627472172279:web:9bf645b54d33075a0d7ff2",
   measurementId: "G-NTNPR4FPT7",
 };
-const CLOUDINARY_CLOUD_NAME = "dsw0erpjx";
-const CLOUDINARY_UPLOAD_PRESET = "donormedix";
+
 const PH_DATA_URL =
   "https://raw.githubusercontent.com/flores-jacob/philippine-regions-provinces-cities-municipalities-barangays/master/philippine_provinces_cities_municipalities_and_barangays_2019v2.json";
-const STORAGE_KEY = "donor_medix_donations_v1";
 
-/* ===== Inject user-requested styles for cards & modals ===== */
-(function injectRequestStyles() {
-  const css = [
-    ".request-card{display:flex;flex-direction:row;align-items:stretch;gap:16px;padding:14px 16px;border-radius:18px;background:#ffffff;box-shadow:0 14px 40px rgba(15,23,42,.12);border:1px solid rgba(148,163,184,.35);}",
-    ".request-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px;}",
-    ".request-header-row{display:flex;flex-direction:column;align-items:flex-start;gap:2px;}",
-    ".request-title{font-weight:800;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}",
-    ".request-requester{font-size:.85rem;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:260px;}",
-    ".request-open-btn{align-self:flex-start;margin-top:6px;padding:6px 16px;border-radius:999px;border:none;background:#0f172a;color:#ffffff;font-weight:600;font-size:.85rem;cursor:pointer;display:inline-flex;align-items:center;gap:6px;box-shadow:0 8px 24px rgba(15,23,42,.25);transition:transform .12s ease,box-shadow .12s ease,background .12s ease;}",
-    ".request-open-btn:hover{transform:translateY(-1px);box-shadow:0 14px 34px rgba(15,23,42,.28);background:#020617;}",
-    ".request-open-btn:active{transform:translateY(0);box-shadow:0 6px 18px rgba(15,23,42,.24);}",
-    ".request-open-btn-icon{font-size:1rem;}",
-    ".request-image-wrap{width:160px;height:115px;flex-shrink:0;border-radius:16px;overflow:hidden;background:radial-gradient(circle at 10% 20%,#e0f2fe 0,#f1f5f9 40%,#e2e8f0 100%);display:grid;place-items:center;box-shadow:0 10px 28px rgba(15,23,42,.25);}",
-    ".request-image-wrap img{width:100%;height:100%;object-fit:cover;display:block;}",
-    "@media (max-width:640px){.request-card{padding:12px 12px;}.request-image-wrap{width:130px;height:100px;}.request-title{max-width:180px;}.request-requester{max-width:180px;}}",
-    ".detail-modal-card{max-width:560px;width:100%;border-radius:20px;overflow:hidden;background:#f9fafb;}",
-    ".detail-header{padding:14px 18px;background:linear-gradient(135deg,#0f172a,#020617);color:#e5e7eb;display:flex;align-items:center;justify-content:space-between;gap:10px;}",
-    ".detail-header-main{display:flex;flex-direction:column;gap:2px;min-width:0;}",
-    ".detail-title{font-weight:700;font-size:1.05rem;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;}",
-    ".detail-sub{font-size:.8rem;color:#cbd5f5;}",
-    ".detail-close-btn{border:none;background:rgba(15,23,42,.7);color:#e5e7eb;border-radius:999px;padding:4px 10px;font-size:.8rem;cursor:pointer;}",
-    ".detail-body{padding:16px 18px 10px;display:flex;gap:16px;}",
-    ".detail-body-main{flex:1;min-width:0;}",
-    ".detail-pill-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;}",
-    ".detail-img-wrap{width:140px;flex-shrink:0;border-radius:16px;overflow:hidden;background:radial-gradient(circle at 10% 20%,#e0f2fe 0,#f1f5f9 40%,#e2e8f0 100%);display:grid;place-items:center;box-shadow:0 10px 28px rgba(15,23,42,.25);}",
-    ".detail-img-wrap img{width:100%;height:100%;object-fit:cover;display:block;}",
-    ".detail-meta{font-size:.85rem;color:#0f172a;margin-top:6px;}",
-    ".detail-meta strong{color:#0f172a;}",
-    ".detail-desc{margin-top:10px;font-size:.9rem;color:#111827;line-height:1.45;background:#ffffff;border-radius:12px;padding:10px 12px;border:1px solid #e5e7eb;}",
-    ".detail-footer{padding:12px 18px 16px;display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;border-top:1px solid #e5e7eb;background:#f9fafb;}",
-    ".detail-footer .btn{font-size:.85rem;}",
-    ".btn-like.active{background:#fecaca;border-color:#fca5a5;}"
-  ].join("\n");
-  const style = document.createElement("style");
-  style.setAttribute("data-generated-by", "donate.js-request-styles");
-  style.innerHTML = css;
-  (document.head || document.documentElement).appendChild(style);
-})();
+const CLOUDINARY_CLOUD_NAME = "dsw0erpjx";
+const CLOUDINARY_UPLOAD_PRESET = "donormedix";
 
 /* ========== FIREBASE INIT ========== */
 const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
+/* ========== SMALL HELPERS ========== */
+const $ = (sel) => document.querySelector(sel);
+
+/* ========== STATE ========== */
 let currentUser = null;
-let unsubUserDoc = null;
-let unsubEvents = null;
-let unsubMyDonations = null;
 let unsubAllDonations = null;
+let unsubMyDonations = null;
+let unsubUserDoc = null; // for profile modal "users" doc listener
+let unsubEvents = null;  // for notifications
 
-/* ========== DOM HELPERS & LAZY PANEL REGISTRATION ========== */
-const $ = (s) => document.querySelector(s);
-const $$ = (s) => Array.from(document.querySelectorAll(s));
+let allDonationsData = [];  // all documents from Firestore
+let myDonationsData = [];   // current user’s documents
 
-const pills = Array.from(document.querySelectorAll(".switcher .pill") || []);
+let editingDonationId = null; // when editing via modal "Edit" → form
 
-// panels are now lazy (can be registered later)
-let createPanel = document.getElementById("create-panel");
-let myDonationsPanel = document.getElementById("my-donations-panel");
-let allDonationsPanel = document.getElementById("all-donations-panel");
-let sidebar = document.getElementById("pageSidebar");
-let mainGrid = document.getElementById("mainGrid");
+// Notifications UI
+let bellBtn = null;
+let bellBadge = null;
+let notifDropdown = null;
 
-// rest of DOM refs (these typically exist on page)
+/* ========== DOM ========== */
+const pills = Array.from(document.querySelectorAll(".pill"));
+const createPanel = document.getElementById("create-panel");
+const allDonationsPanel = document.getElementById("all-donations-panel");
+const myDonationsPanel = document.getElementById("my-donations-panel");
+const sidebar = document.getElementById("pageSidebar");
+const mainGrid = document.getElementById("mainGrid");
+
+// Lists
+const allDonationsList = document.getElementById("allDonationsList");
 const myDonationsList = document.getElementById("myDonationsList");
+
+// Counts / stats
+const allDonationsCount = document.getElementById("allDonationsCount");
 const myDonationsCount = document.getElementById("myDonationsCount");
 const youDonations = document.getElementById("youDonations");
 const youImpactPeople = document.getElementById("youImpactPeople");
-const allDonations = document.getElementById("allDonations");
-const peopleHelped = document.getElementById("peopleHelped");
+const allDonationsStat = document.getElementById("allDonations");
+const peopleHelpedStat = document.getElementById("peopleHelped");
 
-const donationForm = document.getElementById("donationForm");
-const cloudinaryUploadBtn = document.getElementById("cloudinaryUploadBtn");
-const imagePreview = document.getElementById("imagePreview");
-const imageUrlInput = document.getElementById("imageUrl");
-const btnBack = document.getElementById("btnBack");
-
-const medicineNameInput = document.getElementById("medicineName");
-const medicinesList = document.getElementById("medicinesList");
-const quantitySelect = document.getElementById("quantity");
-
-const signInBtn = document.querySelector(".sign-in-btn");
-const bellBtn = document.querySelector(".bell-btn");
-const notifBadge = document.getElementById("notifBadge");
-
-// Filters (All Donations)
+// Filters
 const filterCategory = document.getElementById("filterCategory");
 const filterUrgency = document.getElementById("filterUrgency");
 
+// Form
+const donationForm = document.getElementById("donationForm");
+const quantitySelect = document.getElementById("quantity");
+const medicinesList = document.getElementById("medicinesList");
+const imagePreview = document.getElementById("imagePreview");
+const imageUrlInput = document.getElementById("imageUrl");
+const cloudinaryUploadBtn = document.getElementById("cloudinaryUploadBtn");
+const btnBack = document.getElementById("btnBack");
+
+// Header sign/profile button
+const signInBtn = document.querySelector(".sign-in-btn");
+
+/* ========== MODAL (donation details) ========== */
+const modal = document.getElementById("dmModal");
+const modalTypeLabel = document.getElementById("modalTypeLabel");
+const modalName = document.getElementById("modalName");
+const modalCategoryChip = document.getElementById("modalCategoryChip");
+const modalDosage = document.getElementById("modalDosage");
+const modalQuantity = document.getElementById("modalQuantity");
+const modalExpiration = document.getElementById("modalExpiration");
+const modalCondition = document.getElementById("modalCondition");
+const modalUrgency = document.getElementById("modalUrgency");
+const modalLocation = document.getElementById("modalLocation");
+const modalDescription = document.getElementById("modalDescription");
+const modalImage = document.getElementById("modalImage");
+const modalCloseBtn = document.getElementById("modalCloseBtn");
+const modalEditBtn = document.getElementById("modalEditBtn");
+const modalDeleteBtn = document.getElementById("modalDeleteBtn");
+const modalMessageBtn = document.getElementById("modalMessageBtn");
+
+// Availability buttons in modal
+const modalStatusAvailable = document.getElementById("modalStatusAvailable");
+const modalStatusUnavailable = document.getElementById("modalStatusUnavailable");
+
+// Image viewer
+let imageViewerEl = null;
+let imageViewerImageEl = null;
+let imageViewerCloseBtn = null;
+
+let activeDonation = null;
+let activeIsMine = false;
+
 /* ========== UTILS ========== */
-function onReady(fn) {
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", fn);
-  else fn();
-}
 function showToast(msg) {
-  const toastEl = document.getElementById("toast");
-  if (toastEl) {
-    toastEl.textContent = msg;
-    toastEl.classList.add("show");
-    setTimeout(() => toastEl.classList.remove("show"), 3000);
+  const toast = document.getElementById("toast");
+  if (toast) {
+    toast.textContent = msg;
+    toast.classList.add("show");
+    setTimeout(() => toast.classList.remove("show"), 3000);
   } else {
     console.info("Toast:", msg);
   }
 }
-function escapeHtml(s = "") {
-  return String(s).replace(/[&<"']/g, (m) => ({ "&": "&amp;", "<": "&lt;", '"': "&quot;", "'": "&#039;" }[m]));
+function formatDate(iso) {
+  if (!iso) return "—";
+  try {
+    const d = iso instanceof Date ? iso : new Date(iso);
+    return d.toLocaleDateString();
+  } catch {
+    return iso;
+  }
 }
-function isoNow() { return new Date().toISOString(); }
-function formatDate(iso) { try { return new Date(iso).toLocaleDateString(); } catch { return iso || ""; } }
+function capitalize(str = "") {
+  if (!str) return "";
+  return str[0].toUpperCase() + str.slice(1);
+}
+
+// --- Extra helpers for notifications (from home.js) ---
 const timeFmt = new Intl.RelativeTimeFormat(undefined, { numeric: "auto" });
-function timeAgo(date) {
-  if (!date) return "";
-  const d = date instanceof Date ? date : new Date(date);
-  const diffSec = Math.round((Date.now() - d.getTime()) / 1000);
-  const units = [
+function timeAgo(value) {
+  if (!value) return "";
+  const d = value instanceof Date ? value : new Date(value);
+  const diff = (d.getTime() - Date.now()) / 1000; // seconds
+
+  const ranges = [
     ["year", 60 * 60 * 24 * 365],
     ["month", 60 * 60 * 24 * 30],
     ["week", 60 * 60 * 24 * 7],
@@ -168,49 +176,719 @@ function timeAgo(date) {
     ["minute", 60],
     ["second", 1],
   ];
-  for (const [name, sec] of units) {
-    if (diffSec >= sec) return timeFmt.format(-Math.floor(diffSec / sec), name);
+
+  for (const [unit, sec] of ranges) {
+    if (Math.abs(diff) >= sec || unit === "second") {
+      return timeFmt.format(Math.round(diff / sec), unit);
+    }
   }
-  return "just now";
+  return "";
 }
 
-/* ========== LocalStorage helpers ========== */
-function loadLocalDonations() {
-  try { const raw = localStorage.getItem(STORAGE_KEY); return raw ? JSON.parse(raw) : []; }
-  catch (e) { console.warn("loadLocalDonations err", e); return []; }
-}
-function saveLocalDonations(arr) {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(arr)); } catch (e) { console.warn("saveLocalDonations err", e); }
+function escapeHtml(s) {
+  return (s || "").replace(/[&<>"']/g, (m) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&lt;", '"': "&quot;", "'": "&#39;" }[m])
+  );
 }
 
-/* ========== UI Populate ========== */
-function populateQuantity() {
-  if (!quantitySelect) return;
-  quantitySelect.innerHTML = "";
-  for (let i = 1; i <= 50; i++) {
-    const o = document.createElement("option"); o.value = String(i); o.textContent = String(i); quantitySelect.appendChild(o);
+/* ========== ICONS (simple + relevant) ========== */
+
+// user
+const ICON_USER_PATH =
+  "M12 2a4 4 0 1 1-4 4 4 4 0 0 1 4-4Zm0 8c-3.31 0-6 1.79-6 4v2h12v-2c0-2.21-2.69-4-6-4Z";
+
+// pills / category / dosage
+const ICON_PILLS_PATH =
+  "M7 3a4 4 0 0 1 4 4v6a4 4 0 0 1-8 0V7a4 4 0 0 1 4-4Zm0 2A2 2 0 0 0 5 7v2h4V7a2 2 0 0 0-2-2Zm10-.5A3.5 3.5 0 0 1 20.5 8v4A3.5 3.5 0 0 1 17 15.5 3.5 3.5 0 0 1 13.5 12V8A3.5 3.5 0 0 1 17 4.5Zm0 2A1.5 1.5 0 0 0 15.5 8v1H18V8A1.5 1.5 0 0 0 17 6.5Z";
+
+// box / quantity
+const ICON_BOX_PATH =
+  "M4 7.5 12 3l8 4.5V17l-8 4-8-4V7.5Zm2 .35V16l6 3 6-3V7.85L12 11 6 7.85Z";
+
+// clock / time
+const ICON_CLOCK_PATH =
+  "M12 2a10 10 0 1 0 10 10A10.011 10.011 0 0 0 12 2Zm1 5h-2v6h5v-2h-3Z";
+
+// shield / condition
+const ICON_SHIELD_PATH =
+  "M12 2 5 5v6a9 9 0 0 0 7 8.7A9 9 0 0 0 19 11V5Zm0 2.2 4 1.9v4.9a7 7 0 0 1-4 6.18A7 7 0 0 1 8 11V6.1ZM11 12.6l-1.5-1.5-1.4 1.4L11 15l4.9-4.9-1.4-1.4Z";
+
+// location
+const ICON_LOCATION_PATH =
+  "M12 2a6 6 0 0 0-6 6c0 4.5 6 10 6 10s6-5.5 6-10a6 6 0 0 0-6-6Zm0 3a3 3 0 1 1-3 3 3 3 0 0 1 3-3Z";
+
+// check-circle / availability ok
+const ICON_CHECK_CIRCLE_PATH =
+  "M12 2a10 10 0 1 0 10 10A10.011 10.011 0 0 0 12 2Zm-1 13.59-3.29-3.3 1.42-1.41L11 13.17l4.88-4.88 1.42 1.42Z";
+
+// x-circle / availability not ok
+const ICON_X_CIRCLE_PATH =
+  "M12 2a10 10 0 1 0 10 10A10.011 10.011 0 0 0 12 2Zm3.3 13.3-1.4 1.4L12 13.41 10.1 15.7l-1.4-1.4L10.59 12 8.7 10.1l1.4-1.4L12 10.59l1.9-1.9 1.4 1.4L13.41 12Z";
+
+function svgIcon(pathD, size = 16) {
+  return `
+    <svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="currentColor" aria-hidden="true">
+      <path d="${pathD}"/>
+    </svg>
+  `;
+}
+
+const SVG_USER_16 = svgIcon(ICON_USER_PATH, 16);
+const SVG_PILLS_14 = svgIcon(ICON_PILLS_PATH, 14);
+const SVG_BOX_14 = svgIcon(ICON_BOX_PATH, 14);
+const SVG_CLOCK_14 = svgIcon(ICON_CLOCK_PATH, 14);
+const SVG_SHIELD_14 = svgIcon(ICON_SHIELD_PATH, 14);
+const SVG_LOCATION_14 = svgIcon(ICON_LOCATION_PATH, 14);
+const SVG_CHECK_14 = svgIcon(ICON_CHECK_CIRCLE_PATH, 14);
+const SVG_X_14 = svgIcon(ICON_X_CIRCLE_PATH, 14);
+
+// Create a badge span with small icon + text
+function createBadge(text, type) {
+  if (!text) return null;
+  const span = document.createElement("span");
+  let extraClass = "";
+  if (type === "urgency-high") extraClass = " badge-urgency-high";
+  else if (type === "urgency-medium") extraClass = " badge-urgency-medium";
+  else if (type === "urgency-low") extraClass = " badge-urgency-low";
+  else if (type === "availability-available") extraClass = " badge-availability-available";
+  else if (type === "availability-unavailable") extraClass = " badge-availability-unavailable";
+
+  span.className = "badge" + extraClass;
+
+  const iconSpan = document.createElement("span");
+  iconSpan.className = "badge-icon";
+
+  if (type && type.startsWith("urgency")) {
+    iconSpan.innerHTML = SVG_CLOCK_14;
+  } else if (type === "availability-available") {
+    iconSpan.innerHTML = SVG_CHECK_14;
+  } else if (type === "availability-unavailable") {
+    iconSpan.innerHTML = SVG_X_14;
+  } else {
+    iconSpan.innerHTML = SVG_PILLS_14;
   }
-  quantitySelect.value = "1";
-}
-function populateMedicinesDatalist() {
-  if (!medicinesList) return;
-  const samples = ["Paracetamol 500 mg","Ibuprofen 200 mg","Amoxicillin 500 mg","Cetirizine 10 mg","Azithromycin 250 mg","Salbutamol Inhaler"];
-  medicinesList.innerHTML = "";
-  samples.forEach(n => { const o = document.createElement("option"); o.value = n; medicinesList.appendChild(o); });
+
+  const textNode = document.createTextNode(text);
+
+  span.appendChild(iconSpan);
+  span.appendChild(textNode);
+  return span;
 }
 
-/* ========== PH Locations ========== */
+// Inline icon + text helper for modal fields
+function setInlineIcon(el, svgHtml, text) {
+  if (!el) return;
+  const value = text && String(text).trim() ? String(text).trim() : "—";
+  el.innerHTML = "";
+  const iconSpan = document.createElement("span");
+  iconSpan.className = "meta-icon";
+  iconSpan.innerHTML = svgHtml;
+  el.appendChild(iconSpan);
+  el.appendChild(document.createTextNode(value));
+}
+
+/* ========== PROFILE MODAL (same design as home.js) ========== */
+function displayNameFrom(u, data) {
+  return (
+    (data && data.name) ||
+    (u && u.displayName) ||
+    (u && u.email ? u.email.split("@")[0] : "Profile")
+  );
+}
+function firstTwo(str = "U") {
+  return str.trim().slice(0, 2).toUpperCase();
+}
+
+async function getCanonicalUser(u) {
+  if (!u) return { name: null, photoURL: null };
+  let name = u.displayName || null;
+  let photoURL = u.photoURL || null;
+
+  try {
+    const snap = await getDoc(doc(db, "users", u.uid));
+    if (snap.exists()) {
+      const data = snap.data() || {};
+      if (data.name) name = data.name;
+      if (data.photoURL) photoURL = data.photoURL;
+    }
+  } catch (e) {
+    console.warn("getCanonicalUser error:", e?.message);
+  }
+  return { name, photoURL };
+}
+
+let profileModal = null;
+
+function ensureProfileModal() {
+  if (profileModal) return profileModal;
+  profileModal = document.createElement("div");
+  profileModal.id = "dm_profile_modal";
+  Object.assign(profileModal.style, {
+    position: "fixed",
+    zIndex: "1000",
+    right: "16px",
+    top: "64px",
+    width: "min(92vw, 300px)",
+    background: "#ffffff",
+    border: "1px solid #e2e8f0",
+    borderRadius: "14px",
+    boxShadow: "0 16px 44px rgba(0,0,0,.16)",
+    display: "none",
+    overflow: "hidden",
+  });
+
+  profileModal.innerHTML = `
+    <div style="padding:14px 16px; border-bottom:1px solid #e5e7eb; background:#f8fafc; display:flex; align-items:center; gap:12px;">
+      <div id="dm_profile_avatar" style="width:40px;height:40px;border-radius:10px;background:#e2e8f0;display:grid;place-items:center;font-weight:900;color:#0f172a;"></div>
+      <div style="min-width:0;">
+        <div id="dm_profile_name" style="font-weight:600;color:#0f172a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">User</div>
+        <div id="dm_profile_email" style="color:#475569;font-size:.9rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>
+      </div>
+    </div>
+    <div style="padding:12px; display:flex; gap:10px;">
+      <a href="profile.html" style="flex:1; text-align:center; text-decoration:none; background:#0f172a; color:#fff; border-radius:10px; padding:10px 12px; font-weight:800;">Go to Profile</a>
+      <button id="dm_signout" style="flex:1; background:#ffffff; color:#0f172a; border:1px solid #e2e8eb; border-radius:10px; padding:10px 12px; font-weight:800; cursor:pointer;">Sign Out</button>
+    </div>
+  `;
+  document.body.appendChild(profileModal);
+
+  document.addEventListener("keydown", (e) => {
+    if (profileModal.style.display !== "none" && e.key === "Escape")
+      hideProfileModal();
+  });
+  document.addEventListener("click", (e) => {
+    if (profileModal.style.display === "none") return;
+    if (e.target === profileModal || profileModal.contains(e.target)) return;
+    if (signInBtn && (e.target === signInBtn || signInBtn.contains(e.target)))
+      return;
+    hideProfileModal();
+  });
+  profileModal
+    .querySelector("#dm_signout")
+    .addEventListener("click", async () => {
+      try {
+        await signOut(auth);
+      } catch (e) {
+        console.warn("signOut error", e);
+      }
+      hideProfileModal();
+    });
+
+  return profileModal;
+}
+function showProfileModal() {
+  ensureProfileModal();
+  profileModal.style.display = "block";
+}
+function hideProfileModal() {
+  if (profileModal) profileModal.style.display = "none";
+}
+
+function updateProfileUI(u, userData) {
+  if (!signInBtn) return;
+  const name = displayNameFrom(u, userData);
+  signInBtn.textContent = name;
+  signInBtn.title = name;
+  signInBtn.setAttribute("aria-label", name);
+
+  ensureProfileModal();
+  const nm = document.querySelector("#dm_profile_name");
+  const em = document.querySelector("#dm_profile_email");
+  const av = document.querySelector("#dm_profile_avatar");
+  if (nm) nm.textContent = name;
+  if (em) em.textContent = u?.email || "";
+  if (av) av.textContent = firstTwo(name);
+
+  signInBtn.onclick = (e) => {
+    e.preventDefault();
+    if (profileModal.style.display === "none") showProfileModal();
+    else hideProfileModal();
+  };
+}
+function renderSignedOut() {
+  if (!signInBtn) return;
+  signInBtn.textContent = "Sign In";
+  signInBtn.title = "Sign In";
+  signInBtn.setAttribute("aria-label", "Sign In");
+  signInBtn.onclick = () => (window.location.href = "auth.html");
+  hideProfileModal();
+}
+
+function listenToUserDoc(u) {
+  if (unsubUserDoc) {
+    unsubUserDoc();
+    unsubUserDoc = null;
+  }
+  if (!u) return;
+  const ref = doc(db, "users", u.uid);
+  unsubUserDoc = onSnapshot(
+    ref,
+    (snap) => {
+      const data = snap.exists() ? snap.data() : null;
+      updateProfileUI(u, data);
+    },
+    (err) => {
+      console.warn("users doc listener error:", err?.message);
+      updateProfileUI(u, null);
+    }
+  );
+}
+
+/* ========== NOTIFICATIONS (same system as home.js/browse.js) ========== */
+
+function ensureBellButton() {
+  // Try to find existing bell button
+  bellBtn = document.querySelector(".bell-btn");
+  if (bellBtn) return bellBtn;
+
+  const headerActions = document.querySelector(".header-actions");
+  if (!headerActions) return null;
+
+  bellBtn = document.createElement("button");
+  bellBtn.type = "button";
+  bellBtn.className = "bell-btn";
+  bellBtn.setAttribute("aria-label", "Notifications");
+  bellBtn.style.position = "relative";
+
+  bellBtn.innerHTML = `
+    <svg class="bell-icon" viewBox="0 0 24 24" fill="currentColor" style="width:22px;height:22px;display:block;">
+      <path d="M12 22a2.5 2.5 0 0 0 2.5-2.5h-5A2.5 2.5 0 0 0 12 22Zm6-6V11c0-3.07-1.63-5.64-4.5-6.32V4a1.5 1.5 0 1 0-3 0v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/>
+    </svg>
+    <span id="dm_notif_badge" style="
+      position:absolute;
+      top:-4px;
+      right:-4px;
+      background:#ef4444;
+      color:#ffffff;
+      border-radius:999px;
+      padding:2px 6px;
+      font-size:.72rem;
+      font-weight:900;
+      line-height:1;
+      min-width:18px;
+      text-align:center;
+      border:2px solid #0f172a;
+      display:none;
+    ">0</span>
+  `;
+
+  if (signInBtn && headerActions.contains(signInBtn)) {
+    headerActions.insertBefore(bellBtn, signInBtn);
+  } else {
+    headerActions.appendChild(bellBtn);
+  }
+  bellBadge = document.getElementById("dm_notif_badge");
+  return bellBtn;
+}
+
+function ensureBellBadge() {
+  if (bellBadge) return bellBadge;
+  if (!bellBtn) return null;
+  bellBadge = document.getElementById("dm_notif_badge");
+  return bellBadge;
+}
+
+function setBellCount(n) {
+  ensureBellBadge();
+  if (!bellBadge) return;
+  if (!n || n <= 0) {
+    bellBadge.style.display = "none";
+  } else {
+    bellBadge.style.display = "inline-block";
+    bellBadge.textContent = String(n);
+  }
+}
+
+// Notification meta (type → colors, labels, titles)
+function notifMetaFor(ev) {
+  const rawType = (ev.type || "").toLowerCase();
+  const rawLevel = (ev.level || ev.category || ev.severity || "").toLowerCase();
+  const baseKey = rawLevel || rawType || "info";
+
+  let tone = "info";
+  if (/success|matched|match|fulfilled|completed|complete|thank/.test(baseKey)) {
+    tone = "success";
+  } else if (/warn|warning|expiry|expir|urgent|pickup|deadline|reminder/.test(baseKey)) {
+    tone = "warning";
+  } else if (/error|issue|problem|failed|fail|safety|alert|expired/.test(baseKey)) {
+    tone = "error";
+  } else {
+    tone = "info";
+  }
+
+  const toneConfig = {
+    success: {
+      color: "#16a34a",
+      softBg: "#dcfce7",
+      label: "Success",
+    },
+    info: {
+      color: "#0284c7",
+      softBg: "#e0f2fe",
+      label: "Info",
+    },
+    warning: {
+      color: "#eab308",
+      softBg: "#fef9c3",
+      label: "Warning",
+    },
+    error: {
+      color: "#dc2626",
+      softBg: "#fee2e2",
+      label: "Urgent",
+    },
+  }[tone];
+
+  let title = ev.title || "";
+  const t = rawType;
+
+  if (!title) {
+    if (/donation/.test(t) && /match/.test(t)) {
+      title = "Donation Matched!";
+    } else if (/request/.test(t) && /fulfill/.test(t)) {
+      title = "Request Fulfilled!";
+    } else if (/exchange/.test(t) && /complete/.test(t)) {
+      title = "Exchange Completed!";
+    } else if (/expiry|expir/.test(t)) {
+      title = "Expiry Reminder";
+    } else if (/message|chat/.test(t)) {
+      title = "New Message";
+    } else if (/pickup/.test(t)) {
+      title = "Pickup Reminder";
+    } else if (/alert|safety/.test(t)) {
+      title = "Safety Alert";
+    } else if (/account|verify/.test(t)) {
+      title = "Account Update";
+    } else if (/request/.test(t) && /new/.test(t)) {
+      title = "New Request Available";
+    } else {
+      title = toneConfig.label + " Notification";
+    }
+  }
+
+  return {
+    tone,
+    title,
+    color: toneConfig.color,
+    softBg: toneConfig.softBg,
+    label: toneConfig.label,
+  };
+}
+
+// Icon per event
+function iconForEvent(ev, meta) {
+  const baseSvg = `width:16px;height:16px;display:block;`;
+  const t = (ev.type || "").toLowerCase();
+
+  if (meta.tone === "info" || /message|chat|request/.test(t)) {
+    return `
+      <svg style="${baseSvg}" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 2a10 10 0 1 0 10 10A10.01 10.01 0 0 0 12 2Zm1 15h-2v-6h2Zm0-8h-2V7h2Z"/>
+      </svg>
+    `;
+  }
+
+  if (meta.tone === "success") {
+    return `
+      <svg style="${baseSvg}" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M9.5 16.6 5.4 12.5l1.4-1.4 2.7 2.7 7.7-7.7 1.4 1.4-9.1 9.1Z"/>
+      </svg>
+    `;
+  }
+
+  if (meta.tone === "warning") {
+    return `
+      <svg style="${baseSvg}" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 2 1 21h22L12 2Zm1 13h-2v-2h2Zm0-4h-2V9h2Z"/>
+      </svg>
+    `;
+  }
+
+  return `
+    <svg style="${baseSvg}" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 2a10 10 0 1 0 10 10A10.01 10.01 0 0 0 12 2Zm1 11h-2V7h2Zm0 4h-2v-2h2Z"/>
+    </svg>
+  `;
+}
+
+function ensureNotifDropdown() {
+  if (notifDropdown) return notifDropdown;
+
+  notifDropdown = document.createElement("div");
+  notifDropdown.id = "dm_notif_dropdown";
+  Object.assign(notifDropdown.style, {
+    position: "fixed",
+    zIndex: "1000",
+    right: "16px",
+    top: "64px",
+    width: "min(92vw, 320px)",
+    background: "#ffffff",
+    border: "1px solid #e2e8f0",
+    borderRadius: "12px",
+    boxShadow: "0 16px 44px rgba(15,23,42,.25)",
+    display: "none",
+    overflow: "hidden",
+    maxHeight: "70vh",
+  });
+
+  notifDropdown.innerHTML = `
+    <div style="
+      padding:10px 14px;
+      border-bottom:1px solid #e5e7eb;
+      background:#f8fafc;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+    ">
+      <div style="font-size:.9rem;font-weight:700;color:#0f172a;">Notifications</div>
+      <span id="dm_notif_count_pill" style="
+        font-size:.8rem;
+        color:#64748b;
+      ">0</span>
+    </div>
+
+    <div id="dm_notif_list" style="padding:4px 0; overflow:auto; background:#ffffff;">
+      <div style="padding:10px 14px; color:#64748b; font-size:.85rem;">
+        No notifications yet. When your donations and requests get activity, they’ll appear here.
+      </div>
+    </div>
+
+    <button id="dm_notif_footer" style="
+      width:100%;
+      border:none;
+      border-top:1px solid #e5e7eb;
+      background:#f9fafb;
+      padding:8px 10px;
+      font-size:.8rem;
+      font-weight:600;
+      color:#0284c7;
+      cursor:pointer;
+    ">
+      View all notifications
+    </button>
+  `;
+  document.body.appendChild(notifDropdown);
+
+  document.getElementById("dm_notif_footer").addEventListener("click", () => {
+    notifDropdown.style.display = "none";
+  });
+
+  document.addEventListener("click", (e) => {
+    if (notifDropdown.style.display === "none") return;
+    if (notifDropdown.contains(e.target)) return;
+    if (bellBtn && (e.target === bellBtn || bellBtn.contains(e.target))) return;
+    notifDropdown.style.display = "none";
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (notifDropdown.style.display !== "none" && e.key === "Escape")
+      notifDropdown.style.display = "none";
+  });
+
+  return notifDropdown;
+}
+
+function showNotifDropdown() {
+  ensureNotifDropdown();
+  notifDropdown.style.display = "block";
+  setBellCount(0);
+}
+function hideNotifDropdown() {
+  if (notifDropdown) notifDropdown.style.display = "none";
+}
+
+function renderEventsList(items) {
+  ensureNotifDropdown();
+  const list = document.getElementById("dm_notif_list");
+  const pill = document.getElementById("dm_notif_count_pill");
+  if (!list || !pill) return;
+
+  if (!items || !items.length) {
+    list.innerHTML = `
+      <div style="padding:10px 10px; color:#64748b; font-size:.85rem;">
+        No notifications yet. When your donations and requests get activity, they’ll appear here.
+      </div>
+    `;
+    pill.textContent = "0 notifications";
+    return;
+  }
+
+  const unreadCount = items.filter((i) => !i.read).length;
+  pill.textContent = unreadCount
+    ? `${unreadCount} new • ${items.length} total`
+    : `${items.length} notifications`;
+
+  list.innerHTML = items
+    .map((ev) => {
+      const meta = notifMetaFor(ev);
+      const iconSvg = iconForEvent(ev, meta);
+      const when = ev.createdAt
+        ? timeAgo(ev.createdAt.toDate ? ev.createdAt.toDate() : ev.createdAt)
+        : "";
+      const msg = ev.message || "";
+      const title = meta.title;
+      const softCircleBg = meta.softBg;
+
+      return `
+      <div style="
+        padding:12px 12px;
+        margin: 6 36px;
+        border-bottom:1px solid #f1f5f9;
+        cursor:pointer;
+        border-radius:8px;
+      " data-id="${ev.id}">
+        <div style="display:flex; gap:10px;">
+          <div style="
+            flex-shrink:0;
+            width:32px;
+            height:32px;
+            border-radius:999px;
+            background:${softCircleBg};
+            display:grid;
+            place-items:center;
+            color:${meta.color};
+          ">
+            ${iconSvg}
+          </div>
+          <div style="flex:1; min-width:0;">
+            <div style="
+              display:flex;
+              justify-content:space-between;
+              align-items:center;
+              margin-bottom:2px;
+            ">
+              <div style="
+                font-size:.85rem;
+                font-weight:600;
+                color:#0f172a;
+                overflow:hidden;
+                text-overflow:ellipsis;
+                white-space:nowrap;
+              ">${escapeHtml(title)}</div>
+              <div style="
+                font-size:.75rem;
+                color:#94a3b8;
+                flex-shrink:0;
+                margin-left:8px;
+              ">${when}</div>
+            </div>
+            ${
+              msg
+                ? `<div style="font-size:.8rem;color:#475569;line-height:1.35;">
+                     ${escapeHtml(msg)}
+                   </div>`
+                : ""
+            }
+          </div>
+        </div>
+      </div>
+    `;
+    })
+    .join("");
+
+  list.querySelectorAll("[data-id]").forEach((card) => {
+    card.onclick = async () => {
+      const id = card.getAttribute("data-id");
+      try {
+        const nRef = doc(db, "events", id);
+        await updateDoc(nRef, { read: true }).catch(() => {});
+      } catch (e) {
+        console.warn("single notif mark read error:", e?.message);
+      }
+      hideNotifDropdown();
+    };
+  });
+}
+
+function listenToEvents(u) {
+  if (unsubEvents) {
+    unsubEvents();
+    unsubEvents = null;
+  }
+
+  if (!u) {
+    renderEventsList([]);
+    setBellCount(0);
+    return;
+  }
+
+  try {
+    const eventsQ = query(
+      collection(db, "events"),
+      where("targetUserId", "==", u.uid),
+      orderBy("createdAt", "desc"),
+      limit(20)
+    );
+
+    unsubEvents = onSnapshot(
+      eventsQ,
+      (snap) => {
+        const items = [];
+        snap.forEach((d) => {
+          const data = d.data() || {};
+          items.push({
+            id: d.id,
+            type: data.type || "info",
+            message: data.message || "",
+            userName: data.userName || "",
+            createdAt: data.createdAt || null,
+            metadata: data.metadata || {},
+            read: data.read || false,
+            level: data.level || data.category || data.severity || null,
+            title: data.title || null,
+          });
+        });
+        renderEventsList(items);
+        const unread = items.filter((i) => !i.read).length;
+        setBellCount(unread);
+      },
+      (err) => {
+        console.warn("events listener error:", err?.message);
+        renderEventsList([]);
+        setBellCount(0);
+      }
+    );
+  } catch (e) {
+    console.warn("events query error:", e?.message);
+  }
+}
+
+/* ========== LOCATION DROPDOWNS (PH) ========== */
 let PH_DATA = null;
 let phDataPromise = null;
+
 async function loadPhData() {
   if (PH_DATA) return PH_DATA;
   if (phDataPromise) return phDataPromise;
-  phDataPromise = fetch(PH_DATA_URL).then(r => { if (!r.ok) throw new Error("Failed to fetch PH data"); return r.json(); }).then(json => { PH_DATA = json; return PH_DATA; }).catch(err => { console.warn("loadPhData error", err); PH_DATA = null; phDataPromise = null; return null; });
+
+  phDataPromise = fetch(PH_DATA_URL)
+    .then((r) => {
+      if (!r.ok) throw new Error("Failed to fetch PH data");
+      return r.json();
+    })
+    .then((json) => {
+      PH_DATA = json;
+      return PH_DATA;
+    })
+    .catch((err) => {
+      console.warn("PH data error", err);
+      PH_DATA = null;
+      phDataPromise = null;
+      return null;
+    });
+
   return phDataPromise;
 }
+
 function clearSelect(sel, placeholder) {
-  if (!sel) return; sel.innerHTML = ""; const o = document.createElement("option"); o.value = ""; o.textContent = placeholder; sel.appendChild(o);
+  if (!sel) return;
+  sel.innerHTML = "";
+  const opt = document.createElement("option");
+  opt.value = "";
+  opt.textContent = placeholder;
+  sel.appendChild(opt);
 }
+
 function initLocationDropdowns() {
   const selRegion = document.getElementById("selRegion");
   const selProvince = document.getElementById("selProvince");
@@ -222,849 +900,1095 @@ function initLocationDropdowns() {
   clearSelect(selProvince, "Select Province…");
   clearSelect(selCityMun, "Select City/Municipality…");
   clearSelect(selBarangay, "Select Barangay…");
-  selRegion.disabled = false; selProvince.disabled = true; selCityMun.disabled = true; selBarangay.disabled = true;
 
-  loadPhData().then(data => {
+  selRegion.disabled = false;
+  selProvince.disabled = true;
+  selCityMun.disabled = true;
+  selBarangay.disabled = true;
+
+  loadPhData().then((data) => {
     if (!data) return;
     Object.entries(data).forEach(([regionCode, regionObj]) => {
       if (!regionObj) return;
-      const opt = document.createElement("option"); opt.value = regionCode; opt.textContent = regionObj.region_name || regionCode; selRegion.appendChild(opt);
+      const opt = document.createElement("option");
+      opt.value = regionCode;
+      opt.textContent = regionObj.region_name || regionCode;
+      selRegion.appendChild(opt);
     });
   });
 
   selRegion.addEventListener("change", () => {
     const regionCode = selRegion.value;
-    clearSelect(selProvince, "Select Province…"); clearSelect(selCityMun, "Select City/Municipality…"); clearSelect(selBarangay, "Select Barangay…");
-    selProvince.disabled = true; selCityMun.disabled = true; selBarangay.disabled = true;
+    clearSelect(selProvince, "Select Province…");
+    clearSelect(selCityMun, "Select City/Municipality…");
+    clearSelect(selBarangay, "Select Barangay…");
+    selProvince.disabled = true;
+    selCityMun.disabled = true;
+    selBarangay.disabled = true;
+
     if (!regionCode || !PH_DATA || !PH_DATA[regionCode]) return;
-    const regionObj = PH_DATA[regionCode]; const provinces = regionObj.province_list || {};
-    Object.keys(provinces).forEach(pn => { const o = document.createElement("option"); o.value = pn; o.textContent = pn; selProvince.appendChild(o); });
+    const regionObj = PH_DATA[regionCode];
+    const provinces = regionObj.province_list || {};
+    Object.keys(provinces).forEach((pName) => {
+      const o = document.createElement("option");
+      o.value = pName;
+      o.textContent = pName;
+      selProvince.appendChild(o);
+    });
     selProvince.disabled = false;
   });
+
   selProvince.addEventListener("change", () => {
-    const regionCode = selRegion.value; const provName = selProvince.value;
-    clearSelect(selCityMun, "Select City/Municipality…"); clearSelect(selBarangay, "Select Barangay…");
-    selCityMun.disabled = true; selBarangay.disabled = true;
+    const regionCode = selRegion.value;
+    const provName = selProvince.value;
+    clearSelect(selCityMun, "Select City/Municipality…");
+    clearSelect(selBarangay, "Select Barangay…");
+    selCityMun.disabled = true;
+    selBarangay.disabled = true;
+
     if (!regionCode || !provName || !PH_DATA) return;
     const regionObj = PH_DATA[regionCode];
     if (!regionObj || !regionObj.province_list || !regionObj.province_list[provName]) return;
+
     const municipalityList = regionObj.province_list[provName].municipality_list || {};
-    Object.keys(municipalityList).forEach(mn => { const o = document.createElement("option"); o.value = mn; o.textContent = mn; selCityMun.appendChild(o); });
+    Object.keys(municipalityList).forEach((mName) => {
+      const o = document.createElement("option");
+      o.value = mName;
+      o.textContent = mName;
+      selCityMun.appendChild(o);
+    });
     selCityMun.disabled = false;
   });
+
   selCityMun.addEventListener("change", () => {
-    const regionCode = document.getElementById("selRegion").value;
-    const provName = document.getElementById("selProvince").value;
-    const munName = document.getElementById("selCityMun").value;
-    const selBrgy = document.getElementById("selBarangay");
-    clearSelect(selBrgy, "Select Barangay…"); selBrgy.disabled = true;
+    const selRegion2 = document.getElementById("selRegion");
+    const selProvince2 = document.getElementById("selProvince");
+    const selCityMun2 = document.getElementById("selCityMun");
+    const selBarangay2 = document.getElementById("selBarangay");
+
+    const regionCode = selRegion2.value;
+    const provName = selProvince2.value;
+    const munName = selCityMun2.value;
+
+    clearSelect(selBarangay2, "Select Barangay…");
+    selBarangay2.disabled = true;
+
     if (!regionCode || !provName || !munName || !PH_DATA) return;
     const regionObj = PH_DATA[regionCode];
     const provinceObj = regionObj && regionObj.province_list && regionObj.province_list[provName];
     const municipalityObj = provinceObj && provinceObj.municipality_list && provinceObj.municipality_list[munName];
     const brgyList = (municipalityObj && municipalityObj.barangay_list) || [];
-    brgyList.forEach(b => { const o = document.createElement("option"); o.value = b; o.textContent = b; selBrgy.appendChild(o); });
-    selBrgy.disabled = brgyList.length === 0;
+
+    brgyList.forEach((b) => {
+      const o = document.createElement("option");
+      o.value = b;
+      o.textContent = b;
+      selBarangay2.appendChild(o);
+    });
+    selBarangay2.disabled = brgyList.length === 0;
   });
 }
 
-/* ========== Cloudinary (with fallback) ========== */
+/* ========== CLOUDINARY UPLOAD ========== */
 function setupCloudinaryUpload() {
-  const uploadBtn = cloudinaryUploadBtn, imageInput = imageUrlInput, previewImg = imagePreview;
-  if (!uploadBtn || !imageInput) return;
-  if (!CLOUDINARY_CLOUD_NAME || !CLOUDINARY_UPLOAD_PRESET) { setupFileFallback(); return; }
+  if (!cloudinaryUploadBtn || !imageUrlInput) return;
+
   function initWidget() {
-    if (!window.cloudinary || !window.cloudinary.createUploadWidget) { setupFileFallback(); return; }
-    const widget = window.cloudinary.createUploadWidget({
-      cloudName: CLOUDINARY_CLOUD_NAME,
-      uploadPreset: CLOUDINARY_UPLOAD_PRESET,
-      sources: ["local", "camera", "url"],
-      multiple: false,
-      maxFiles: 1,
-      folder: "donormedix_donations",
-    }, (err, result) => {
-      if (err) { console.warn("cloudinary err", err); showToast("Image upload failed."); return; }
-      if (result && result.event === "success") {
-        const url = result.info.secure_url;
-        imageInput.value = url; if (previewImg) { previewImg.src = url; previewImg.style.display = "block"; }
+    if (!window.cloudinary || !window.cloudinary.createUploadWidget) {
+      setupFileFallback();
+      return;
+    }
+    const widget = window.cloudinary.createUploadWidget(
+      {
+        cloudName: CLOUDINARY_CLOUD_NAME,
+        uploadPreset: CLOUDINARY_UPLOAD_PRESET,
+        multiple: false,
+        maxFiles: 1,
+        folder: "donormedix_donations",
+        sources: ["local", "camera", "url"],
+      },
+      (err, result) => {
+        if (err) {
+          console.warn("Cloudinary error", err);
+          showToast("Image upload failed.");
+          return;
+        }
+        if (result && result.event === "success") {
+          const url = result.info.secure_url;
+          imageUrlInput.value = url;
+          if (imagePreview) {
+            imagePreview.src = url;
+            imagePreview.style.display = "block";
+          }
+        }
       }
+    );
+
+    cloudinaryUploadBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      widget.open();
     });
-    uploadBtn.addEventListener("click", (e) => { e.preventDefault(); widget.open(); });
   }
-  if (document.readyState === "complete" || document.readyState === "interactive") initWidget();
-  else window.addEventListener("load", initWidget);
+
+  if (document.readyState === "complete" || document.readyState === "interactive") {
+    initWidget();
+  } else {
+    window.addEventListener("load", initWidget);
+  }
 }
+
 function setupFileFallback() {
-  const uploadBtn = cloudinaryUploadBtn, imageInput = imageUrlInput, previewImg = imagePreview;
-  if (!uploadBtn || !imageInput) return;
-  uploadBtn.textContent = "Choose image";
+  if (!cloudinaryUploadBtn || !imageUrlInput) return;
+  cloudinaryUploadBtn.textContent = "Choose image";
+
   let fileInput = document.getElementById("_donor_file_input");
   if (!fileInput) {
     fileInput = document.createElement("input");
     fileInput.type = "file";
     fileInput.accept = "image/*";
-    fileInput.id = "_donor_file_input";
     fileInput.style.display = "none";
+    fileInput.id = "_donor_file_input";
     document.body.appendChild(fileInput);
   }
-  uploadBtn.addEventListener("click", () => fileInput.click());
-  fileInput.addEventListener("change", (ev) => {
-    const f = ev.target.files && ev.target.files[0];
-    if (!f) return;
+
+  cloudinaryUploadBtn.addEventListener("click", () => fileInput.click());
+  fileInput.addEventListener("change", (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
     const reader = new FileReader();
     reader.onload = () => {
-      imageInput.value = reader.result; if (previewImg) { previewImg.src = reader.result; previewImg.style.display = "block"; }
+      imageUrlInput.value = reader.result;
+      if (imagePreview) {
+        imagePreview.src = reader.result;
+        imagePreview.style.display = "block";
+      }
     };
-    reader.readAsDataURL(f);
+    reader.readAsDataURL(file);
   });
 }
 
-/* ========== PROFILE & NOTIFICATIONS UI ========== */
-// (unchanged; same behaviour as original code)
-let profileModal = null;
-let notifModal = null;
-function ensureProfileModal() {
-  if (profileModal) return profileModal;
-  profileModal = document.createElement("div"); profileModal.id = "dm_profile_modal";
-  Object.assign(profileModal.style, { position: "fixed", zIndex: "1000", right: "16px", top: "64px", width: "min(92vw,300px)", background: "#fff", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 16px 44px rgba(0,0,0,.12)", display: "none" });
-  profileModal.innerHTML = `
-    <div style="padding:12px;border-bottom:1px solid #eef2f6;display:flex;gap:10px;align-items:center">
-      <div id="dm_profile_avatar" style="width:44px;height:44px;border-radius:10px;background:#f1f5f9;display:grid;place-items:center;font-weight:800"></div>
-      <div style="min-width:0">
-        <div id="dm_profile_name" style="font-weight:700;color:#0f172a">User</div>
-        <div id="dm_profile_email" style="font-size:.9rem;color:#64748b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
-      </div>
-    </div>
-    <div style="padding:12px;display:flex;gap:8px">
-      <a href="profile.html" style="flex:1;text-align:center;text-decoration:none;padding:8px;border-radius:8px;background:#0f172a;color:#fff;font-weight:800">Go to Profile</a>
-      <button id="dm_signout" style="flex:1;padding:8px;border-radius:8px;background:#fff;border:1px solid #e2e8f0;font-weight:800;cursor:pointer">Sign Out</button>
-    </div>
-  `;
-  document.body.appendChild(profileModal);
-  profileModal.querySelector("#dm_signout").addEventListener("click", async () => { try { await signOut(auth); } catch (e) { console.warn("signout err", e); } profileModal.style.display = "none"; });
-  document.addEventListener("click", (e) => { if (!profileModal) return; if (profileModal.style.display === "none") return; if (e.target === profileModal || profileModal.contains(e.target)) return; if (signInBtn && (e.target === signInBtn || signInBtn.contains(e.target))) return; profileModal.style.display = "none"; });
-  return profileModal;
-}
-function updateProfileUI(u, userData) {
-  if (!signInBtn) return;
-  const name = userData?.name || u?.displayName || (u?.email ? u.email.split("@")[0] : "Profile");
-  signInBtn.textContent = name; signInBtn.title = name;
-  ensureProfileModal();
-  const nm = document.getElementById("dm_profile_name"), em = document.getElementById("dm_profile_email"), av = document.getElementById("dm_profile_avatar");
-  if (nm) nm.textContent = name; if (em) em.textContent = u?.email || ""; if (av) av.textContent = name.slice(0,2).toUpperCase();
-  signInBtn.onclick = (e) => { e.preventDefault(); profileModal.style.display = profileModal.style.display === "none" ? "block" : "none"; };
-}
-function renderSignedOutHeader() { if (!signInBtn) return; signInBtn.textContent = "Sign In"; signInBtn.onclick = () => (window.location.href = "auth.html"); if (profileModal) profileModal.style.display = "none"; }
-
-function ensureNotifModal() {
-  if (notifModal) return notifModal;
-  notifModal = document.createElement("div"); notifModal.id = "dm_notif_modal";
-  Object.assign(notifModal.style, { position: "fixed", zIndex: "1000", right: "220px", top: "64px", width: "min(92vw,240px)", background: "#fff", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 16px 44px rgba(0,0,0,.12)", display: "none", maxHeight: "72vh", overflow: "auto" });
-  notifModal.innerHTML = `
-    <div style="padding:10px;border-bottom:1px solid #eef2f6;display:flex;justify-content:space-between;align-items:center">
-      <strong style="font-weight:900;color:#0f172a">Notifications</strong>
-      <button id="dm_notif_close" style="border:none;background:transparent;cursor:pointer;font-weight:900">×</button>
-    </div>
-    <div id="dm_notif_list" style="padding:10px;background:#f8fafc">
-      <div style="color:#64748b">No notifications yet.</div>
-    </div>
-  `;
-  document.body.appendChild(notifModal);
-  document.getElementById("dm_notif_close").addEventListener("click", () => (notifModal.style.display = "none"));
-  document.addEventListener("click", (e) => { if (!notifModal) return; if (notifModal.style.display === "none") return; if (e.target === notifModal || notifModal.contains(e.target)) return; if (bellBtn && (e.target === bellBtn || bellBtn.contains(e.target))) return; notifModal.style.display = "none"; });
-  return notifModal;
-}
-function renderEventsList(items) {
-  ensureNotifModal();
-  const list = document.getElementById("dm_notif_list");
-  if (!list) return;
-  if (!items || !items.length) { list.innerHTML = `<div style="color:#64748b;padding:8px">No notifications yet.</div>`; if (notifBadge) notifBadge.style.display = "none"; return; }
-  list.innerHTML = items.map(ev => {
-    const when = ev.createdAt ? (ev.createdAt.toDate ? timeAgo(ev.createdAt.toDate()) : timeAgo(new Date(ev.createdAt))) : "";
-    return `<div style="padding:10px;border:1px solid #eef2f6;border-radius:12px;margin-bottom:8px;background:#fff"><div style="font-weight:700;color:#0f172a">${escapeHtml(ev.userName || "Someone")}</div><div style="color:#0f172a;margin-top:6px">${escapeHtml(ev.message || "")}</div><div style="color:#64748b;font-size:.85rem;margin-top:6px">${when}</div></div>`;
-  }).join("");
-  if (notifBadge) { notifBadge.style.display = "inline-block"; notifBadge.textContent = String(items.length); }
-}
-function listenToEvents() {
-  if (unsubEvents) { unsubEvents(); unsubEvents = null; }
-  try {
-    const q = query(collection(db, "events"), orderBy("createdAt", "desc"), limit(20));
-    unsubEvents = onSnapshot(q, snap => {
-      const items = [];
-      snap.forEach(d => items.push({ id: d.id, ...(d.data() || {}) }));
-      renderEventsList(items);
-    }, err => { console.warn("events listen err", err); renderEventsList([]); });
-  } catch (e) { console.warn("listenToEvents err", e); }
+/* ========== FORM HELPERS ========== */
+function populateQuantity() {
+  if (!quantitySelect) return;
+  quantitySelect.innerHTML = "";
+  for (let i = 1; i <= 50; i++) {
+    const opt = document.createElement("option");
+    opt.value = String(i);
+    opt.textContent = String(i);
+    quantitySelect.appendChild(opt);
+  }
+  quantitySelect.value = "1";
 }
 
-/* ========== RENDER / SUBSCRIPTIONS ========== */
-function clearUnsubMyDonations() { if (unsubMyDonations) { unsubMyDonations(); unsubMyDonations = null; } }
-function clearUnsubAllDonations() { if (unsubAllDonations) { unsubAllDonations(); unsubAllDonations = null; } }
-
-/* Shared helper: build normalized donation object for UI */
-function normalizeDonation(d) {
-  const item = { id: d.id || d.localId || ("local_" + Date.now()), medicineName: d.medicineName || "", description: d.description || "", imageUrl: d.imageUrl || "", quantity: d.quantity || "", expiryDate: d.expiryDate ? (d.expiryDate.toDate ? d.expiryDate.toDate().toISOString() : d.expiryDate) : "", urgency: d.urgency || "", category: d.category || "", pickupLocation: d.pickupLocation || "", condition: d.condition || "", userId: d.userId || d.ownerId || null, createdAt: d.createdAt ? (d.createdAt.toDate ? d.createdAt.toDate().toISOString() : (new Date(d.createdAt)).toISOString()) : (d.createdAtIso || d.createdAt || isoNow()), donorName: d.donorName || d.name || "" };
-  return item;
+function populateMedicinesDatalist() {
+  if (!medicinesList) return;
+  const samples = [
+    "Paracetamol 500 mg",
+    "Ibuprofen 200 mg",
+    "Amoxicillin 500 mg",
+    "Cetirizine 10 mg",
+    "Azithromycin 250 mg",
+    "Salbutamol Inhaler",
+  ];
+  medicinesList.innerHTML = "";
+  samples.forEach((name) => {
+    const opt = document.createElement("option");
+    opt.value = name;
+    medicinesList.appendChild(opt);
+  });
 }
 
-/* ========== RENDER: All Donations (FIRESTORE ONLY) ========== */
-function collectAllFilters() {
+/* ========== SWITCHER (All / Mine / Create) ========== */
+function showPanel(view) {
+  if (!createPanel || !allDonationsPanel || !myDonationsPanel || !sidebar || !mainGrid) return;
+
+  createPanel.style.display = "none";
+  allDonationsPanel.style.display = "none";
+  myDonationsPanel.style.display = "none";
+  sidebar.style.display = "none";
+  mainGrid.classList.remove("has-sidebar");
+
+  if (view === "create") {
+    createPanel.style.display = "block";
+    sidebar.style.display = "block";
+    mainGrid.classList.add("has-sidebar");
+  } else if (view === "all") {
+    allDonationsPanel.style.display = "block";
+  } else if (view === "mine") {
+    myDonationsPanel.style.display = "block";
+  }
+}
+
+function initSwitcher() {
+  showPanel("create");
+  pills.forEach((pill) => {
+    pill.addEventListener("click", () => {
+      pills.forEach((p) => p.classList.remove("active"));
+      pill.classList.add("active");
+      const view = pill.getAttribute("data-view");
+      showPanel(view);
+      if (view === "all") {
+        renderAllDonations();
+      } else if (view === "mine") {
+        renderMyDonations();
+      }
+    });
+  });
+}
+
+/* ========== AVAILABILITY HELPERS ========== */
+function isDonationAvailable(d) {
+  if (!d) return true;
+
+  const rawStatus = (d.status || "").toString().toLowerCase().trim();
+  if (rawStatus === "unavailable" || rawStatus === "not available") return false;
+  if (rawStatus === "available") return true;
+
+  if (typeof d.available === "boolean") {
+    return d.available;
+  }
+
+  if (typeof d.quantity === "number") {
+    return d.quantity > 0;
+  }
+
+  return true;
+}
+
+/* ========== NORMALIZE FIRESTORE DONATION ========== */
+function normalizeDonation(raw) {
+  const d = raw || {};
+  const createdAt = d.createdAt && d.createdAt.toDate
+    ? d.createdAt.toDate()
+    : (d.createdAt || d.createdAtIso ? new Date(d.createdAt || d.createdAtIso) : new Date());
+  const expiry = d.expiryDate && d.expiryDate.toDate
+    ? d.expiryDate.toDate()
+    : (d.expiryDate ? new Date(d.expiryDate) : null);
+
+  let status = (d.status || "").toString().toLowerCase().trim();
+  if (!status) {
+    if (typeof d.available === "boolean") {
+      status = d.available ? "available" : "unavailable";
+    } else if (typeof d.quantity === "number") {
+      status = d.quantity > 0 ? "available" : "unavailable";
+    } else {
+      status = "available";
+    }
+  }
+
   return {
-    category: filterCategory ? (filterCategory.value || "").trim() : "",
-    urgency: filterUrgency ? (filterUrgency.value || "").trim() : "",
+    id: d.id || d.docId || null,
+    medicineName: d.medicineName || "",
+    description: d.description || "",
+    imageUrl: d.imageUrl || "",
+    quantity: d.quantity || 0,
+    expiryDate: expiry ? expiry.toISOString() : "",
+    urgency: d.urgency || "",
+    category: d.category || "",
+    pickupLocation: d.pickupLocation || "",
+    condition: d.condition || "",
+    dosageForm: d.dosageForm || "",
+    userId: d.userId || null,
+    donorName: d.donorName || d.name || "",
+    createdAt: createdAt.toISOString(),
+    status,
   };
 }
-function applyFilters(items, filters) {
-  if (!filters) filters = collectAllFilters();
-  return (items || []).filter(it => {
-    if (filters.category && (it.category || "") !== filters.category) return false;
-    if (filters.urgency && (it.urgency || "") !== filters.urgency) return false;
-    return true;
-  });
+
+/* ========== CARD RENDERING ========== */
+function mapDosageLabel(code) {
+  if (!code) return "—";
+  const map = {
+    "tablets-capsules": "Tablets/Capsules",
+    "oral-liquid": "Oral liquid (syrup)",
+    "reconstituted-suspension": "Reconstituted antibiotic (suspension)",
+    "cream-ointment-tube": "Cream/Ointment (tube)",
+    "cream-ointment-tub": "Cream/Ointment (tub)",
+    "eye-ear-nose-drops": "Eye/Ear/Nose drops",
+    insulin: "Insulin (vial/pen)",
+    inhaler: "Inhaler",
+    ors: "Oral rehydration salts",
+    other: "Other",
+  };
+  return map[code] || code;
 }
 
-/* ====== Replacement createDonationCard using request-card design ===== */
-function createDonationCard(it, opts = {}) {
-  const onClick = typeof opts.onClick === "function" ? opts.onClick : null;
-  const compact = !!opts.compact;
+function mapUrgencyLabel(u) {
+  if (!u) return "—";
+  return capitalize(u);
+}
 
-  const card = document.createElement("div");
-  card.className = "request-card";
-  card.tabIndex = 0;
+function createDonationCard(donation, isMine) {
+  const d = donation;
+  const available = isDonationAvailable(d);
+  const normalizedStatus = d.status || (available ? "available" : "unavailable");
 
-  // left/main
-  const main = document.createElement("div");
-  main.className = "request-main";
+  const card = document.createElement("article");
+  card.className = "card";
 
-  // header row: title + donor
-  const headerRow = document.createElement("div");
-  headerRow.className = "request-header-row";
+  card.dataset.owner = isMine ? "me" : "other";
+  card.dataset.name = d.medicineName || "";
+  card.dataset.category = d.category || "";
+  card.dataset.dosage = mapDosageLabel(d.dosageForm || "");
+  card.dataset.description = d.description || "";
+  card.dataset.quantity = d.quantity ? `${d.quantity}` : "";
+  card.dataset.expiration = d.expiryDate ? formatDate(d.expiryDate) : "";
+  card.dataset.condition = d.condition || "";
+  card.dataset.urgency = d.urgency || "";
+  card.dataset.location = d.pickupLocation || "";
+  card.dataset.image = d.imageUrl || "placeholder-medicine.jpg";
+  card.dataset.donationId = d.id || "";
+  card.dataset.status = normalizedStatus;
 
-  const title = document.createElement("div");
-  title.className = "request-title";
-  title.textContent = it.medicineName || it.title || "Medicine";
+  const body = document.createElement("div");
+  body.className = "card__body";
 
-  const requester = document.createElement("div");
-  requester.className = "request-requester";
-  requester.textContent = (it.donorName || it.userId || "Anonymous");
+  const title = document.createElement("h3");
+  title.className = "title";
+  title.textContent = d.medicineName || "Medicine";
 
-  headerRow.appendChild(title);
-  headerRow.appendChild(requester);
-  main.appendChild(headerRow);
+  const small = document.createElement("p");
+  small.className = "muted";
 
-  // description (single-line trimmed)
-  if (!compact && it.description) {
-    const desc = document.createElement("div");
-    desc.style.color = "#64748b";
-    desc.style.fontSize = ".92rem";
-    desc.style.marginTop = "6px";
-    desc.style.whiteSpace = "nowrap";
-    desc.style.overflow = "hidden";
-    desc.style.textOverflow = "ellipsis";
-    desc.textContent = it.description;
-    main.appendChild(desc);
-  }
+  const metaSpan = document.createElement("span");
+  metaSpan.className = "meta-icon";
+  metaSpan.innerHTML = SVG_USER_16;
+  small.appendChild(metaSpan);
 
-  // meta row (category/urgency/qty) as small pills if present
-  const pillRow = document.createElement("div");
-  pillRow.className = "tag-row";
-  if (it.category) {
-    const p = document.createElement("div"); p.className = "tag"; p.textContent = it.category; pillRow.appendChild(p);
-  }
-  if (it.urgency) {
-    const p = document.createElement("div"); p.className = "tag"; p.textContent = it.urgency; pillRow.appendChild(p);
-  }
-  if (it.quantity) {
-    const p = document.createElement("div"); p.className = "tag"; p.textContent = `Qty: ${it.quantity}`; pillRow.appendChild(p);
-  }
-  if (pillRow.children.length) main.appendChild(pillRow);
-
-  // open button
-  const openBtn = document.createElement("button");
-  openBtn.type = "button";
-  openBtn.className = "request-open-btn";
-  openBtn.innerHTML = `<span class="request-open-btn-icon">➡</span><span>Open</span>`;
-  openBtn.addEventListener("click", (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (onClick) onClick(it, opts.context || {});
-    else if (typeof window.onOpenDonation === "function") window.onOpenDonation(it);
-    else if (typeof openDonationModal === "function") openDonationModal(it);
-  });
-
-  main.appendChild(openBtn);
-
-  // right image wrap
-  const imgWrap = document.createElement("div");
-  imgWrap.className = "request-image-wrap";
-  if (it.imageUrl) {
-    const img = document.createElement("img");
-    img.src = it.imageUrl;
-    img.alt = it.medicineName || "image";
-    img.loading = "lazy";
-    imgWrap.appendChild(img);
+  if (isMine) {
+    small.appendChild(
+      document.createTextNode(`My donation · Created ${formatDate(d.createdAt)}`)
+    );
   } else {
-    // placeholder — you can replace with a path to your uploaded png if you want
-    imgWrap.innerHTML = `<svg width="48" height="48" viewBox="0 0 24 24" fill="none"><rect width="24" height="24" rx="4" fill="#f1f5f9"/></svg>`;
+    const name = d.donorName || "Anonymous donor";
+    small.appendChild(document.createTextNode(`Donated by ${name}`));
   }
 
-  card.appendChild(main);
-  card.appendChild(imgWrap);
+  body.appendChild(title);
+  body.appendChild(small);
 
-  // card click opens too
-  card.addEventListener("click", (e) => {
-    if (e.target && (e.target.closest && e.target.closest('.request-open-btn'))) return;
-    if (onClick) onClick(it, opts.context || {});
-    else if (typeof window.onOpenDonation === "function") window.onOpenDonation(it);
-    else if (typeof openDonationModal === "function") openDonationModal(it);
-  });
+  const cardMeta = document.createElement("div");
+  cardMeta.className = "card-meta";
 
-  card.addEventListener("keydown", (e) => {
-    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); if (onClick) onClick(it, opts.context || {}); else if (typeof openDonationModal === "function") openDonationModal(it); }
-  });
+  const catText = d.category || "Other";
+  const urgencyRaw = (d.urgency || "").toString().toLowerCase();
+  let urgencyLabel = "";
+  let urgencyType = "";
+
+  if (urgencyRaw === "high") {
+    urgencyLabel = "High urgency";
+    urgencyType = "urgency-high";
+  } else if (urgencyRaw === "medium") {
+    urgencyLabel = "Medium urgency";
+    urgencyType = "urgency-medium";
+  } else if (urgencyRaw === "low") {
+    urgencyLabel = "Low urgency";
+    urgencyType = "urgency-low";
+  } else if (d.urgency) {
+    urgencyLabel = d.urgency;
+  }
+
+  const catBadge = createBadge(catText, "category");
+  const urgBadge = urgencyLabel
+    ? createBadge(urgencyLabel, urgencyType || "category")
+    : null;
+
+  const availabilityLabel = available ? "Available" : "Not available";
+  const availabilityType = available
+    ? "availability-available"
+    : "availability-unavailable";
+  const availabilityBadge = createBadge(availabilityLabel, availabilityType);
+
+  if (catBadge) cardMeta.appendChild(catBadge);
+  if (urgBadge) cardMeta.appendChild(urgBadge);
+  if (availabilityBadge) cardMeta.appendChild(availabilityBadge);
+
+  if (cardMeta.childNodes.length > 0) {
+    body.appendChild(cardMeta);
+  }
+
+  const footer = document.createElement("div");
+  footer.className = "card__footer";
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "card__btn-open";
+  btn.textContent = "Open";
+  btn.addEventListener("click", () => openDonationModalFromData(d, isMine));
+  footer.appendChild(btn);
+
+  card.appendChild(body);
+  card.appendChild(footer);
 
   return card;
 }
 
-/* ====== UPDATED: renderAllList uses createDonationCard and duplicates into output area ====== */
-function renderAllList(items) {
-  const container = document.getElementById('allDonationsList');
-  const emptyEl = document.getElementById('allEmpty');
-  const countEl = document.getElementById('allDonationsCount');
-  const outWrapper = document.getElementById('donationsOutput');
-  if (!container) return;
+/* ========== FILTERING (ALL DONATIONS) ========== */
+function getFilterValues() {
+  return {
+    category: filterCategory ? filterCategory.value : "",
+    urgency: filterUrgency ? filterUrgency.value : "",
+  };
+}
 
-  window.__lastDonationItems = Array.isArray(items) ? items.slice() : [];
-  const filtered = applyFilters(items, collectAllFilters());
+function applyFiltersToAll() {
+  const filters = getFilterValues();
+  return allDonationsData.filter((d) => {
+    if (filters.category && d.category !== filters.category) return false;
+    if (filters.urgency && d.urgency !== filters.urgency) return false;
+    return true;
+  });
+}
 
-  // clear
-  container.innerHTML = '';
-  if (outWrapper) outWrapper.innerHTML = '';
+/* ========== RENDER ALL & MY DONATIONS ========== */
+function renderAllDonations() {
+  if (!allDonationsList) return;
+  allDonationsList.innerHTML = "";
 
-  if (!filtered.length) {
-    if (emptyEl) emptyEl.style.display = 'block';
-    if (countEl) countEl.textContent = 'No donations found';
-    if (outWrapper) {
-      const empty = document.getElementById('donationsOutputEmpty');
-      if (empty) empty.style.display = 'block';
+  const filtered = applyFiltersToAll();
+
+  if (allDonationsCount) {
+    if (!filtered.length) {
+      allDonationsCount.textContent = "No donations found";
+    } else {
+      allDonationsCount.textContent = `Showing ${filtered.length} community donations`;
     }
+  }
+
+  filtered.forEach((d) => {
+    const isMine = currentUser && d.userId === currentUser.uid;
+    const card = createDonationCard(d, isMine);
+    allDonationsList.appendChild(card);
+  });
+
+  if (allDonationsStat) allDonationsStat.textContent = String(allDonationsData.length || 0);
+  if (peopleHelpedStat) {
+    const helped = Math.max(0, Math.floor((allDonationsData.length || 0) * 2.5));
+    peopleHelpedStat.textContent = String(helped);
+  }
+}
+
+function renderMyDonations() {
+  if (!myDonationsList) return;
+  // 🔧 FIX: clear as string, not object (removes [object Object])
+  myDonationsList.innerHTML = "";
+
+  if (!currentUser) {
+    if (myDonationsCount) myDonationsCount.textContent = "Sign in to see your donations";
+    const msg = document.createElement("p");
+    msg.className = "muted";
+    msg.textContent = "Please sign in to view and manage your donations.";
+    myDonationsList.appendChild(msg);
+    if (youDonations) youDonations.textContent = "0";
+    if (youImpactPeople) youImpactPeople.textContent = "0";
     return;
   }
-  if (emptyEl) emptyEl.style.display = 'none';
-  if (countEl) countEl.textContent = `Showing ${filtered.length} community donations`;
-  if (outWrapper) {
-    const empty = document.getElementById('donationsOutputEmpty');
-    if (empty) empty.style.display = 'none';
+
+  if (!myDonationsData.length) {
+    if (myDonationsCount) myDonationsCount.textContent = "You have no donations yet";
+    const msg = document.createElement("p");
+    msg.className = "muted";
+    msg.textContent = "You haven't posted any donations yet.";
+    myDonationsList.appendChild(msg);
+    if (youDonations) youDonations.textContent = "0";
+    if (youImpactPeople) youImpactPeople.textContent = "0";
+    return;
   }
 
-  filtered.forEach(it => {
-    const card = createDonationCard(it, { onClick: (item) => {
-      if (typeof window.onOpenDonation === 'function') window.onOpenDonation(item);
-      else openDonationModal(item);
-    }, compact: false, context: { source: 'firestore', docId: it.id } });
-
-    container.appendChild(card);
-
-    // also append to shared output if present (clone to avoid moving the element)
-    if (outWrapper) {
-      const clone = card.cloneNode(true);
-      outWrapper.appendChild(clone);
-      // attach click to clone (clone lost original event handlers)
-      clone.addEventListener('click', () => {
-        if (typeof window.onOpenDonation === 'function') window.onOpenDonation(it);
-        else openDonationModal(it);
-      });
-      clone.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (typeof window.onOpenDonation === 'function') window.onOpenDonation(it); else openDonationModal(it); }
-      });
-    }
-  });
-}
-
-/* ===== New: robust Firestore listener with fallback when orderBy fails ===== */
-function renderAllDonationsFromFirestore() {
-  if (unsubAllDonations) { unsubAllDonations(); unsubAllDonations = null; }
-  try {
-    // try listening with orderBy createdAt (preferred)
-    const qOrdered = query(collection(db, "donations"), orderBy("createdAt", "desc"));
-    unsubAllDonations = onSnapshot(qOrdered, snap => {
-      const arr = [];
-      snap.forEach(d => { const data = d.data() || {}; arr.push(normalizeDonation({ id: d.id, ...data })); });
-      window.__lastDonationItems = arr.slice();
-      renderAllList(arr);
-    }, async (err) => {
-      console.warn("Ordered snapshot failed:", err);
-      showToast("Could not load ordered donations; falling back. Check console for details.");
-      // fallback: listen to collection without order and sort client-side
-      try {
-        if (unsubAllDonations) { unsubAllDonations(); unsubAllDonations = null; }
-        unsubAllDonations = onSnapshot(collection(db, "donations"), snap2 => {
-          const arr2 = [];
-          snap2.forEach(d2 => { const data2 = d2.data() || {}; arr2.push(normalizeDonation({ id: d2.id, ...data2 })); });
-          // try sort by createdAt if present
-          arr2.sort((a,b) => {
-            const ta = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-            const tb = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-            return tb - ta;
-          });
-          window.__lastDonationItems = arr2.slice();
-          renderAllList(arr2);
-        }, err2 => {
-          console.error("Fallback all donations snapshot err", err2);
-          renderAllList([]);
-        });
-      } catch (fb) {
-        console.error("Failed fallback listener for all donations:", fb);
-        renderAllList([]);
-      }
-    });
-  } catch (e) {
-    console.warn("renderAllDonationsFromFirestore top-level err", e);
-    showToast("Error loading donations. Check console.");
-    // final fallback: one-time get and render
-    try {
-      getDocs(collection(db, "donations")).then(snap => {
-        const arr = [];
-        snap.forEach(d => { const data = d.data() || {}; arr.push(normalizeDonation({ id: d.id, ...data })); });
-        arr.sort((a,b) => {
-          const ta = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-          const tb = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-          return tb - ta;
-        });
-        window.__lastDonationItems = arr.slice();
-        renderAllList(arr);
-      }).catch(err => { console.error("final fallback getDocs err", err); renderAllList([]); });
-    } catch (finalErr) {
-      console.error("renderAllDonationsFromFirestore final err", finalErr);
-      renderAllList([]);
-    }
+  if (myDonationsCount) {
+    myDonationsCount.textContent = `Showing ${myDonationsData.length} of your donations`;
   }
-}
 
-/* ========== RENDER: My Donations ========== */
-function renderMyDonationsFromLocal() {
-  const arr = loadLocalDonations();
-  if (!myDonationsList) return;
-  myDonationsList.innerHTML = "";
-  const outWrapper = document.getElementById('donationsOutput');
-  if (outWrapper) outWrapper.innerHTML = outWrapper.innerHTML || "";
-
-  if (!arr.length) {
-    myDonationsList.innerHTML = `<div class="requests-empty">You don't have any donations yet.</div>`;
-    if (myDonationsCount) myDonationsCount.textContent = `Showing 0 of your donations`;
-    if (outWrapper) {
-      const outEmpty = document.getElementById('donationsOutputEmpty');
-      if (outEmpty) outEmpty.style.display = 'block';
-    }
-  } else {
-    if (outWrapper) {
-      const outEmpty = document.getElementById('donationsOutputEmpty');
-      if (outEmpty) outEmpty.style.display = 'none';
-    }
-    arr.slice().reverse().forEach(dRaw => {
-      const d = normalizeDonation(dRaw);
-      const card = createDonationCard(d, { onClick: (item) => openDonationModal(item), compact: false, context: { source: "local" } });
-      myDonationsList.appendChild(card);
-
-      if (outWrapper) {
-        const cloned = card.cloneNode(true);
-        outWrapper.appendChild(cloned);
-        cloned.addEventListener('click', () => openDonationModal(d));
-        cloned.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openDonationModal(d); }});
-      }
-    });
-    if (myDonationsCount) myDonationsCount.textContent = `Showing ${arr.length} of your donations`;
-  }
-  // stats
-  if (youDonations) youDonations.textContent = arr.length;
-  if (youImpactPeople) youImpactPeople.textContent = arr.length * 2;
-  if (allDonations) allDonations.textContent = arr.length;
-  if (peopleHelped) peopleHelped.textContent = Math.floor(arr.length * 2.5);
-  if (notifBadge) { notifBadge.style.display = arr.length ? "inline-block" : "none"; notifBadge.textContent = arr.length || ""; }
-}
-
-function renderMyDonationsFromFirestore(uid) {
-  clearUnsubMyDonations();
-  if (!uid) return renderMyDonationsFromLocal();
-  try {
-    // Preferred: where + orderBy (may need index)
-    const qPreferred = query(collection(db, "donations"), where("userId", "==", uid), orderBy("createdAt", "desc"));
-    unsubMyDonations = onSnapshot(qPreferred, snap => {
-      const arr = [];
-      snap.forEach(d => { const data = d.data() || {}; arr.push(normalizeDonation({ id: d.id, ...data })); });
-      if (!myDonationsList) return;
-      myDonationsList.innerHTML = "";
-
-      if (!arr.length) {
-        myDonationsList.innerHTML = `<div class="requests-empty">You don't have any donations yet.</div>`;
-        if (myDonationsCount) myDonationsCount.textContent = `Showing 0 of your donations`;
-      } else {
-        arr.forEach(dRaw => {
-          const d = normalizeDonation(dRaw);
-          const card = createDonationCard(d, { onClick: (item) => openDonationModal(item), compact: false, context: { source: 'firestore', docId: dRaw.id } });
-          myDonationsList.appendChild(card);
-
-          const outWrapper = document.getElementById('donationsOutput');
-          if (outWrapper) {
-            const cloned = card.cloneNode(true);
-            outWrapper.appendChild(cloned);
-            cloned.addEventListener('click', () => openDonationModal(d));
-            cloned.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openDonationModal(d); }});
-          }
-        });
-        if (myDonationsCount) myDonationsCount.textContent = `Showing ${arr.length} of your donations`;
-      }
-      // stats
-      if (youDonations) youDonations.textContent = arr.length;
-      if (youImpactPeople) youImpactPeople.textContent = Math.max(0, arr.length * 2);
-      if (allDonations) allDonations.textContent = arr.length;
-      if (peopleHelped) peopleHelped.textContent = Math.max(0, Math.floor(arr.length * 2.5));
-      if (notifBadge) { notifBadge.style.display = arr.length ? "inline-block" : "none"; notifBadge.textContent = arr.length || ""; }
-    }, async (err) => {
-      console.warn("My donations ordered snapshot failed:", err);
-      showToast("Could not load your donations in ordered mode; falling back.");
-      // fallback: listen to collection and filter client-side
-      try {
-        if (unsubMyDonations) { unsubMyDonations(); unsubMyDonations = null; }
-        unsubMyDonations = onSnapshot(collection(db, "donations"), snap2 => {
-          const arr2 = [];
-          snap2.forEach(d2 => {
-            const data2 = d2.data() || {};
-            if (data2.userId === uid) arr2.push(normalizeDonation({ id: d2.id, ...data2 }));
-          });
-          arr2.sort((a,b) => {
-            const ta = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-            const tb = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-            return tb - ta;
-          });
-          if (!myDonationsList) return;
-          myDonationsList.innerHTML = "";
-          if (!arr2.length) {
-            myDonationsList.innerHTML = `<div class="requests-empty">You don't have any donations yet.</div>`;
-            if (myDonationsCount) myDonationsCount.textContent = `Showing 0 of your donations`;
-          } else {
-            arr2.forEach(dRaw => {
-              const d = normalizeDonation(dRaw);
-              const card = createDonationCard(d, { onClick: (item) => openDonationModal(item), compact: false, context: { source: 'firestore', docId: dRaw.id } });
-              myDonationsList.appendChild(card);
-            });
-            if (myDonationsCount) myDonationsCount.textContent = `Showing ${arr2.length} of your donations`;
-          }
-        }, err2 => {
-          console.error("Fallback my donations snapshot err", err2);
-          renderMyDonationsFromLocal();
-        });
-      } catch (fb) {
-        console.error("My donations fallback err", fb);
-        renderMyDonationsFromLocal();
-      }
-    });
-  } catch (e) {
-    console.warn("renderMyDonationsFromFirestore top-level err", e);
-    renderMyDonationsFromLocal();
-  }
-}
-
-/* ========== DETAILS MODAL (view + delete + message) ========== */
-let detailsModalSingleton = null;
-function ensureDetailsModal() {
-  if (detailsModalSingleton) return detailsModalSingleton;
-  detailsModalSingleton = document.createElement("div");
-  detailsModalSingleton.id = "dm_details_modal";
-  Object.assign(detailsModalSingleton.style, { position: "fixed", left: "50%", top: "50%", transform: "translate(-50%,-50%)", zIndex: 2000, display: "none", padding: 0 });
-  detailsModalSingleton.innerHTML = `
-    <div class="detail-modal-card" id="dm_detail_card">
-      <div class="detail-header">
-        <div class="detail-header-main">
-          <div class="detail-title" id="dm_details_title">Donation</div>
-          <div class="detail-sub" id="dm_details_sub">Details</div>
-        </div>
-        <button class="detail-close-btn" id="dm_details_close">Close</button>
-      </div>
-      <div class="detail-body">
-        <div class="detail-img-wrap" id="dm_detail_img">
-          <!-- image -->
-        </div>
-        <div class="detail-body-main" id="dm_details_body"></div>
-      </div>
-      <div class="detail-footer" id="dm_details_footer">
-        <div id="dm_details_action_container"></div>
-      </div>
-    </div>
-  `;
-  document.body.appendChild(detailsModalSingleton);
-
-  detailsModalSingleton.querySelector("#dm_details_close").addEventListener("click", () => (detailsModalSingleton.style.display = "none"));
-  document.addEventListener("click", (e) => {
-    if (!detailsModalSingleton) return;
-    if (detailsModalSingleton.style.display === "none") return;
-    if (detailsModalSingleton.contains(e.target)) return;
-    detailsModalSingleton.style.display = "none";
+  myDonationsData.forEach((d) => {
+    const card = createDonationCard(d, true);
+    myDonationsList.appendChild(card);
   });
 
-  return detailsModalSingleton;
-}
-
-async function deleteDonationHandler(context) {
-  if (!context) return;
-  ensureDetailsModal();
-  const confirmMsg = context.source === "firestore" ? "Delete this donation from the server? This action cannot be undone." : "Remove this local donation?";
-  if (!confirm(confirmMsg)) return;
-  try {
-    if (context.source === "firestore" && context.docId) {
-      if (!currentUser) { showToast("You must be signed in to delete server donations."); return; }
-      if (context.ownerId && context.ownerId !== currentUser.uid) { showToast("You can only delete your own donations."); return; }
-      await deleteDoc(doc(db, "donations", context.docId));
-      showToast("Donation deleted.");
-      detailsModalSingleton.style.display = "none";
-      if (currentUser) renderMyDonationsFromFirestore(currentUser.uid); else renderMyDonationsFromLocal();
-    } else if (context.source === "local") {
-      const arr = loadLocalDonations();
-      const raw = context.localRaw;
-      const idx = arr.findIndex(x => (x.id && raw.id && x.id === raw.id) || (x.createdAt === raw.createdAt && x.medicineName === raw.medicineName));
-      if (idx >= 0) {
-        arr.splice(idx, 1);
-        saveLocalDonations(arr);
-        showToast("Local donation removed.");
-        detailsModalSingleton.style.display = "none";
-        renderMyDonationsFromLocal();
-      } else {
-        showToast("Could not find local donation.");
-      }
-    }
-  } catch (e) {
-    console.error("deleteDonation err", e);
-    showToast("Failed to delete donation.");
+  if (youDonations) youDonations.textContent = String(myDonationsData.length || 0);
+  if (youImpactPeople) {
+    const helped = Math.max(0, myDonationsData.length * 2);
+    youImpactPeople.textContent = String(helped);
   }
 }
 
-function showDonationDetailsModal(donation, context) {
-  const detailsModal = ensureDetailsModal();
-  const title = detailsModal.querySelector("#dm_details_title");
-  const body = detailsModal.querySelector("#dm_details_body");
-  const imgWrap = detailsModal.querySelector("#dm_detail_img");
-  const actionContainer = detailsModal.querySelector("#dm_details_action_container");
+/* ========== MODAL + IMAGE VIEWER LOGIC ========== */
+function openDonationModalFromData(donation, isMine) {
+  if (!modal) return;
 
-  title.textContent = donation.medicineName || "Donation details";
-  imgWrap.innerHTML = donation.imageUrl ? `<img src="${escapeHtml(donation.imageUrl)}" alt="img">` : `<svg width="48" height="48" viewBox="0 0 24 24" fill="none"><rect width="24" height="24" rx="4" fill="#f1f5f9"/></svg>`;
+  activeDonation = donation;
+  activeIsMine = !!isMine;
 
-  body.innerHTML = `
-    <div class="detail-meta"><strong>Donor:</strong> ${escapeHtml(donation.donorName || donation.userId || "Anonymous")}</div>
-    <div class="detail-meta"><strong>Qty:</strong> ${escapeHtml(String(donation.quantity || "—"))}</div>
-    <div class="detail-meta"><strong>Expiry:</strong> ${escapeHtml(formatDate(donation.expiryDate) || "—")}</div>
-    <div class="detail-desc">${escapeHtml(donation.description || "No description provided.")}</div>
-  `;
+  const available = isDonationAvailable(donation);
+  const normalizedStatus = donation.status || (available ? "available" : "unavailable");
 
-  // reset action container
-  actionContainer.innerHTML = "";
+  modalTypeLabel.textContent = available
+    ? "Donation · Available"
+    : "Donation · Not available";
 
-  const isOwner = currentUser && donation.userId === currentUser.uid;
+  modalName.textContent = donation.medicineName || "Medicine";
+
+  if (modalCategoryChip) {
+    modalCategoryChip.innerHTML = "";
+    const iconSpan = document.createElement("span");
+    iconSpan.className = "badge-icon";
+    iconSpan.innerHTML = SVG_PILLS_14;
+    modalCategoryChip.appendChild(iconSpan);
+    modalCategoryChip.appendChild(
+      document.createTextNode(donation.category || "Category")
+    );
+  }
+
+  setInlineIcon(
+    modalDosage,
+    SVG_PILLS_14,
+    mapDosageLabel(donation.dosageForm || "")
+  );
+  setInlineIcon(
+    modalQuantity,
+    SVG_BOX_14,
+    donation.quantity ? String(donation.quantity) : "—"
+  );
+  setInlineIcon(
+    modalExpiration,
+    SVG_CLOCK_14,
+    donation.expiryDate ? formatDate(donation.expiryDate) : "—"
+  );
+  setInlineIcon(
+    modalCondition,
+    SVG_SHIELD_14,
+    donation.condition || "—"
+  );
+  setInlineIcon(
+    modalUrgency,
+    SVG_CLOCK_14,
+    mapUrgencyLabel(donation.urgency)
+  );
+  setInlineIcon(
+    modalLocation,
+    SVG_LOCATION_14,
+    donation.pickupLocation || "—"
+  );
+
+  modalDescription.textContent = donation.description || "No description provided.";
+
+  modalImage.src = donation.imageUrl || "placeholder-medicine.jpg";
+  modalImage.alt = donation.medicineName || "Medicine image";
+
+  const isOwner = activeIsMine && currentUser && donation.userId === currentUser.uid;
+
   if (isOwner) {
-    const delBtn = document.createElement("button");
-    delBtn.className = "btn btn-delete";
-    delBtn.textContent = "Delete";
-    Object.assign(delBtn.style, { background: "#ef4444", color: "#fff", border: "none", padding: "8px 12px", borderRadius: "8px", cursor: "pointer", fontWeight: 800 });
-    delBtn.onclick = () => deleteDonationHandler({ source: (context && context.source) || "firestore", docId: donation.id, ownerId: donation.userId, localRaw: context && context.localRaw });
-    actionContainer.appendChild(delBtn);
+    modalEditBtn.style.display = "inline-flex";
+    modalDeleteBtn.style.display = "inline-flex";
+    modalMessageBtn.style.display = "none";
   } else {
-    const msgBtn = document.createElement("button");
-    msgBtn.className = "btn btn-message";
-    msgBtn.textContent = "Message Donor";
-    Object.assign(msgBtn.style, { background: "#0ea5e9", color: "#fff", border: "none", padding: "8px 12px", borderRadius: "8px", cursor: "pointer", fontWeight: 800 });
-    msgBtn.onclick = async () => {
-      if (!currentUser) { showToast("Please sign in to message donors."); window.location.href = "auth.html"; return; }
-      try {
-        const convId = await createOrGetConversation(currentUser.uid, donation.userId, donation.donorName || donation.userId);
-        window.location.href = `chat.html?conv=${encodeURIComponent(convId)}`;
-      } catch (e) {
-        console.error("open chat err", e);
-        showToast("Could not open chat.");
+    modalEditBtn.style.display = "none";
+    modalDeleteBtn.style.display = "none";
+    modalMessageBtn.style.display = "inline-flex";
+
+    if (!available) {
+      modalMessageBtn.textContent = "Not available";
+      modalMessageBtn.disabled = true;
+    } else {
+      modalMessageBtn.textContent = "Message";
+      modalMessageBtn.disabled = false;
+    }
+  }
+
+  if (modalStatusAvailable && modalStatusUnavailable) {
+    modalStatusAvailable.classList.toggle(
+      "modal-btn-status--active",
+      normalizedStatus === "available"
+    );
+    modalStatusUnavailable.classList.toggle(
+      "modal-btn-status--active",
+      normalizedStatus === "unavailable"
+    );
+
+    modalStatusAvailable.disabled = !isOwner;
+    modalStatusUnavailable.disabled = !isOwner;
+  }
+
+  modal.removeAttribute("hidden");
+}
+
+function closeModal() {
+  if (!modal) return;
+  if (!modal.hasAttribute("hidden")) {
+    modal.setAttribute("hidden", "hidden");
+  }
+}
+
+function closeImageViewer() {
+  if (!imageViewerEl) return;
+  if (!imageViewerEl.hasAttribute("hidden")) {
+    imageViewerEl.setAttribute("hidden", "hidden");
+    if (imageViewerImageEl) {
+      imageViewerImageEl.src = "";
+      imageViewerImageEl.alt = "";
+    }
+  }
+}
+
+function openImageViewer() {
+  if (!modalImage || !imageViewerEl || !imageViewerImageEl) return;
+  imageViewerImageEl.src = modalImage.src;
+  imageViewerImageEl.alt = modalImage.alt || "Medicine full view";
+  imageViewerEl.removeAttribute("hidden");
+}
+
+function initModal() {
+  if (!modal) return;
+
+  if (modalCloseBtn) {
+    modalCloseBtn.addEventListener("click", closeModal);
+  }
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) closeModal();
+  });
+
+  imageViewerEl = document.getElementById("imageViewer");
+  imageViewerImageEl = document.getElementById("imageViewerImg");
+  imageViewerCloseBtn = document.getElementById("imageViewerClose");
+
+  if (modalImage && imageViewerEl && imageViewerImageEl) {
+    modalImage.style.cursor = "zoom-in";
+    modalImage.addEventListener("click", openImageViewer);
+  }
+
+  if (imageViewerCloseBtn) {
+    imageViewerCloseBtn.addEventListener("click", closeImageViewer);
+  }
+
+  if (imageViewerEl) {
+    imageViewerEl.addEventListener("click", (e) => {
+      if (e.target === imageViewerEl) {
+        closeImageViewer();
       }
-    };
-    actionContainer.appendChild(msgBtn);
+    });
   }
 
-  detailsModal.style.display = "block";
-}
-
-/* ========== SWITCHER & UI (merged) ========== */
-function setActivePill(pill) {
-  pills.forEach(p => {
-    const isActive = p === pill;
-    p.classList.toggle('active', isActive);
-    p.setAttribute('aria-selected', isActive ? 'true' : 'false');
-  });
-}
-function hideAllPanels() {
-  [createPanel, myDonationsPanel, allDonationsPanel].forEach(el => { if (!el) return; el.style.display = 'none'; });
-}
-function showSidebar(shouldShow) {
-  if (!sidebar || !mainGrid) return;
-  if (shouldShow) { sidebar.style.display = 'flex'; mainGrid.classList.add('has-sidebar'); }
-  else { sidebar.style.display = 'none'; mainGrid.classList.remove('has-sidebar'); }
-}
-function activateView(viewName) {
-  hideAllPanels();
-  const panelsMap = { create: createPanel, mine: myDonationsPanel, all: allDonationsPanel };
-  const el = panelsMap[viewName] || createPanel;
-  if (el) el.style.display = 'block';
-  // sidebar visible only on create
-  showSidebar(viewName === 'create');
-
-  // try refresh relevant data
-  if (viewName === 'mine') {
-    if (currentUser) renderMyDonationsFromFirestore(currentUser.uid);
-    else renderMyDonationsFromLocal();
-  }
-  if (viewName === 'all') {
-    renderAllDonationsFromFirestore();
-  }
-
-  const targetPill = pills.find(p => (p.getAttribute('data-view') || 'create') === viewName);
-  if (targetPill) setActivePill(targetPill);
-}
-
-pills.forEach(pill => {
-  pill.tabIndex = 0;
-  pill.addEventListener('click', () => {
-    const view = pill.getAttribute('data-view') || 'create';
-    activateView(view);
-  });
-  pill.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pill.click(); }
-    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
-      e.preventDefault();
-      const idx = pills.indexOf(pill);
-      const next = pills[(idx + 1) % pills.length];
-      next.focus();
-    }
-    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
-      e.preventDefault();
-      const idx = pills.indexOf(pill);
-      const prev = pills[(idx - 1 + pills.length) % pills.length];
-      prev.focus();
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      if (imageViewerEl && !imageViewerEl.hasAttribute("hidden")) {
+        closeImageViewer();
+      } else if (modal && !modal.hasAttribute("hidden")) {
+        closeModal();
+      }
     }
   });
-});
 
-/* ========== SUBMIT FORM ========== */
+  // EDIT
+  modalEditBtn.addEventListener("click", () => {
+    if (!activeDonation || !activeIsMine || !currentUser) return;
+    if (activeDonation.userId !== currentUser.uid) {
+      showToast("You can only edit your own donations.");
+      return;
+    }
+    if (!donationForm) return;
+
+    editingDonationId = activeDonation.id || null;
+
+    document.getElementById("medicineName").value = activeDonation.medicineName || "";
+    document.getElementById("category").value = activeDonation.category || "Other";
+    document.getElementById("dosageForm").value = activeDonation.dosageForm || "";
+    document.getElementById("description").value = activeDonation.description || "";
+    document.getElementById("quantity").value = String(activeDonation.quantity || "1");
+    document.getElementById("expiryDate").value = activeDonation.expiryDate
+      ? activeDonation.expiryDate.slice(0, 10)
+      : "";
+    document.getElementById("condition").value = activeDonation.condition || "sealed";
+    document.getElementById("urgencyLevel").value = activeDonation.urgency || "medium";
+
+    document.getElementById("locationText").value = "";
+
+    if (imageUrlInput) imageUrlInput.value = activeDonation.imageUrl || "";
+    if (imagePreview) {
+      if (activeDonation.imageUrl) {
+        imagePreview.src = activeDonation.imageUrl;
+        imagePreview.style.display = "block";
+      } else {
+        imagePreview.src = "";
+        imagePreview.style.display = "none";
+      }
+    }
+
+    const submitBtn = donationForm.querySelector("button[type='submit']");
+    if (submitBtn) submitBtn.textContent = "Save Changes";
+
+    const pillCreate = document.querySelector(".pill[data-view='create']");
+    if (pillCreate) pillCreate.click();
+
+    closeModal();
+    setTimeout(() => {
+      createPanel.scrollIntoView({ behavior: "smooth" });
+    }, 50);
+  });
+
+  // DELETE
+  modalDeleteBtn.addEventListener("click", async () => {
+    if (!activeDonation || !activeIsMine || !currentUser) return;
+    if (activeDonation.userId !== currentUser.uid) {
+      showToast("You can only delete your own donations.");
+      return;
+    }
+    if (!activeDonation.id) {
+      showToast("Missing donation id.");
+      return;
+    }
+    if (!confirm("Delete this donation? This cannot be undone.")) return;
+
+    try {
+      await deleteDoc(doc(db, "donations", activeDonation.id));
+      showToast("Donation deleted.");
+      closeModal();
+    } catch (e) {
+      console.error("delete donation error", e);
+      showToast("Failed to delete donation.");
+    }
+  });
+
+  // STATUS → AVAILABLE
+  if (modalStatusAvailable) {
+    modalStatusAvailable.addEventListener("click", async () => {
+      if (!activeDonation || !activeIsMine || !currentUser) return;
+      if (activeDonation.userId !== currentUser.uid) return;
+      if (!activeDonation.id) return;
+
+      try {
+        await updateDoc(doc(db, "donations", activeDonation.id), {
+          status: "available",
+        });
+
+        activeDonation.status = "available";
+        allDonationsData = allDonationsData.map((d) =>
+          d.id === activeDonation.id ? { ...d, status: "available" } : d
+        );
+        myDonationsData = myDonationsData.map((d) =>
+          d.id === activeDonation.id ? { ...d, status: "available" } : d
+        );
+
+        renderAllDonations();
+        renderMyDonations();
+        openDonationModalFromData(activeDonation, activeIsMine);
+        showToast("Marked as available.");
+      } catch (e) {
+        console.error("update status available error", e);
+        showToast("Failed to update status.");
+      }
+    });
+  }
+
+  // STATUS → UNAVAILABLE
+  if (modalStatusUnavailable) {
+    modalStatusUnavailable.addEventListener("click", async () => {
+      if (!activeDonation || !activeIsMine || !currentUser) return;
+      if (activeDonation.userId !== currentUser.uid) return;
+      if (!activeDonation.id) return;
+
+      try {
+        await updateDoc(doc(db, "donations", activeDonation.id), {
+          status: "unavailable",
+        });
+
+        activeDonation.status = "unavailable";
+        allDonationsData = allDonationsData.map((d) =>
+          d.id === activeDonation.id ? { ...d, status: "unavailable" } : d
+        );
+        myDonationsData = myDonationsData.map((d) =>
+          d.id === activeDonation.id ? { ...d, status: "unavailable" } : d
+        );
+
+        renderAllDonations();
+        renderMyDonations();
+        openDonationModalFromData(activeDonation, activeIsMine);
+        showToast("Marked as not available.");
+      } catch (e) {
+        console.error("update status unavailable error", e);
+        showToast("Failed to update status.");
+      }
+    });
+  }
+
+// MESSAGE
+if (modalMessageBtn) {
+  modalMessageBtn.addEventListener("click", (e) => {
+    e.preventDefault();
+
+    if (!activeDonation || !activeDonation.userId) {
+      showToast("Cannot message this donor.");
+      return;
+    }
+
+    if (!currentUser) {
+      showToast("Please sign in to message donors.");
+      window.location.href = "auth.html";
+      return;
+    }
+
+    if (modalMessageBtn.disabled) {
+      return;
+    }
+
+    // ✅ Build query string manually (no new URL, works on file:// and http)
+    const params = new URLSearchParams();
+    params.set("chatWith", activeDonation.userId);    // receiver uid
+    if (activeDonation.id) {
+      params.set("donationId", activeDonation.id);
+    }
+    if (activeDonation.donorName) {
+      params.set("name", activeDonation.donorName);
+    }
+    if (activeDonation.donorPhoto) {
+      params.set("avatar", activeDonation.donorPhoto);
+    }
+
+    // ✅ Simple redirect – laging gumagana kahit local file
+    window.location.href = "message.html?" + params.toString();
+  });
+}
+
+}
+
+/* ========== FORM SUBMIT (CREATE / EDIT) ========== */
 function setupDonationForm() {
   if (!donationForm) return;
-  donationForm.addEventListener("submit", async (ev) => {
-    ev.preventDefault();
-    if (!currentUser) { showToast("Please sign in to post a donation."); window.location.href = "auth.html"; return; }
+
+  donationForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!currentUser) {
+      showToast("Please sign in to post a donation.");
+      window.location.href = "auth.html";
+      return;
+    }
+
     const submitBtn = donationForm.querySelector("button[type='submit']");
-    if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = "Posting..."; }
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = editingDonationId ? "Saving..." : "Posting...";
+    }
+
     try {
-      const medicineName = (document.getElementById("medicineName")?.value || "").trim();
-      const category = (document.getElementById("category")?.value || "Other").trim();
-      const dosageForm = (document.getElementById("dosageForm")?.value || "").trim();
-      const description = (document.getElementById("description")?.value || "").trim();
-      let quantity = parseInt(document.getElementById("quantity")?.value || "1", 10); if (isNaN(quantity) || quantity <= 0) quantity = 1;
-      const expiryDate = (document.getElementById("expiryDate")?.value || "").trim();
-      const condition = (document.getElementById("condition")?.value || "").trim();
-      const urgency = (document.getElementById("urgencyLevel")?.value || "medium").trim();
-      const imageUrl = (document.getElementById("imageUrl")?.value || "").trim();
+      const medicineName = (document.getElementById("medicineName").value || "").trim();
+      const category = (document.getElementById("category").value || "Other").trim();
+      const dosageForm = (document.getElementById("dosageForm").value || "").trim();
+      const description = (document.getElementById("description").value || "").trim();
+      let quantity = parseInt(document.getElementById("quantity").value || "1", 10) || 1;
+      const expiryDate = (document.getElementById("expiryDate").value || "").trim();
+      const condition = (document.getElementById("condition").value || "").trim();
+      const urgency = (document.getElementById("urgencyLevel").value || "medium").trim();
+      const imageUrl = (document.getElementById("imageUrl").value || "").trim();
 
       if (!medicineName) throw new Error("Please enter medicine/item name.");
       if (!description) throw new Error("Please provide a description.");
       if (!expiryDate) throw new Error("Please select expiry date.");
+      if (!imageUrl) throw new Error("Please upload an image.");
 
       const selRegion = document.getElementById("selRegion");
       const selProvince = document.getElementById("selProvince");
       const selCityMun = document.getElementById("selCityMun");
       const selBarangay = document.getElementById("selBarangay");
-      const locationText = (document.getElementById("locationText")?.value || "").trim();
+      const locationText = (document.getElementById("locationText").value || "").trim();
+
       const regionText = selRegion && selRegion.value ? selRegion.options[selRegion.selectedIndex].text : "";
       const provinceText = selProvince && selProvince.value ? selProvince.options[selProvince.selectedIndex].text : "";
       const cityText = selCityMun && selCityMun.value ? selCityMun.options[selCityMun.selectedIndex].text : "";
       const brgyText = selBarangay && selBarangay.value ? selBarangay.options[selBarangay.selectedIndex].text : "";
+
       let pickupLocation = [brgyText, cityText, provinceText, regionText].filter(Boolean).join(", ");
-      if (locationText) pickupLocation = pickupLocation ? `${pickupLocation} — ${locationText}` : locationText;
+      if (locationText) {
+        pickupLocation = pickupLocation
+          ? `${pickupLocation} — ${locationText}`
+          : locationText;
+      }
 
-      const canonical = await getCanonicalUser(currentUser);
-      const donorName = canonical.name || (currentUser.email ? currentUser.email.split("@")[0] : "Anonymous");
-      const donorPhoto = canonical.photoURL || currentUser.photoURL || null;
-
-      const docData = {
-        medicineName, category, dosageForm, description, quantity, expiryDate, condition, urgency, imageUrl,
-        pickupLocation, region: regionText, province: provinceText, cityMunicipality: cityText, barangay: brgyText,
-        createdAt: serverTimestamp(), userId: currentUser.uid, donorName, donorPhoto,
+      const baseData = {
+        medicineName,
+        category,
+        dosageForm,
+        description,
+        quantity,
+        expiryDate,
+        condition,
+        urgency,
+        imageUrl,
+        pickupLocation,
+        region: regionText,
+        province: provinceText,
+        cityMunicipality: cityText,
+        barangay: brgyText,
+        status: quantity > 0 ? "available" : "unavailable",
       };
 
-      // attempt Firestore write
-      let donationRef = null;
-      try { donationRef = await addDoc(collection(db, "donations"), docData); }
-      catch (e) { console.warn("addDoc failed", e); donationRef = null; }
+      if (editingDonationId) {
+        await updateDoc(doc(db, "donations", editingDonationId), baseData);
+        showToast("Donation updated.");
+      } else {
+        const docData = {
+          ...baseData,
+          createdAt: serverTimestamp(),
+          userId: currentUser.uid,
+          donorName:
+            currentUser.displayName ||
+            (currentUser.email ? currentUser.email.split("@")[0] : "Anonymous"),
+          donorPhoto: currentUser.photoURL || null,
+        };
+        await addDoc(collection(db, "donations"), docData);
+        showToast("Donation posted successfully!");
+      }
 
-      // increment user's donations
-      try {
-        const userRef = doc(db, "users", currentUser.uid);
-        await updateDoc(userRef, { donations: increment(1) }).catch(async (err) => { try { await setDoc(userRef, { donations: 1 }, { merge: true }); } catch (se) { console.warn("setDoc fallback failed", se); } });
-      } catch (e) { console.warn("increment user donations err", e); }
-
-      // events doc (non-blocking)
-      try {
-        const eventMsg = `${donorName} posted "${medicineName}"`;
-        await addDoc(collection(db, "events"), { type: "donation", message: eventMsg, userName: donorName, createdAt: serverTimestamp(), metadata: { donationId: donationRef?.id || null, userId: currentUser.uid }, read: false });
-      } catch (e) { console.warn("writing events doc failed", e); }
-
-      // always add to local fallback so user's view updates immediately when offline or before server timestamp writes
-      try {
-        const localArr = loadLocalDonations();
-        localArr.push({
-          id: donationRef?.id || ("local_" + Date.now()),
-          medicineName, description, quantity, expiryDate,
-          pickupLocation, imageUrl, urgency, condition, createdAtIso: isoNow(), userId: currentUser.uid, donorName
-        });
-        saveLocalDonations(localArr);
-      } catch (e) { console.warn("local fallback save err", e); }
-
-      showToast("Donation posted successfully!");
+      editingDonationId = null;
+      if (submitBtn) submitBtn.textContent = "Submit Donation";
       donationForm.reset();
       populateQuantity();
-      if (imagePreview) { imagePreview.src = ""; imagePreview.style.display = "none"; }
+      if (imagePreview) {
+        imagePreview.src = "";
+        imagePreview.style.display = "none";
+      }
       if (imageUrlInput) imageUrlInput.value = "";
 
-      // show my donations after posting
-      activateView("mine");
-      if (currentUser) renderMyDonationsFromFirestore(currentUser.uid); else renderMyDonationsFromLocal();
+      const pillMine = document.querySelector(".pill[data-view='mine']");
+      if (pillMine) pillMine.click();
     } catch (err) {
-      console.error("post donation err", err);
-      showToast(err?.message || "Failed to post donation.");
+      console.error("post donation error", err);
+      showToast(err.message || "Failed to save donation.");
     } finally {
-      const submitBtn = donationForm.querySelector("button[type='submit']");
-      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = "Submit Donation"; }
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        if (!editingDonationId) submitBtn.textContent = "Submit Donation";
+      }
     }
   });
+
+  if (btnBack) {
+    btnBack.addEventListener("click", () => {
+      if (document.referrer) window.history.back();
+      else window.location.href = "browse.html";
+    });
+  }
 }
 
-/* ========== getCanonicalUser & listenToUserDoc ========== */
-async function getCanonicalUser(u) {
-  if (!u) return { name: "Anonymous", photoURL: null };
-  let name = u.displayName || (u.email ? u.email.split("@")[0] : "Anonymous");
-  let photoURL = u.photoURL || null;
+/* ========== FIRESTORE LISTENERS ========== */
+function listenAllDonations() {
+  if (unsubAllDonations) {
+    unsubAllDonations();
+    unsubAllDonations = null;
+  }
   try {
-    const snap = await getDoc(doc(db, "users", u.uid));
-    if (snap.exists()) {
-      const data = snap.data() || {};
-      if (data.name) name = data.name;
-      if (data.photoURL) photoURL = data.photoURL;
-    }
-  } catch (e) { console.warn("getCanonicalUser err", e); }
-  return { name, photoURL };
-}
-function listenToUserDoc(u) {
-  if (unsubUserDoc) { unsubUserDoc(); unsubUserDoc = null; }
-  if (!u) return;
-  const ref = doc(db, "users", u.uid);
-  unsubUserDoc = onSnapshot(ref, snap => {
-    const data = snap.exists() ? snap.data() : null;
-    updateProfileUI(u, data);
-  }, err => { console.warn("user doc listen err", err); updateProfileUI(u, null); });
+    const qAll = query(collection(db, "donations"), orderBy("createdAt", "desc"));
+    unsubAllDonations = onSnapshot(
+      qAll,
+      (snap) => {
+        allDonationsData = [];
+        snap.forEach((docSnap) => {
+          const raw = docSnap.data() || {};
+          allDonationsData.push(
+            normalizeDonation({
+              id: docSnap.id,
+              ...raw,
+            })
+          );
+        });
+        renderAllDonations();
+      },
+      (err) => {
+        console.error("All donations snapshot error", err);
+        allDonationsData = [];
+        renderAllDonations();
+      }
+    );
+  } catch (e) {
+    console.error("listenAllDonations error", e);
+  }
 }
 
-/* ========== All Donations Filter hooks (selects) ========== */
+function listenMyDonations(uid) {
+  if (unsubMyDonations) {
+    unsubMyDonations();
+    unsubMyDonations = null;
+  }
+
+  if (!uid) {
+    myDonationsData = [];
+    renderMyDonations();
+    return;
+  }
+
+  try {
+    const qMine = query(
+      collection(db, "donations"),
+      where("userId", "==", uid),
+      orderBy("createdAt", "desc")
+    );
+
+    unsubMyDonations = onSnapshot(
+      qMine,
+      (snap) => {
+        myDonationsData = [];
+        snap.forEach((docSnap) => {
+          const raw = docSnap.data() || {};
+          myDonationsData.push(
+            normalizeDonation({
+              id: docSnap.id,
+              ...raw,
+            })
+          );
+        });
+        renderMyDonations();
+      },
+      async (err) => {
+        console.warn("My donations ordered snapshot error, using fallback:", err);
+
+        try {
+          if (unsubMyDonations) {
+            unsubMyDonations();
+            unsubMyDonations = null;
+          }
+
+          unsubMyDonations = onSnapshot(
+            collection(db, "donations"),
+            (snap2) => {
+              const arr = [];
+              snap2.forEach((docSnap2) => {
+                const raw2 = docSnap2.data() || {};
+                if (raw2.userId === uid) {
+                  arr.push(
+                    normalizeDonation({
+                      id: docSnap2.id,
+                      ...raw2,
+                    })
+                  );
+                }
+              });
+
+              arr.sort((a, b) => {
+                const ta = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+                const tb = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+                return tb - ta;
+              });
+
+              myDonationsData = arr;
+              renderMyDonations();
+            },
+            (err2) => {
+              console.error("My donations fallback snapshot error:", err2);
+              myDonationsData = [];
+              renderMyDonations();
+            }
+          );
+        } catch (fallbackErr) {
+          console.error("listenMyDonations fallback setup error:", fallbackErr);
+          myDonationsData = [];
+          renderMyDonations();
+        }
+      }
+    );
+  } catch (e) {
+    console.error("listenMyDonations top-level error", e);
+    myDonationsData = [];
+    renderMyDonations();
+  }
+}
+
+/* ========== FILTER HOOKS ========== */
 function debounce(fn, wait = 180) {
   let t;
   return (...args) => {
@@ -1073,203 +1997,75 @@ function debounce(fn, wait = 180) {
   };
 }
 
-function attachFilterHooks() {
-  [filterCategory, filterUrgency].forEach(el => {
-    if (!el) return;
-    const handler = debounce(() => {
-      try {
-        if (Array.isArray(window.__lastDonationItems) && typeof renderAllList === 'function') {
-          renderAllList(window.__lastDonationItems);
-        } else {
-          renderAllDonationsFromFirestore();
-        }
-      } catch (err) { console.warn('filtering error', err); }
-    }, 150);
-    el.addEventListener('input', handler);
-    el.addEventListener('change', handler);
-  });
-}
-
-/* ========== PANEL REGISTRATION API ========== */
-function resolveElement(elOrId) {
-  if (!elOrId) return null;
-  if (typeof elOrId === "string") return document.getElementById(elOrId) || document.querySelector(elOrId) || null;
-  if (elOrId instanceof HTMLElement) return elOrId;
-  return null;
-}
-function registerDonationPanels({ createPanel: c, myDonationsPanel: m, allDonationsPanel: a, pageSidebar: s, mainGrid: mg } = {}) {
-  createPanel = resolveElement(c) || createPanel || null;
-  myDonationsPanel = resolveElement(m) || myDonationsPanel || null;
-  allDonationsPanel = resolveElement(a) || allDonationsPanel || null;
-  sidebar = resolveElement(s) || sidebar || null;
-  mainGrid = resolveElement(mg) || mainGrid || null;
-  // if panels registered and pills exist, adjust UI
-  // make sure switcher displays active pill if any
-  const activeFromMarkup = pills.find(p => p.classList.contains('active')) || pills.find(p => p.getAttribute('data-view') === 'create');
-  if (activeFromMarkup) activateView(activeFromMarkup.getAttribute('data-view'));
-}
-window.registerDonationPanels = registerDonationPanels;
-
-/* ========== MESSAGING / CONVERSATION HELPERS ========== */
-/**
- * Conversation model (Firestore)
- * /conversations/{convId} => { participants: [uid1, uid2], participantsMeta: {uid:{name,photoURL}}, lastMessage, updatedAt, createdAt }
- * /conversations/{convId}/messages/{msgId} => { from, to, text, createdAt, read }
- */
-
-/**
- * createOrGetConversation(currentUid, otherUid, otherName) -> convId
- * - Tries to find an existing conversation with exactly these two participants (unordered).
- * - If not found, creates a new conversation doc and returns its id.
- */
-async function createOrGetConversation(currentUid, otherUid, otherName = "") {
-  if (!currentUid || !otherUid) throw new Error("Missing user ids for conversation.");
-  try {
-    const q = query(collection(db, "conversations"), where("participants", "array-contains", currentUid), orderBy("updatedAt", "desc"));
-    const snap = await getDocs(q);
-    let found = null;
-    snap.forEach(d => {
-      const data = d.data() || {};
-      const participants = data.participants || [];
-      if (participants.length === 2 && participants.includes(currentUid) && participants.includes(otherUid)) {
-        found = { id: d.id, data };
-      }
-    });
-    if (found) return found.id;
-    // create new
-    const convRef = await addDoc(collection(db, "conversations"), {
-      participants: [currentUid, otherUid],
-      participantsMeta: {
-        [currentUid]: { uid: currentUid },
-        [otherUid]: { name: otherName || otherUid, uid: otherUid }
-      },
-      lastMessage: "",
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp()
-    });
-    return convRef.id;
-  } catch (e) {
-    console.error("createOrGetConversation err", e);
-    throw e;
+function initFilters() {
+  const handler = debounce(() => {
+    renderAllDonations();
+  }, 150);
+  if (filterCategory) {
+    filterCategory.addEventListener("change", handler);
+    filterCategory.addEventListener("input", handler);
+  }
+  if (filterUrgency) {
+    filterUrgency.addEventListener("change", handler);
+    filterUrgency.addEventListener("input", handler);
   }
 }
 
-/* ========== DETAILS MODAL: openDonationModal convenience (same modal) ========== */
-function openDonationModal(item) {
-  showDonationDetailsModal(item, { source: 'firestore', docId: item.id });
+/* ========== AUTH HEADER UI ========== */
+function updateHeaderForUser(user) {
+  if (!signInBtn) return;
+  if (!user) {
+    renderSignedOut();
+  } else {
+    updateProfileUI(user, null);
+  }
 }
 
 /* ========== INIT ========== */
-onReady(() => {
-  // safe default for onOpenDonation — external scripts can override window.onOpenDonation
-  window.onOpenDonation = window.onOpenDonation || function (donation, context) {
-    if (typeof openDonationModal === 'function') openDonationModal(donation);
-  };
-
-  populateQuantity(); populateMedicinesDatalist(); initLocationDropdowns(); setupCloudinaryUpload();
-
-  // header notifications
-  if (bellBtn) { ensureNotifModal(); bellBtn.addEventListener("click", (e) => { e.preventDefault(); notifModal.style.display = notifModal.style.display === "none" ? "block" : "none"; }); listenToEvents(); }
-
-  if (signInBtn) renderSignedOutHeader();
-  if (btnBack) btnBack.addEventListener("click", () => (document.referrer ? window.history.back() : (window.location.href = "browse.html")));
-
-  // initial renders (local)
-  renderMyDonationsFromLocal();
-  // attach firestore listener for all donations (or you can call renderAllDonationsFromFirestore later)
-  renderAllDonationsFromFirestore();
-
-  // attach UI hooks
-  attachFilterHooks();
+document.addEventListener("DOMContentLoaded", () => {
+  initSwitcher();
+  initModal();
+  initFilters();
+  populateQuantity();
+  populateMedicinesDatalist();
+  initLocationDropdowns();
+  setupCloudinaryUpload();
   setupDonationForm();
+  listenAllDonations();
 
-  // Switcher initial activation: prefer .active in markup else create
-  const activeFromMarkup = pills.find(p => p.classList.contains('active')) || pills.find(p => p.getAttribute('data-view') === 'create');
-  if (activeFromMarkup) activateView(activeFromMarkup.getAttribute('data-view'));
-  else activateView('create');
+  if (signInBtn && !auth.currentUser) {
+    renderSignedOut();
+  }
 
-  // Auth state
-  onAuthStateChanged(auth, (u) => {
-    currentUser = u || null;
-    if (!u) {
-      clearUnsubMyDonations();
-      if (unsubUserDoc) { unsubUserDoc(); unsubUserDoc = null; }
-      renderSignedOutHeader();
-      renderMyDonationsFromLocal();
-    } else {
-      listenToUserDoc(u);
-      renderMyDonationsFromFirestore(u.uid);
-    }
-  });
+  // Notifications bell + dropdown
+  ensureBellButton();
+  ensureNotifDropdown();
+  if (bellBtn) {
+    bellBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      if (!notifDropdown || notifDropdown.style.display === "none")
+        showNotifDropdown();
+      else hideNotifDropdown();
+    });
+  }
 
-  // cleanup on unload
-  window.addEventListener('beforeunload', () => {
-    if (unsubUserDoc) unsubUserDoc();
-    if (unsubEvents) unsubEvents();
-    if (unsubMyDonations) unsubMyDonations();
-    if (unsubAllDonations) unsubAllDonations();
-  });
+  onAuthStateChanged(auth, (user) => {
+    currentUser = user || null;
 
-  // warn when filter elements missing
-  if (!filterCategory) console.warn('filterCategory element not found - All Donations filtering disabled');
-  if (!filterUrgency) console.warn('filterUrgency element not found - All Donations filtering disabled');
-
-  // Ensure All Donations container exists and show it on load (safe fallback)
-  (function ensureAndShowAllDonations() {
-    // Create panel if missing
-    let panel = document.getElementById('all-donations-panel');
-    if (!panel) {
-      panel = document.createElement('section');
-      panel.id = 'all-donations-panel';
-      panel.style.display = 'none';
-      panel.style.padding = '16px';
-      panel.innerHTML = `
-        <h2 style="margin:0 0 12px 0;font-size:1.1rem">Community Donations</h2>
-        <div id="allDonationsCount" style="color:#64748b;margin-bottom:10px">Loading…</div>
-        <div id="allDonationsList" style="display:flex;flex-direction:column;gap:12px"></div>
-        <div id="donationsOutput" style="margin-top:18px"></div>
-        <div id="allEmpty" style="display:none;color:#64748b;margin-top:10px">No donations found.</div>
-      `;
-      const insertTarget = document.getElementById('mainGrid') || document.body;
-      insertTarget.appendChild(panel);
-      allDonationsPanel = panel;
-    }
-
-    // Create list if missing
-    if (!document.getElementById('allDonationsList')) {
-      const list = document.createElement('div');
-      list.id = 'allDonationsList';
-      list.style.display = 'flex';
-      list.style.flexDirection = 'column';
-      list.style.gap = '12px';
-      panel.appendChild(list);
-    }
-
-    // Show this view using your existing UI system
-    try {
-      if (typeof activateView === 'function') {
-        activateView('all');
-      } else if (typeof window.activateDonationView === 'function') {
-        window.activateDonationView('all');
-      } else {
-        // Fallback
-        panel.style.display = 'block';
-        if (typeof renderAllDonationsFromFirestore === 'function') {
-          renderAllDonationsFromFirestore();
-        }
+    if (!user) {
+      if (unsubUserDoc) {
+        unsubUserDoc();
+        unsubUserDoc = null;
       }
-      console.info('All Donations panel active — fetching donations...');
-    } catch (err) {
-      console.error('Could not activate All Donations panel:', err);
+      renderSignedOut();
+      listenMyDonations(null);
+      listenToEvents(null);
+    } else {
+      listenToUserDoc(user);
+      listenMyDonations(user.uid);
+      listenToEvents(user);
     }
-  })();
-});
 
-/* ========== Expose helpers for other scripts ========== */
-window.renderAllDonationsFromFirestore = renderAllDonationsFromFirestore;
-window.renderMyDonationsFromFirestore = renderMyDonationsFromFirestore;
-window.renderMyDonationsFromLocal = renderMyDonationsFromLocal;
-window.__applyDonationFilters = applyFilters;
-window.activateDonationView = activateView;
-window.registerDonationPanels = registerDonationPanels;
-window.createOrGetConversation = createOrGetConversation;
+    updateHeaderForUser(currentUser);
+  });
+});

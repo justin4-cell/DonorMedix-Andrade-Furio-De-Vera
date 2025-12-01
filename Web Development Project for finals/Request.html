@@ -7,7 +7,7 @@
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
     :root{
-      --brand:#38bdf8; --brand-2:#38bdf8;
+      --brand:#38bdf8; --brand-2:#0f172a;
       --ink:#0f172a; --muted:#0f172a; --line:#e2e8f0;
       --bg:#f8fafc; --card:#ffffff; --shadow:0 8px 22px rgba(2,6,23,.06);
       --radius:14px; --danger:#ef4444; --danger-2:#dc2626;
@@ -124,7 +124,15 @@
       padding:.62rem 1.05rem;border-radius:999px;
       border:1px solid #bfe9ff;background:#f0f9ff;
       color:#0f172a;font-weight:800;
-      cursor:pointer;transition:all .15s
+      cursor:pointer;transition:all .15s;
+      display:inline-flex;
+      align-items:center;
+      gap:.4rem;
+    }
+    .pill svg{
+      width:16px;
+      height:16px;
+      flex-shrink:0;
     }
     .pill:hover{
       background:#ffffff;
@@ -213,7 +221,7 @@
       padding:1rem;
       display:flex;
       flex-direction:column;
-      gap:.4rem;
+      gap:.3rem;
     }
     .card__footer{
       margin-top:auto;
@@ -239,6 +247,66 @@
       font-size:1.05rem;letter-spacing:.1px;
     }
     .muted{color:var(--muted);font-size:.9rem}
+
+    /* NEW – small inline icon before "Requested by" */
+    .meta-icon{
+      width:16px;
+      height:16px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      margin-right:4px;
+      vertical-align:middle;
+    }
+    .meta-icon svg{
+      width:16px;
+      height:16px;
+      display:block;
+    }
+
+    /* NEW – category & urgency badges with icons */
+    .card-meta{
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+      margin-top:4px;
+    }
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:4px;
+      padding:2px 8px;
+      border-radius:999px;
+      background:#f1f5f9;
+      font-size:.75rem;
+      font-weight:600;
+      color:#0f172a;
+      line-height:1.2;
+    }
+    .badge-icon{
+      width:14px;
+      height:14px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+    }
+    .badge-icon svg{
+      width:14px;
+      height:14px;
+      display:block;
+    }
+    .badge-urgency-high{
+      background:#fee2e2;
+      color:#b91c1c;
+    }
+    .badge-urgency-medium{
+      background:#fef3c7;
+      color:#b45309;
+    }
+    .badge-urgency-low{
+      background:#dcfce7;
+      color:#15803d;
+    }
 
     /* CREATE REQUEST FORM DESIGN */
     .form-grid{
@@ -303,6 +371,135 @@
     @media (max-width:720px){
       .form-grid{grid-template-columns:1fr}
       .loc-grid{grid-template-columns:1fr}
+    }
+
+    /* CREATE TAB LAYOUT – SEPARATED LEFT + RIGHT CARDS */
+    #panel-create{
+      width:100%;
+      margin:0 auto 1rem;
+      color:#0f172a;
+      display:flex;
+      flex-direction:column;
+      gap:.75rem;
+    }
+    #panel-create h2{
+      font-size:1.25rem;
+      font-weight:800;
+      color:#0f172a;
+    }
+    .create-grid{
+      display:grid;
+      grid-template-columns:minmax(0,2.1fr) minmax(0,1.1fr);
+      gap:16px;
+      align-items:flex-start;
+    }
+    .panel-create-form{
+      margin:0;
+    }
+    .create-side{
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+    .info-card{
+      background:#f0f9ff;
+      border-radius:14px;
+      border:1px solid #bfdbfe;
+      padding:12px 14px 12px;
+      box-shadow:0 10px 30px rgba(15,23,42,.06);
+      font-size:.9rem;
+    }
+    .info-card + .info-card{
+      background:#ffffff;
+      border-color:#e5e7eb;
+    }
+    .info-card-header{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      margin-bottom:6px;
+    }
+    .info-card-title{
+      font-size:.9rem;
+      font-weight:800;
+      color:#0f172a;
+    }
+    .info-card-icon{
+      width:18px;
+      height:18px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      border-radius:999px;
+      background:#e0f2fe;
+      color:#0f172a;
+      flex-shrink:0;
+    }
+    .info-card ul{
+      padding-left:1.1rem;
+      margin:4px 0 0;
+      color:#0f172a;
+    }
+    .info-card li + li{
+      margin-top:4px;
+    }
+    @media (max-width:960px){
+      .create-grid{
+        grid-template-columns:1fr;
+      }
+      .create-side{
+        order:2;
+      }
+    }
+
+    /* FULL IMAGE VIEWER – made smaller / normal */
+    .image-viewer-backdrop{
+      position:fixed;
+      inset:0;
+      background:rgba(15,23,42,.9);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      z-index:80;
+      padding:1.5rem;
+    }
+    .image-viewer-backdrop[hidden]{
+      display:none;
+    }
+    .image-viewer-inner{
+      position:relative;
+      max-width:min(80vw, 560px);
+      max-height:70vh;
+    }
+    .image-viewer-inner img{
+      max-width:100%;
+      max-height:100%;
+      object-fit:contain;
+      display:block;
+      border-radius:18px;
+      box-shadow:0 24px 80px rgba(15,23,42,.8);
+      background:#020617;
+    }
+    .image-viewer-close{
+      position:absolute;
+      top:-14px;
+      right:-14px;
+      width:34px;
+      height:34px;
+      border-radius:999px;
+      border:none;
+      background:#0f172a;
+      color:#f9fafb;
+      font-size:1.4rem;
+      line-height:1;
+      cursor:pointer;
+      box-shadow:0 10px 30px rgba(15,23,42,.6);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+    .image-viewer-close:hover{
+      filter:brightness(1.1);
     }
 
     /* MODAL STYLES */
@@ -407,6 +604,60 @@
       object-fit:cover;
       display:block;
     }
+
+    /* ACTION BUTTONS INSIDE MODAL IMAGE */
+    .modal-actions{
+      position:absolute;
+      right:10px;
+      bottom:10px;
+      display:flex;
+      gap:.4rem;
+      z-index:2;
+    }
+    .modal-btn{
+      padding:.4rem .75rem;
+      border-radius:999px;
+      border:1px solid transparent;
+      font-size:.8rem;
+      font-weight:800;
+      letter-spacing:.04em;
+      text-transform:uppercase;
+      cursor:pointer;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      text-decoration:none;
+      white-space:nowrap;
+    }
+    .modal-btn-primary{
+      background:#0f172a;
+      border-color:#0f172a;
+      color:#ffffff;
+    }
+    .modal-btn-primary:hover{filter:brightness(1.05);}
+    .modal-btn-ghost{
+      background:rgba(255,255,255,.9);
+      border-color:#cbd5e1;
+      color:#0f172a;
+    }
+    .modal-btn-ghost:hover{
+      background:#ffffff;
+    }
+    .modal-btn-danger{
+      background:#ef4444;
+      border-color:#b91c1c;
+      color:#ffffff;
+    }
+    .modal-btn-danger:hover{filter:brightness(1.05);}
+    .modal-btn-success{
+      background:#22c55e;
+      border-color:#16a34a;
+      color:#ffffff;
+    }
+    .modal-btn-success:hover{
+      filter:brightness(1.05);
+    }
+
     @media(max-width:720px){
       .modal-card{flex-direction:column;}
       .modal-right{
@@ -445,7 +696,24 @@
     .footer a{color:#cbd5e1;text-decoration:none}
     .footer a:hover{color:#38bdf8}
     .footer hr{border:none;border-top:1px solid #1e293b;margin:2rem 0 1.25rem}
-    .footer-bottom{display:flex;justify-content:space-between;flex-wrap:wrap;color:#ffffff;font-size:.9rem}
+    .footer-bottom{
+      display:flex;
+      flex-wrap:wrap;
+      justify-content:center;
+      align-items:center;
+      gap:.75rem;
+      color:#ffffff;
+      font-size:.9rem;
+      text-align:center;
+    }
+    .footer-stats{
+      font-size:.85rem;
+      color:#e5e7eb;
+    }
+    .footer-stats strong{
+      color:#38bdf8;
+      font-weight:800;
+    }
 
     @media(max-width:768px){
       .footer-bottom{flex-direction:column;gap:.5rem;align-items:center;text-align:center}
@@ -510,9 +778,18 @@
   <main class="container">
     <!-- Switcher -->
     <div class="switcher" role="tablist" aria-label="Request sections">
-      <button class="pill active" data-view="community" aria-selected="true">Community Requests</button>
-      <button class="pill" data-view="mine" aria-selected="false">My Requests</button>
-      <button class="pill" data-view="create" aria-selected="false">Create Request</button>
+      <button class="pill active" data-view="community" aria-selected="true">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h7v7H4V4Zm9 0h7v7h-7V4ZM4 13h7v7H4v-7Zm9 0h7v7h-7v-7Z"/></svg>
+        <span>Community Requests</span>
+      </button>
+      <button class="pill" data-view="mine" aria-selected="false">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm0 2c-3.33 0-6 1.34-6 3v1h12v-1c0-1.66-2.67-3-6-3Z"/></svg>
+        <span>My Requests</span>
+      </button>
+      <button class="pill" data-view="create" aria-selected="false">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M11 4h2v7h7v2h-7v7h-2v-7H4v-2h7V4Z"/></svg>
+        <span>Create Request</span>
+      </button>
     </div>
 
     <!-- COMMUNITY PANEL (filters/meta) -->
@@ -556,8 +833,9 @@
     <!-- COMMUNITY REQUEST CARDS -->
     <section class="community-requests-wrapper" id="communityRequestsWrapper">
       <div class="browse-grid" id="requestsList">
-        <!-- SAMPLE COMMUNITY REQUEST CARD 1 -->
+        <!-- sample placeholder cards; Firestore will overwrite -->
         <article class="card"
+          data-owner="other"
           data-name="Metformin 500mg Tablets"
           data-description="Oral medicine for diabetes management, requested for patients with limited access to maintenance meds."
           data-category="Other"
@@ -566,15 +844,34 @@
           data-image="metformin.jpg">
           <div class="card__body">
             <h3 class="title">Metformin 500mg Tablets</h3>
-            <p class="muted">Requested by Ana Reyes</p>
+            <p class="muted">
+              <span class="meta-icon">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a5 5 0 1 1-5 5 5 5 0 0 1 5-5Zm0 11c-4.33 0-8 2.17-8 5v1h16v-1c0-2.83-3.67-5-8-5Z"/></svg>
+              </span>
+              Requested by Ana Reyes
+            </p>
+            <div class="card-meta">
+              <span class="badge">
+                <span class="badge-icon">
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 3h10a2 2 0 0 1 2 2v6H5V5a2 2 0 0 1 2-2Zm-2 9h14v5a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-5Z"/></svg>
+                </span>
+                Other
+              </span>
+              <span class="badge badge-urgency-medium">
+                <span class="badge-icon">
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 10 10A10.011 10.011 0 0 0 12 2Zm1 11h4v-2h-3V7h-2v6Z"/></svg>
+                </span>
+                Medium urgency
+              </span>
+            </div>
           </div>
           <div class="card__footer">
             <button type="button" class="card__btn-open">Open</button>
           </div>
         </article>
 
-        <!-- SAMPLE COMMUNITY REQUEST CARD 2 -->
         <article class="card"
+          data-owner="other"
           data-name="Cefalexin Syrup (Pediatric)"
           data-description="Antibiotic syrup for children, needed for barangay health center supply."
           data-category="Antibiotic"
@@ -583,15 +880,34 @@
           data-image="cefalexin-syrup.jpg">
           <div class="card__body">
             <h3 class="title">Cefalexin Syrup (Pediatric)</h3>
-            <p class="muted">Requested by Barangay Health Worker</p>
+            <p class="muted">
+              <span class="meta-icon">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a5 5 0 1 1-5 5 5 5 0 0 1 5-5Zm0 11c-4.33 0-8 2.17-8 5v1h16v-1c0-2.83-3.67-5-8-5Z"/></svg>
+              </span>
+              Requested by Barangay Health Worker
+            </p>
+            <div class="card-meta">
+              <span class="badge">
+                <span class="badge-icon">
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 3h10a2 2 0 0 1 2 2v6H5V5a2 2 0 0 1 2-2Zm-2 9h14v5a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-5Z"/></svg>
+                </span>
+                Antibiotic
+              </span>
+              <span class="badge badge-urgency-high">
+                <span class="badge-icon">
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 10 10A10.011 10.011 0 0 0 12 2Zm1 11h4v-2h-3V7h-2v6Z"/></svg>
+                </span>
+                High urgency
+              </span>
+            </div>
           </div>
           <div class="card__footer">
             <button type="button" class="card__btn-open">Open</button>
           </div>
         </article>
 
-        <!-- SAMPLE COMMUNITY REQUEST CARD 3 -->
         <article class="card"
+          data-owner="other"
           data-name="Paracetamol 250mg Suspension"
           data-description="Fever medicine for children, needed for community clinic patients."
           data-category="Pain Relief"
@@ -600,7 +916,26 @@
           data-image="paracetamol-suspension.jpg">
           <div class="card__body">
             <h3 class="title">Paracetamol 250mg Suspension</h3>
-            <p class="muted">Requested by Community Nurse</p>
+            <p class="muted">
+              <span class="meta-icon">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a5 5 0 1 1-5 5 5 5 0 0 1 5-5Zm0 11c-4.33 0-8 2.17-8 5v1h16v-1c0-2.83-3.67-5-8-5Z"/></svg>
+              </span>
+              Requested by Community Nurse
+            </p>
+            <div class="card-meta">
+              <span class="badge">
+                <span class="badge-icon">
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 3h10a2 2 0 0 1 2 2v6H5V5a2 2 0 0 1 2-2Zm-2 9h14v5a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-5Z"/></svg>
+                </span>
+                Pain Relief
+              </span>
+              <span class="badge badge-urgency-low">
+                <span class="badge-icon">
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 10 10A10.011 10.011 0 0 0 12 2Zm1 11h4v-2h-3V7h-2v6Z"/></svg>
+                </span>
+                Low urgency
+              </span>
+            </div>
           </div>
           <div class="card__footer">
             <button type="button" class="card__btn-open">Open</button>
@@ -620,8 +955,8 @@
     <!-- MY REQUEST CARDS -->
     <section class="my-requests-wrapper hidden" id="myRequestsWrapper">
       <div class="browse-grid" id="myRequestsList">
-        <!-- SAMPLE MY REQUEST CARD 1 -->
         <article class="card"
+          data-owner="me"
           data-name="Losartan 50mg Tablets"
           data-description="Maintenance medicine for hypertension, requested for one-month supply."
           data-category="Other"
@@ -630,15 +965,34 @@
           data-image="losartan.jpg">
           <div class="card__body">
             <h3 class="title">Losartan 50mg Tablets</h3>
-            <p class="muted">Requested by You</p>
+            <p class="muted">
+              <span class="meta-icon">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a5 5 0 1 1-5 5 5 5 0 0 1 5-5Zm0 11c-4.33 0-8 2.17-8 5v1h16v-1c0-2.83-3.67-5-8-5Z"/></svg>
+              </span>
+              Requested by You
+            </p>
+            <div class="card-meta">
+              <span class="badge">
+                <span class="badge-icon">
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 3h10a2 2 0 0 1 2 2v6H5V5a2 2 0 0 1 2-2Zm-2 9h14v5a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-5Z"/></svg>
+                </span>
+                Other
+              </span>
+              <span class="badge badge-urgency-medium">
+                <span class="badge-icon">
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 10 10A10.011 10.011 0 0 0 12 2Zm1 11h4v-2h-3V7h-2v6Z"/></svg>
+                </span>
+                Medium urgency
+              </span>
+            </div>
           </div>
           <div class="card__footer">
             <button type="button" class="card__btn-open">Open</button>
           </div>
         </article>
 
-        <!-- SAMPLE MY REQUEST CARD 2 -->
         <article class="card"
+          data-owner="me"
           data-name="Salbutamol Nebules"
           data-description="Nebulization solution for asthma attacks, for home and clinic use."
           data-category="Other"
@@ -647,15 +1001,34 @@
           data-image="salbutamol-nebules.jpg">
           <div class="card__body">
             <h3 class="title">Salbutamol Nebules</h3>
-            <p class="muted">Requested by You</p>
+            <p class="muted">
+              <span class="meta-icon">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a5 5 0 1 1-5 5 5 5 0 0 1 5-5Zm0 11c-4.33 0-8 2.17-8 5v1h16v-1c0-2.83-3.67-5-8-5Z"/></svg>
+              </span>
+              Requested by You
+            </p>
+            <div class="card-meta">
+              <span class="badge">
+                <span class="badge-icon">
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 3h10a2 2 0 0 1 2 2v6H5V5a2 2 0 0 1 2-2Zm-2 9h14v5a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-5Z"/></svg>
+                </span>
+                Other
+              </span>
+              <span class="badge badge-urgency-high">
+                <span class="badge-icon">
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 10 10A10.011 10.011 0 0 0 12 2Zm1 11h4v-2h-3V7h-2v6Z"/></svg>
+                </span>
+                High urgency
+              </span>
+            </div>
           </div>
           <div class="card__footer">
             <button type="button" class="card__btn-open">Open</button>
           </div>
         </article>
 
-        <!-- SAMPLE MY REQUEST CARD 3 -->
         <article class="card"
+          data-owner="me"
           data-name="Omeprazole 20mg Capsules"
           data-description="For hyperacidity and GERD, requested for short-term treatment."
           data-category="Other"
@@ -664,7 +1037,26 @@
           data-image="omeprazole.jpg">
           <div class="card__body">
             <h3 class="title">Omeprazole 20mg Capsules</h3>
-            <p class="muted">Requested by You</p>
+            <p class="muted">
+              <span class="meta-icon">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a5 5 0 1 1-5 5 5 5 0 0 1 5-5Zm0 11c-4.33 0-8 2.17-8 5v1h16v-1c0-2.83-3.67-5-8-5Z"/></svg>
+              </span>
+              Requested by You
+            </p>
+            <div class="card-meta">
+              <span class="badge">
+                <span class="badge-icon">
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 3h10a2 2 0 0 1 2 2v6H5V5a2 2 0 0 1 2-2Zm-2 9h14v5a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-5Z"/></svg>
+                </span>
+                Other
+              </span>
+              <span class="badge badge-urgency-low">
+                <span class="badge-icon">
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 10 10A10.011 10.011 0 0 0 12 2Zm1 11h4v-2h-3V7h-2v6Z"/></svg>
+                </span>
+                Low urgency
+              </span>
+            </div>
           </div>
           <div class="card__footer">
             <button type="button" class="card__btn-open">Open</button>
@@ -673,91 +1065,133 @@
       </div>
     </section>
 
-    <!-- CREATE REQUEST PANEL -->
-    <section class="panel hidden" id="panel-create">
-      <h2>Create a New Request</h2>
-      <form id="createForm" class="form-grid">
-        <div class="form-card" style="grid-column:1/-1">
-          <div class="fc-body">
-            <label for="title">Medicine Name</label>
-            <div class="field">
-              <input type="text" id="title" list="medicinesList" placeholder="Type or choose a medicine" required autocomplete="off">
-              <datalist id="medicinesList"></datalist>
-            </div>
-            <div class="muted" style="margin-top:6px">Choosing a medicine will auto-set the Category (you can still change it).</div>
-          </div>
-        </div>
+    <!-- CREATE REQUEST PANEL (SEPARATE LEFT + RIGHT CARDS) -->
+    <section class="hidden" id="panel-create">
 
-        <div class="form-card" style="grid-column:1/-1">
-          <div class="fc-body">
-            <label for="description">Description</label>
-            <div class="field" style="align-items:flex-start">
-              <textarea id="description" placeholder="Include dosage, form, quantity, special notes…" required></textarea>
+      <div class="create-grid">
+        <!-- LEFT: FORM CARD -->
+        <section class="panel panel-create-form">
+          <form id="createForm" class="form-grid">
+            <div class="form-card" style="grid-column:1/-1">
+              <div class="fc-body">
+                <label for="title">Medicine Name</label>
+                <div class="field">
+                  <input type="text" id="title" list="medicinesList" placeholder="Type or choose a medicine" required autocomplete="off">
+                  <datalist id="medicinesList"></datalist>
+                </div>
+                <div class="muted" style="margin-top:6px">Choosing a medicine will auto-set the Category (you can still change it).</div>
+              </div>
             </div>
-            <div class="muted" style="margin-top:6px">Please don’t share private medical information.</div>
-          </div>
-        </div>
 
-        <div class="form-card">
-          <div class="fc-body">
-            <label for="category">Category</label>
-            <div class="field">
-              <select id="category" required>
-                <option value="Pain Relief">Pain Relief</option>
-                <option value="Antibiotic">Antibiotic</option>
-                <option value="Cough">Cough</option>
-                <option value="Other" selected>Other</option>
-              </select>
+            <div class="form-card" style="grid-column:1/-1">
+              <div class="fc-body">
+                <label for="description">Description</label>
+                <div class="field" style="align-items:flex-start">
+                  <textarea id="description" placeholder="Include dosage, form, quantity, special notes…" required></textarea>
+                </div>
+                <div class="muted" style="margin-top:6px">Please don’t share private medical information.</div>
+              </div>
             </div>
-          </div>
-        </div>
 
-        <div class="form-card">
-          <div class="fc-body">
-            <label for="urgency">Urgency</label>
-            <div class="field">
-              <select id="urgency" required>
-                <option value="high">High</option>
-                <option value="medium" selected>Medium</option>
-                <option value="low">Low</option>
-              </select>
+            <div class="form-card">
+              <div class="fc-body">
+                <label for="category">Category</label>
+                <div class="field">
+                  <select id="category" required>
+                    <option value="Pain Relief">Pain Relief</option>
+                    <option value="Antibiotic">Antibiotic</option>
+                    <option value="Cough">Cough</option>
+                    <option value="Other" selected>Other</option>
+                  </select>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
 
-        <div class="form-card" style="grid-column:1/-1">
-          <div class="fc-body">
-            <label>Photo</label>
-            <div class="upload-wrap">
-              <div class="thumb" id="thumb"><span class="muted">No image</span></div>
-              <button type="button" class="btn btn-ghost" id="btnUpload">Choose File</button>
-              <input type="file" id="fileInput" accept="image/*" style="display:none" />
-              <button type="button" class="btn btn-ghost" id="btnRemove" style="display:none">Remove</button>
+            <div class="form-card">
+              <div class="fc-body">
+                <label for="urgency">Urgency</label>
+                <div class="field">
+                  <select id="urgency" required>
+                    <option value="high">High</option>
+                    <option value="medium" selected>Medium</option>
+                    <option value="low">Low</option>
+                  </select>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
 
-        <div class="form-card" style="grid-column:1/-1">
-          <div class="fc-body">
-            <label>Location</label>
-            <div class="loc-grid">
-              <div class="field"><select id="selRegion"><option value="">Select Region…</option></select></div>
-              <div class="field"><select id="selProvince" disabled><option value="">Select Province…</option></select></div>
-              <div class="field"><select id="selCityMun" disabled><option value="">Select City/Municipality…</option></select></div>
-              <div class="field"><select id="selBarangay" disabled><option value="">Select Barangay…</option></select></div>
+            <div class="form-card" style="grid-column:1/-1">
+              <div class="fc-body">
+                <label>Photo</label>
+                <div class="upload-wrap">
+                  <div class="thumb" id="thumb"><span class="muted">No image</span></div>
+                  <button type="button" class="btn btn-ghost" id="btnUpload">Choose File</button>
+                  <input type="file" id="fileInput" accept="image/*" style="display:none" />
+                  <button type="button" class="btn btn-ghost" id="btnRemove" style="display:none">Remove</button>
+                </div>
+              </div>
             </div>
-            <div class="muted" style="margin-top:8px">Tip: If you skip the dropdowns, we’ll use your saved profile location.</div>
-            <div class="field" style="margin-top:10px">
-              <input type="text" id="locationText" placeholder="Or type an address/landmark (optional)">
-            </div>
-          </div>
-        </div>
 
-        <div style="grid-column:1/-1;display:flex;gap:8px">
-          <button type="submit" class="btn btn-primary">Submit Request</button>
-          <button type="button" class="btn btn-ghost" id="backBtnBottom">Back</button>
-        </div>
-      </form>
+            <div class="form-card" style="grid-column:1/-1">
+              <div class="fc-body">
+                <label>Location</label>
+                <div class="loc-grid">
+                  <div class="field"><select id="selRegion"><option value="">Select Region…</option></select></div>
+                  <div class="field"><select id="selProvince" disabled><option value="">Select Province…</option></select></div>
+                  <div class="field"><select id="selCityMun" disabled><option value="">Select City/Municipality…</option></select></div>
+                  <div class="field"><select id="selBarangay" disabled><option value="">Select Barangay…</option></select></div>
+                </div>
+                <div class="muted" style="margin-top:8px">Tip: If you skip the dropdowns, we’ll use your saved profile location.</div>
+                <div class="field" style="margin-top:10px">
+                  <input type="text" id="locationText" placeholder="Or type an address/landmark (optional)">
+                </div>
+              </div>
+            </div>
+
+            <div style="grid-column:1/-1;display:flex;gap:8px">
+              <button type="submit" class="btn btn-primary">Submit Request</button>
+              <button type="button" class="btn btn-ghost" id="backBtnBottom">Back</button>
+            </div>
+          </form>
+        </section>
+
+        <!-- RIGHT: GUIDELINES / SAFETY CARDS -->
+        <aside class="create-side">
+          <div class="info-card">
+            <div class="info-card-header">
+              <div class="info-card-icon">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true">
+                  <path d="M12 2a10 10 0 1 0 10 10A10.011 10.011 0 0 0 12 2Zm0 4a1.25 1.25 0 1 1-1.25 1.25A1.25 1.25 0 0 1 12 6Zm1.5 10.25h-3v-1.5h1v-3.5h-1v-1.5h2v5h1Z"/>
+                </svg>
+              </div>
+              <div class="info-card-title">Request Guidelines</div>
+            </div>
+            <ul>
+              <li>Be specific about medicine name and dosage</li>
+              <li>Explain your medical need clearly</li>
+              <li>Set an appropriate urgency level</li>
+              <li>Provide a general location for pickup</li>
+            </ul>
+          </div>
+
+          <div class="info-card">
+            <div class="info-card-header">
+              <div class="info-card-icon">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true">
+                  <path d="M12 2 2 20h20L12 2Zm0 4.8 6.12 11.2H5.88L12 6.8ZM11 11v3h2v-3h-2Zm0 4v2h2v-2h-2Z"/>
+                </svg>
+              </div>
+              <div class="info-card-title">Safety Tips</div>
+            </div>
+            <ul>
+              <li>Meet donors in public, safe locations</li>
+              <li>Verify medicine expiry dates before accepting</li>
+              <li>Check medicine packaging and seals</li>
+              <li>Consult a healthcare provider before use</li>
+            </ul>
+          </div>
+        </aside>
+      </div>
     </section>
   </main>
 
@@ -795,7 +1229,16 @@
 
       <div class="modal-right">
         <img id="modalImage" src="" alt="Requested medicine image" />
+        <div class="modal-actions" id="modalActions"></div>
       </div>
+    </div>
+  </div>
+
+  <!-- IMAGE FULLSCREEN VIEWER -->
+  <div id="imageViewer" class="image-viewer-backdrop" hidden>
+    <div class="image-viewer-inner">
+      <button type="button" id="imageViewerClose" class="image-viewer-close">&times;</button>
+      <img id="imageViewerImage" src="" alt="Medicine full view">
     </div>
   </div>
 
@@ -855,112 +1298,61 @@
       <hr/>
       <div class="footer-bottom">
         <p>© 2025 DonorMedix. All rights reserved.</p>
+        <div class="footer-stats">
+          Your stats · Total requests:
+          <strong id="stat-total-requests">0</strong> · My requests:
+          <strong id="stat-my-requests">0</strong> · Last created:
+          <strong id="stat-last-created">—</strong>
+        </div>
       </div>
     </div>
   </footer>
 
   <!-- SWITCHER SCRIPT -->
   <script>
-  document.addEventListener("DOMContentLoaded", () => {
-    const pills = document.querySelectorAll(".pill");
+    document.addEventListener("DOMContentLoaded", () => {
+      const pills = document.querySelectorAll(".pill");
 
-    const communityPanel   = document.getElementById("panel-community");
-    const communityWrapper = document.getElementById("communityRequestsWrapper");
-    const myPanel          = document.getElementById("panel-mine");
-    const myWrapper        = document.getElementById("myRequestsWrapper");
-    const createPanel      = document.getElementById("panel-create");
+      const communityPanel   = document.getElementById("panel-community");
+      const communityWrapper = document.getElementById("communityRequestsWrapper");
+      const myPanel          = document.getElementById("panel-mine");
+      const myWrapper        = document.getElementById("myRequestsWrapper");
+      const createPanel      = document.getElementById("panel-create");
 
-    function showView(view) {
-      // hide all
-      communityPanel.classList.add("hidden");
-      communityWrapper.classList.add("hidden");
-      myPanel.classList.add("hidden");
-      myWrapper.classList.add("hidden");
-      createPanel.classList.add("hidden");
+      function showView(view) {
+        communityPanel.classList.add("hidden");
+        communityWrapper.classList.add("hidden");
+        myPanel.classList.add("hidden");
+        myWrapper.classList.add("hidden");
+        createPanel.classList.add("hidden");
 
-      if (view === "community") {
-        communityPanel.classList.remove("hidden");
-        communityWrapper.classList.remove("hidden");
-      } else if (view === "mine") {
-        myPanel.classList.remove("hidden");
-        myWrapper.classList.remove("hidden");
-      } else if (view === "create") {
-        createPanel.classList.remove("hidden");
+        if (view === "community") {
+          communityPanel.classList.remove("hidden");
+          communityWrapper.classList.remove("hidden");
+        } else if (view === "mine") {
+          myPanel.classList.remove("hidden");
+          myWrapper.classList.remove("hidden");
+        } else if (view === "create") {
+          createPanel.classList.remove("hidden");
+        }
       }
-    }
 
-    // Default view = Community
-    showView("community");
+      showView("community");
 
-    pills.forEach(pill => {
-      pill.addEventListener("click", () => {
-        pills.forEach(p => p.classList.remove("active"));
-        pill.classList.add("active");
+      pills.forEach(pill => {
+        pill.addEventListener("click", () => {
+          pills.forEach(p => p.classList.remove("active"));
+          pill.classList.add("active");
 
-        const view = pill.getAttribute("data-view");
-        showView(view);
+          const view = pill.getAttribute("data-view");
+          showView(view);
+        });
       });
     });
-  });
-  </script>
-
-  <!-- MODAL SCRIPT -->
-  <script>
-  document.addEventListener("DOMContentLoaded", () => {
-    const modal = document.getElementById("requestModal");
-    const modalName = document.getElementById("modalName");
-    const modalCategory = document.getElementById("modalCategory");
-    const modalUrgency = document.getElementById("modalUrgency");
-    const modalLocation = document.getElementById("modalLocation");
-    const modalDescription = document.getElementById("modalDescription");
-    const modalImage = document.getElementById("modalImage");
-    const modalCloseBtn = document.getElementById("modalCloseBtn");
-
-    function openModalFromCard(card) {
-      const name = card.getAttribute("data-name") || "";
-      const description = card.getAttribute("data-description") || "";
-      const category = card.getAttribute("data-category") || "";
-      const urgency = card.getAttribute("data-urgency") || "";
-      const location = card.getAttribute("data-location") || "";
-      const image = card.getAttribute("data-image") || "placeholder-medicine.jpg";
-
-      modalName.textContent = name || "Medicine";
-      modalCategory.textContent = category || "—";
-      modalUrgency.textContent = urgency || "—";
-      modalLocation.textContent = location || "—";
-      modalDescription.textContent = description || "No description provided.";
-      modalImage.src = image;
-      modalImage.alt = name || "Requested medicine image";
-
-      modal.removeAttribute("hidden");
-    }
-
-    function closeModal() {
-      if (!modal.hasAttribute("hidden")) {
-        modal.setAttribute("hidden", "hidden");
-      }
-    }
-
-    document.querySelectorAll(".card__btn-open").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const card = btn.closest(".card");
-        if (!card) return;
-        openModalFromCard(card);
-      });
-    });
-
-    modalCloseBtn.addEventListener("click", closeModal);
-    modal.addEventListener("click", (e) => {
-      if (e.target === modal) closeModal();
-    });
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape") closeModal();
-    });
-  });
   </script>
 
   <!-- Cloudinary (optional, for your image upload logic later) -->
   <script src="https://widget.cloudinary.com/v2.0/global/all.js"></script>
-  <script type="module" src=".js"></script>
+  <script type="module" src="request.js"></script>
 </body>
 </html>

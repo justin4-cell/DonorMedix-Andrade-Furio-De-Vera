@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DonorMedix · Donations</title>
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --brand:#3472a1;
+      --brand-2:#0b90ab;
+      --ink:#0f172a;
+      --muted:#64748b;
+      --line:#e2e8f0;
+      --bg:#f8fafc;
+      --card:#ffffff;
+      --shadow:0 8px 22px rgba(2,6,23,.06);
+      --radius:14px;
+      --danger:#ef4444;
+      --danger-2:#dc2626;
+      --warning:#f59e0b;
+      --info:#3b82f6;
+      --success:#22c55e;
+    }
+
+    body {
+      min-height: 100vh;
+      font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+      background: radial-gradient(circle at top left, #ecfeff 0, #f8fafc 45%, #e2fbe8 100%);
+      color: var(--ink);
+      transition: background .15s ease, color .15s ease;
+    }
+
+    body.dark { background:#020617; color:#e5e7eb; }
+    body.dark .card { background:#020617; border-color:#1f2937; }
+    body.dark table { background:#020617; }
+    body.dark th { background:#111827; color:#e5e7eb; }
+    body.dark td { border-color:#1f2937; }
+    body.dark .brand-text-main { color:#e5e7eb; }
+    body.dark .brand-text-sub,
+    body.dark .card-subtitle,
+    body.dark .footer-note { color:#9ca3af; }
+
+    .app { display: flex; min-height: 100vh; }
+
+    .sidebar {
+      width: 230px;
+      background: linear-gradient(160deg, #020617, #0b1120, #1e293b);
+      color: #e2e8f0;
+      padding: 20px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      box-shadow: 8px 0 24px rgba(15,23,42,.4);
+    }
+
+    .sidebar-brand { display: flex; align-items: center; gap: 10px; }
+    .sidebar-mark {
+      width: 34px; height: 34px; border-radius: 999px;
+      background: conic-gradient(from 140deg, var(--brand), var(--brand-2));
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 14px; color: #ecfdf5;
+      box-shadow: 0 10px 25px rgba(37, 99, 235, 0.5);
+    }
+
+    .sidebar-title { font-size: 15px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+    .sidebar-sub { font-size: 11px; color: #9ca3af; text-transform: uppercase; letter-spacing: .12em; }
+    .sidebar-section-label { font-size: 11px; text-transform: uppercase; letter-spacing: .16em; color: #6b7280; margin-bottom: 6px; }
+
+    .nav { display: flex; flex-direction: column; gap: 4px; }
+
+    .nav-link {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 10px; border-radius: 999px; font-size: 13px;
+      color: #e5e7eb; text-decoration: none;
+      border: 1px solid transparent; opacity: .85; cursor: pointer;
+      transition: background .1s ease, border-color .1s ease, transform .06s ease;
+    }
+    .nav-link span.icon {
+      font-size: 14px; width: 18px; min-width: 18px;
+      text-align: center; display: inline-flex; align-items: center; justify-content: center;
+    }
+    .nav-link span.icon i { color: currentColor; }
+    .nav-link:hover {
+      background: rgba(148,163,184,.18);
+      border-color: rgba(148,163,184,.5);
+      opacity: 1;
+    }
+    .nav-link.active {
+      background: linear-gradient(135deg, var(--brand), var(--brand-2));
+      border-color: rgba(129,140,248,.2);
+      color: #ecfdf5;
+      box-shadow: 0 10px 25px rgba(15,23,42,.6);
+      opacity: 1;
+    }
+
+    .nav-footer { margin-top: auto; font-size: 11px; color: #6b7280; display: flex; flex-direction: column; gap: 10px; }
+    .home-link {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 8px 12px; border-radius: 999px; font-size: 12px;
+      text-decoration: none; border: 1px solid rgba(148,163,184,.6);
+      background: rgba(15,23,42,.7); color: #e5e7eb;
+      cursor: pointer; transition: background .1s ease, border-color .1s ease, transform .06s ease;
+    }
+    .home-link span.icon { width: 18px; min-width: 18px; display: inline-flex; justify-content: center; align-items: center; }
+    .home-link span.icon i { color: currentColor; font-size: 13px; }
+    .home-link:hover { background: rgba(148,163,184,.24); border-color: rgba(148,163,184,.9); }
+
+    .main { flex: 1; padding: 20px 16px 32px; }
+    .shell { max-width: 1120px; margin: 0 auto; }
+
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 24px; }
+    .brand { display: flex; align-items: center; gap: 10px; }
+    .brand-mark {
+      width: 32px; height: 32px; border-radius: 999px;
+      background: conic-gradient(from 140deg, var(--brand), var(--brand-2));
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 8px 18px rgba(45, 73, 164, 0.436);
+      color: #ecfdf5; font-weight: 700; font-size: 14px;
+    }
+    .brand-text-main { font-weight: 700; letter-spacing: .04em; font-size: 16px; text-transform: uppercase; color: var(--ink); }
+    .brand-text-sub { font-size: 11px; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); }
+
+    .topbar-right { display: flex; align-items: center; gap: 12px; }
+    .pill {
+      padding: 4px 10px; border-radius: 999px;
+      background: rgba(15,23,42,.04); border: 1px solid rgba(148,163,184,.6);
+      font-size: 11px; text-transform: uppercase; letter-spacing: .14em;
+      color: var(--muted); display: inline-flex; align-items: center; gap: 6px;
+    }
+    .pill-dot {
+      width: 7px; height: 7px; border-radius: 999px;
+      background: var(--brand);
+      box-shadow: 0 0 0 4px rgba(34,197,94,.25);
+    }
+
+    .admin-chip {
+      display: inline-flex; align-items: center; gap: 8px;
+      border-radius: 999px; padding: 6px 12px;
+      background: #ecfdf5; border: 1px solid rgba(16,185,129,.4);
+      font-size: 12px; color: var(--brand-2); font-weight: 500;
+    }
+    .admin-avatar {
+      width: 22px; height: 22px; border-radius: 999px;
+      background: linear-gradient(135deg,#2547b8,#447fe5db);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; color: #ecfdf5; font-weight: 600;
+    }
+    .admin-role { font-size: 11px; text-transform: uppercase; letter-spacing: .14em; color: var(--muted); }
+
+    .btn {
+      border-radius: 999px; border: none; padding: 6px 14px;
+      font-size: 12px; font-weight: 500;
+      background: linear-gradient(135deg,var(--brand),var(--brand-2));
+      color: #ecfdf5; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 6px;
+      box-shadow: 0 10px 18px rgba(0, 0, 0, 0);
+      transition: transform .08s ease, box-shadow .08s ease;
+    }
+    .btn:active { transform: translateY(1px) scale(.99); box-shadow: 0 4px 10px rgba(51, 54, 145, 0.68); }
+
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      border: 1px solid rgba(148,163,184,.3);
+      box-shadow: var(--shadow);
+      padding: 16px 18px;
+      margin-bottom: 18px;
+    }
+    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 8px; }
+    .card-title { font-size: 15px; font-weight: 600; color: var(--ink); }
+    .card-subtitle { font-size: 12px; color: var(--muted); }
+    .card-tag {
+      font-size: 10px; padding: 4px 9px; border-radius: 999px;
+      border: 1px solid rgba(148,163,184,.55);
+      text-transform: uppercase; letter-spacing: .14em;
+      color: var(--muted); background: rgba(248,250,252,.7);
+    }
+
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 8px 0 14px;
+    }
+
+    .input {
+      border-radius: 999px;
+      padding: 6px 11px;
+      border: 1px solid rgba(148,163,184,.7);
+      background: #f9fafb;
+      font-size: 12px;
+      color: var(--ink);
+      outline: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .input input {
+      border: none;
+      background: transparent;
+      font-size: 12px;
+      outline: none;
+      min-width: 120px;
+    }
+
+    select {
+      border-radius: 999px;
+      padding: 6px 11px;
+      border: 1px solid rgba(148,163,184,.7);
+      background: #f9fafb;
+      font-size: 12px;
+      color: var(--ink);
+      outline: none;
+    }
+
+    .meta-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 4px;
+      gap: 8px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .meta-row strong {
+      color: var(--ink);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #ffffff;
+      border-radius: 12px;
+      overflow: hidden;
+      font-size: 12px;
+      margin-top: 8px;
+    }
+
+    th, td {
+      padding: 10px;
+      text-align: left;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    th {
+      background: #e5f7ef;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      color: var(--muted);
+    }
+
+    .status {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      color: #fff;
+      font-size: 12px;
+    }
+    .status.completed { background: var(--success); }
+    .status.pending { background: var(--warning); }
+
+    .footer-note { margin-top: 18px; font-size: 11px; color: var(--muted); text-align: center; }
+
+    @media (max-width: 880px) {
+      .app { flex-direction: column; }
+      .sidebar {
+        width: 100%;
+        flex-direction: row;
+        align-items: center;
+        gap: 16px;
+        padding: 12px 14px;
+      }
+      .nav { flex-direction: row; flex-wrap: wrap; }
+      .nav-footer { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div>
+        <div class="sidebar-brand">
+          <div class="sidebar-mark">DM</div>
+          <div>
+            <div class="sidebar-title">DonorMedix</div>
+            <div class="sidebar-sub">Admin Panel</div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <nav class="nav">
+          <a href="admin-dashboard.html" class="nav-link">
+            <span class="icon"><i class="fa-solid fa-gauge"></i></span>
+            Dashboard
+          </a>
+          <a href="admin-users.html" class="nav-link">
+            <span class="icon"><i class="fa-solid fa-users"></i></span>
+            User Management
+          </a>
+          <a href="admin-requests.html" class="nav-link">
+            <span class="icon"><i class="fa-solid fa-list-check"></i></span>
+            Requests
+          </a>
+          <a href="admin-donations.html" class="nav-link active">
+            <span class="icon"><i class="fa-solid fa-hand-holding-heart"></i></span>
+            Donations
+          </a>
+          <a href="admin-settings.html" class="nav-link">
+            <span class="icon"><i class="fa-solid fa-gear"></i></span>
+            Settings
+          </a>
+        </nav>
+      </div>
+
+      <div class="nav-footer">
+        <a href="home.html" class="home-link">
+          <span class="icon"><i class="fa-solid fa-house"></i></span>
+          Home
+        </a>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="shell">
+        <header class="topbar">
+          <div class="brand">
+            <div class="brand-mark">DM</div>
+            <div>
+              <div class="brand-text-main">DonorMedix</div>
+              <div class="brand-text-sub">Medicine Donation · Admin Panel</div>
+            </div>
+          </div>
+
+          <div class="topbar-right">
+            <div class="pill">
+              <span class="pill-dot"></span>
+              DONATIONS
+            </div>
+            <button id="themeToggle" class="btn" type="button">🌙 Dark Mode</button>
+            <div class="admin-chip">
+              <div class="admin-avatar">A</div>
+              <div>
+                <div style="font-size:12px;font-weight:600;">Admin</div>
+                <div class="admin-role">System</div>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <section class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Donations Overview</div>
+              <div class="card-subtitle">
+                Track incoming medicine donations and their statuses.
+              </div>
+            </div>
+            <span class="card-tag">Donations</span>
+          </div>
+
+          <div class="filters">
+            <div class="input">
+              🔍
+              <input type="text" placeholder="Search donor or medicine…" />
+            </div>
+            <select>
+              <option value="">All Status</option>
+              <option value="completed">Completed</option>
+              <option value="pending">Pending</option>
+            </select>
+          </div>
+
+          <div class="meta-row">
+            <div>Total donations: <strong>Sample</strong></div>
+            <div>Sort by <strong>Newest</strong></div>
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Donor</th>
+                <th>Medicine</th>
+                <th>Quantity</th>
+                <th>Date</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- sample static rows; replace with Firestore data later -->
+              <tr>
+                <td>Maria Santos</td>
+                <td>Losartan 50mg</td>
+                <td>30</td>
+                <td>2025-11-25</td>
+                <td><span class="status completed">Completed</span></td>
+              </tr>
+              <tr>
+                <td>Carlos Reyes</td>
+                <td>Vitamin C 500mg</td>
+                <td>100</td>
+                <td>2025-11-28</td>
+                <td><span class="status pending">Pending</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <p class="footer-note">
+          Donations page. Replace sample rows with data from your <code>donations</code> collection.
+        </p>
+      </div>
+    </main>
+  </div>
+
+
+<script type="module">
+import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+import { getFirestore, collection, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAaWN2gj3VJxT6kwOvCX4LIXkWlbt0LTHQ",
+  authDomain: "donormedix.firebaseapp.com",
+  projectId: "donormedix",
+  storageBucket: "donormedix.appspot.com",
+  messagingSenderId: "627472172279",
+  appId: "1:627472172279:web:9bf645b54d33075a0d7ff2",
+  measurementId: "G-NTNPR4FPT7",
+};
+
+const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+/* ---------- tiny sign-in UI ---------- */
+
+/* ---------- listen auth and then Firestore ---------- */
+onAuthStateChanged(auth, (user) => {
+  if (!user) {
+    console.log("Not signed in (admin required). Use sign-in panel.");
+    showTableMsg("Not signed in. Please sign in as admin (panel at top-right).");
+    return;
+  }
+  console.log("Signed in as:", user.uid);
+  // Start Firestore listener after signed in
+  startDonationsListener();
+});
+
+/* small helper to show message in table */
+function showTableMsg(txt) {
+  const tbody = document.querySelector("table tbody");
+  if (!tbody) return;
+  tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:12px">${txt}</td></tr>`;
+}
+
+function startDonationsListener() {
+  showTableMsg("Loading donations...");
+  try {
+    const qAll = query(collection(db, "donations"), orderBy("createdAt", "desc"));
+    onSnapshot(qAll, (snap) => {
+      const arr = [];
+      snap.forEach((docSnap) => {
+        const r = docSnap.data() || {};
+        arr.push({
+          donorName: r.donorName || r.name || "Anonymous",
+          medicineName: r.medicineName || r.medicine || "—",
+          quantity: r.quantity ?? 0,
+          expiryDate: r.expiryDate || r.expiry || "",
+          status: r.status || "",
+        });
+      });
+      // render table
+      const tbody = document.querySelector("table tbody");
+      if (!tbody) return;
+      tbody.innerHTML = "";
+      if (!arr.length) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:12px">No donations found</td></tr>`;
+        return;
+      }
+      arr.forEach(d => {
+        const tr = document.createElement("tr");
+        const statusKey = (d.status || "").toLowerCase();
+        const badge = (statusKey === "available" || statusKey === "completed") ? "Completed" : "Pending";
+        const badgeClass = (badge === "Completed") ? "completed" : "pending";
+        tr.innerHTML = `
+          <td>${escapeHtml(d.donorName)}</td>
+          <td>${escapeHtml(d.medicineName)}</td>
+          <td>${escapeHtml(String(d.quantity))}</td>
+          <td>${escapeHtml(formatDate(d.expiryDate))}</td>
+          <td><span class="status ${badgeClass}">${badge}</span></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }, (err) => {
+      console.error("onSnapshot error:", err);
+      showTableMsg("Failed to load donations (permissions?). See console.");
+    });
+  } catch (e) {
+    console.error("listener start error:", e);
+    showTableMsg("Listener error (see console).");
+  }
+}
+
+/* small helpers */
+function formatDate(v) {
+  if (!v) return "—";
+  if (v && typeof v.toDate === "function") v = v.toDate();
+  const d = new Date(v);
+  if (isNaN(d.getTime())) return String(v);
+  return d.toISOString().slice(0,10);
+}
+function escapeHtml(s) {
+  return String(s||"").replace(/[&<>"']/g, m => ({ "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;" }[m]));
+}
+</script>
+
+
+
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const themeToggle = document.getElementById('themeToggle');
+      if (themeToggle) {
+        themeToggle.addEventListener('click', () => {
+          document.body.classList.toggle('dark');
+          themeToggle.textContent = document.body.classList.contains('dark')
+            ? '☀️ Light Mode'
+            : '🌙 Dark Mode';
+        });
+      }
+    });
+  </script>
+
+
+</body>
+</html>

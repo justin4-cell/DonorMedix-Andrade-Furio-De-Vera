@@ -101,6 +101,10 @@
     .pill{
       padding:.62rem 1.05rem;border-radius:999px;border:1px solid #bfe9ff;
       background:#f0f9ff;color:#0f172a;font-weight:800;cursor:pointer;transition:all .15s;
+      display:inline-flex;align-items:center;gap:.4rem;
+    }
+    .pill svg{
+      width:16px;height:16px;flex-shrink:0;
     }
     .pill:hover{
       background:#ffffff;color:#0f172a;border-color:#0f172a;transform:translateY(-1px);
@@ -157,7 +161,13 @@
       display:flex;align-items:center;justify-content:space-between;
       gap:12px;margin-bottom:.35rem;
     }
-    .requests-panel h3{font-size:1.25rem;font-weight:800;color:#0f172a}
+    .requests-panel h3{
+      font-size:1.25rem;font-weight:800;color:#0f172a;
+      display:flex;align-items:center;gap:.45rem;
+    }
+    .requests-panel h3 svg{
+      width:20px;height:20px;flex-shrink:0;
+    }
     .requests-panel .muted-count{font-size:.9rem;color:#64748b}
 
     .info-panel{
@@ -237,7 +247,17 @@
     .muted{color:var(--muted);font-size:.9rem}
 
     /* SIDEBAR */
-    .sidebar{display:flex;flex-direction:column;gap:1rem}
+    .sidebar{
+      display:flex;
+      flex-direction:column;
+      gap:1.8rem;
+    }
+
+    .sidebar .panel{
+      transform:scale(.92);
+      transform-origin:top center;
+    }
+
     .impact-grid{display:grid;grid-template-columns:1fr;gap:.85rem}
     .stat{
       display:grid;align-items:center;justify-items:start;
@@ -360,13 +380,28 @@
       height:100%;
       object-fit:cover;
       display:block;
+      cursor:zoom-in;
     }
     .modal-image-actions{
       position:absolute;
+      left:10px;
       right:10px;
       bottom:10px;
       display:flex;
+      justify-content:space-between;
+      gap:8px;
+      align-items:center;
+    }
+    .modal-status-group{
+      display:flex;
       gap:6px;
+      flex-wrap:wrap;
+    }
+    .modal-actions-group{
+      display:flex;
+      gap:6px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
     }
     .modal-btn-small{
       border:none;
@@ -395,12 +430,79 @@
       background:#38bdf8;
       color:#0f172a;
     }
+
+    .modal-btn-status{
+      background:#dcfce7;
+      color:#166534;
+      border:1px solid transparent;
+    }
+    .modal-btn-status--off{
+      background:#fee2e2;
+      color:#b91c1c;
+    }
+    .modal-btn-status--active{
+      box-shadow:0 0 0 2px rgba(34,197,94,.55);
+      opacity:1;
+    }
+    .modal-btn-status[disabled]{
+      opacity:.6;
+      cursor:default;
+    }
+
     @media(max-width:720px){
       .modal-card{flex-direction:column;}
       .modal-right{
         width:100%;
         max-height:260px;
       }
+      .modal-image-actions{
+        left:8px;right:8px;
+      }
+    }
+
+    /* IMAGE VIEWER (full screen) */
+    .image-viewer-backdrop{
+      position:fixed;
+      inset:0;
+      background:rgba(15,23,42,.85);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      z-index:70;
+      padding:1.5rem;
+    }
+    .image-viewer-backdrop[hidden]{display:none;}
+    .image-viewer-card{
+      max-width:900px;
+      width:100%;
+      max-height:90vh;
+      background:#020617;
+      border-radius:18px;
+      position:relative;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      overflow:hidden;
+    }
+    .image-viewer-card img{
+      width:100%;
+      height:100%;
+      object-fit:contain;
+      background:#020617;
+    }
+    .image-viewer-close{
+      position:absolute;
+      top:10px;
+      right:12px;
+      border:none;
+      background:rgba(15,23,42,.75);
+      color:#e5e7eb;
+      font-size:1.8rem;
+      line-height:1;
+      border-radius:999px;
+      width:36px;
+      height:36px;
+      cursor:pointer;
     }
 
     /* FOOTER */
@@ -432,7 +534,7 @@
     .footer a:hover{color:#38bdf8}
     .footer-hr{border:none;border-top:1px solid #1e293b;margin:2rem 0 1.25rem}
     .footer-bottom{
-      display:flex;justify-content:space-between;flex-wrap:wrap;
+      display:flex;justify-content:center;align-items:center;width:100%;text-align:center;
       color:#ffffff;font-size:.9rem
     }
     @media(max-width:768px){
@@ -501,9 +603,18 @@
   <main class="container">
     <!-- Switcher -->
     <div class="switcher" role="tablist" aria-label="Donation sections">
-      <button class="pill" data-view="all" aria-selected="false">All Donations</button>
-      <button class="pill" data-view="mine" aria-selected="false">My Donations</button>
-      <button class="pill active" data-view="create" aria-selected="true">Create Donations</button>
+      <button class="pill" data-view="all" aria-selected="false">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h7v7H4V4Zm9 0h7v7h-7V4ZM4 13h7v7H4v-7Zm9 0h7v7h-7v-7Z"/></svg>
+        <span>All Donations</span>
+      </button>
+      <button class="pill" data-view="mine" aria-selected="false">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm0 2c-3.33 0-6 1.34-6 3v1h12v-1c0-1.66-2.67-3-6-3Z"/></svg>
+        <span>My Donations</span>
+      </button>
+      <button class="pill active" data-view="create" aria-selected="true">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M11 4h2v7h7v2h-7v7h-2v-7H4v-2h7V4Z"/></svg>
+        <span>Create Donations</span>
+      </button>
     </div>
 
     <div class="grid" id="mainGrid">
@@ -515,7 +626,28 @@
             <label for="medicineName">Medicine/Item Name <span class="required">*</span></label>
             <div class="field">
               <input id="medicineName" list="medicinesList" type="text" placeholder="e.g., Paracetamol 500 mg" required />
-              <datalist id="medicinesList"></datalist>
+              <datalist id="medicinesList"> 
+                <option value="Paracetamol 500 mg">
+                <option value="Ibuprofen 400 mg">
+                <option value="Amoxicillin 500 mg">
+                <option value="Cefalexin 500 mg">
+                <option value="Azithromycin 250 mg">
+                <option value="Cetirizine 10 mg">
+                <option value="Loratadine 10 mg">
+                <option value="Vitamin C 500 mg">
+                <option value="Vitamin D3 1000 IU">
+                <option value="Multivitamins Capsule">
+                <option value="Mefenamic Acid 500 mg">
+                <option value="Co-Amoxiclav 625 mg">
+                <option value="Salbutamol Inhaler">
+                <option value="ORS Oral Rehydration Salts">
+                <option value="Hydrocortisone 1% Cream">
+                <option value="Betadine 10% Solution">
+                <option value="Charcoal Activated Capsule">
+                <option value="Bismuth Subsalicylate Tablet">
+                <option value="Loperamide 2 mg">
+                <option value="Antacid Suspension">
+              </datalist>
             </div>
           </div>
 
@@ -652,7 +784,10 @@
       <section class="requests-panel" id="all-donations-panel" style="display:none">
         <section class="info-panel">
           <div class="requests-heading-row">
-            <h3>All Donations</h3>
+            <h3>
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h7v7H4V4Zm9 0h7v7h-7V4ZM4 13h7v7H4v-7Zm9 0h7v7h-7v-7Z"/></svg>
+              <span>All Donations</span>
+            </h3>
             <div class="muted-count" id="allDonationsCount" aria-live="polite">
               Showing community donations
             </div>
@@ -696,6 +831,7 @@
             <!-- SAMPLE CARDS (mark owner as other or me) -->
             <article class="card"
               data-owner="other"
+              data-status="available"
               data-name="Paracetamol 500mg Tablets"
               data-category="Pain Relief"
               data-dosage="Tablets · 500mg"
@@ -717,6 +853,7 @@
 
             <article class="card"
               data-owner="other"
+              data-status="available"
               data-name="Amoxicillin 500mg Capsules"
               data-category="Antibiotic"
               data-dosage="Capsules · 500mg"
@@ -738,6 +875,7 @@
 
             <article class="card"
               data-owner="other"
+              data-status="available"
               data-name="Salbutamol Inhaler"
               data-category="Bronchodilator"
               data-dosage="Metered-dose inhaler"
@@ -764,7 +902,10 @@
       <section class="requests-panel" id="my-donations-panel" style="display:none;">
         <section class="info-panel">
           <div class="requests-heading-row">
-            <h3>My Donations</h3>
+            <h3>
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm0 2c-3.33 0-6 1.34-6 3v1h12v-1c0-1.66-2.67-3-6-3Z"/></svg>
+              <span>My Donations</span>
+            </h3>
             <div class="muted-count" id="myDonationsCount" aria-live="polite">
               Showing my donations
             </div>
@@ -776,6 +917,7 @@
             <!-- SAMPLE CARDS FOR CURRENT USER (owner=me) -->
             <article class="card"
               data-owner="me"
+              data-status="available"
               data-name="Ibuprofen 400mg Tablets"
               data-category="Pain Relief"
               data-dosage="Tablets · 400mg"
@@ -788,7 +930,7 @@
               data-image="ibuprofen.jpg">
               <div class="card__body">
                 <h3 class="title">Ibuprofen 400mg Tablets</h3>
-                <p class="muted">My donation · Created Jan 10, 2025</p>
+                <p class="muted">My donation</p>
               </div>
               <div class="card__footer">
                 <button type="button" class="card__btn-open">Open</button>
@@ -797,6 +939,7 @@
 
             <article class="card"
               data-owner="me"
+              data-status="available"
               data-name="Adult Cough Syrup"
               data-category="Cough"
               data-dosage="Oral liquid · 120ml"
@@ -809,7 +952,7 @@
               data-image="adult-cough-syrup.jpg">
               <div class="card__body">
                 <h3 class="title">Adult Cough Syrup</h3>
-                <p class="muted">My donation · Created Jan 18, 2025</p>
+                <p class="muted">My donation</p>
               </div>
               <div class="card__footer">
                 <button type="button" class="card__btn-open">Open</button>
@@ -818,6 +961,7 @@
 
             <article class="card"
               data-owner="me"
+              data-status="available"
               data-name="Multivitamins Capsules"
               data-category="Other"
               data-dosage="Capsules"
@@ -830,7 +974,7 @@
               data-image="multivitamins.jpg">
               <div class="card__body">
                 <h3 class="title">Multivitamins Capsules</h3>
-                <p class="muted">My donation · Created Jan 22, 2025</p>
+                <p class="muted">My donation</p>
               </div>
               <div class="card__footer">
                 <button type="button" class="card__btn-open">Open</button>
@@ -922,11 +1066,32 @@
       <div class="modal-right">
         <img id="modalImage" src="" alt="Medicine image" />
         <div class="modal-image-actions">
-          <button id="modalEditBtn" class="modal-btn-small modal-btn-edit">Edit</button>
-          <button id="modalDeleteBtn" class="modal-btn-small modal-btn-delete">Delete</button>
-          <a id="modalMessageBtn" href="message.html" class="modal-btn-small modal-btn-message">Message</a>
+          <!-- LEFT SIDE: Available / Not available -->
+          <div class="modal-status-group">
+            <button id="modalStatusAvailable" type="button" class="modal-btn-small modal-btn-status">
+              Available
+            </button>
+            <button id="modalStatusUnavailable" type="button" class="modal-btn-small modal-btn-status modal-btn-status--off">
+              Not Available
+            </button>
+          </div>
+
+          <!-- RIGHT SIDE: Edit / Delete / Message -->
+          <div class="modal-actions-group">
+            <button id="modalEditBtn" class="modal-btn-small modal-btn-edit">Edit</button>
+            <button id="modalDeleteBtn" class="modal-btn-small modal-btn-delete">Delete</button>
+            <a id="modalMessageBtn" href="message.html" class="modal-btn-small modal-btn-message">Message</a>
+          </div>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- IMAGE VIEWER OVERLAY -->
+  <div id="imageViewer" class="image-viewer-backdrop" hidden>
+    <div class="image-viewer-card">
+      <button type="button" class="image-viewer-close" id="imageViewerClose">&times;</button>
+      <img id="imageViewerImg" src="" alt="Full-size medicine image">
     </div>
   </div>
 
@@ -1037,7 +1202,7 @@
   });
   </script>
 
-  <!-- MODAL SCRIPT (with owner-based buttons) -->
+  <!-- MODAL SCRIPT (with owner-based buttons + status + image viewer) -->
   <script>
   document.addEventListener("DOMContentLoaded", () => {
     const modal = document.getElementById("dmModal");
@@ -1058,12 +1223,35 @@
     const modalDeleteBtn = document.getElementById("modalDeleteBtn");
     const modalMessageBtn = document.getElementById("modalMessageBtn");
 
+    const modalStatusAvailable = document.getElementById("modalStatusAvailable");
+    const modalStatusUnavailable = document.getElementById("modalStatusUnavailable");
+
+    // Image viewer elements
+    const imageViewer = document.getElementById("imageViewer");
+    const imageViewerImg = document.getElementById("imageViewerImg");
+    const imageViewerClose = document.getElementById("imageViewerClose");
+
     let activeCard = null;
+    let activeOwner = "other";
+
+    function updateStatusButtons(isOwner) {
+      if (!activeCard) return;
+      const status = activeCard.getAttribute("data-status") || "available";
+      const isAvailable = status !== "unavailable";
+
+      modalStatusAvailable.classList.toggle("modal-btn-status--active", isAvailable);
+      modalStatusUnavailable.classList.toggle("modal-btn-status--active", !isAvailable);
+
+      modalStatusAvailable.disabled = !isOwner;
+      modalStatusUnavailable.disabled = !isOwner;
+    }
 
     function openModalFromCard(card) {
       activeCard = card;
 
       const owner = card.getAttribute("data-owner") || "other";
+      activeOwner = owner;
+
       const name = card.getAttribute("data-name") || "";
       const category = card.getAttribute("data-category") || "";
       const dosage = card.getAttribute("data-dosage") || "";
@@ -1074,6 +1262,11 @@
       const urgency = card.getAttribute("data-urgency") || "";
       const location = card.getAttribute("data-location") || "";
       const image = card.getAttribute("data-image") || "placeholder-medicine.jpg";
+
+      // default status if missing
+      if (!card.hasAttribute("data-status")) {
+        card.setAttribute("data-status", "available");
+      }
 
       modalTypeLabel.textContent = "Donation";
       modalName.textContent = name || "Medicine";
@@ -1100,6 +1293,8 @@
         modalDeleteBtn.style.display = "none";
         modalMessageBtn.style.display = "inline-flex";
       }
+
+      updateStatusButtons(owner === "me");
 
       modal.removeAttribute("hidden");
     }
@@ -1138,18 +1333,60 @@
       }
     });
 
+    // Status buttons
+    modalStatusAvailable.addEventListener("click", () => {
+      if (!activeCard || activeOwner !== "me") return;
+      activeCard.setAttribute("data-status", "available");
+      updateStatusButtons(true);
+    });
+
+    modalStatusUnavailable.addEventListener("click", () => {
+      if (!activeCard || activeOwner !== "me") return;
+      activeCard.setAttribute("data-status", "unavailable");
+      updateStatusButtons(true);
+    });
+
     modalCloseBtn.addEventListener("click", closeModal);
     modal.addEventListener("click", (e) => {
       if (e.target === modal) closeModal();
     });
+
+    // Image viewer logic
+    function openImageViewer(src, altText) {
+      if (!src) return;
+      imageViewerImg.src = src;
+      imageViewerImg.alt = altText || "Medicine image";
+      imageViewer.removeAttribute("hidden");
+    }
+
+    function closeImageViewer() {
+      if (!imageViewer.hasAttribute("hidden")) {
+        imageViewer.setAttribute("hidden", "hidden");
+      }
+    }
+
+    modalImage.addEventListener("click", () => {
+      openImageViewer(modalImage.src, modalImage.alt);
+    });
+
+    imageViewerClose.addEventListener("click", closeImageViewer);
+    imageViewer.addEventListener("click", (e) => {
+      if (e.target === imageViewer) {
+        closeImageViewer();
+      }
+    });
+
     document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape") closeModal();
+      if (e.key === "Escape") {
+        closeModal();
+        closeImageViewer();
+      }
     });
   });
   </script>
 
   <!-- Cloudinary widget & your module -->
   <script src="https://widget.cloudinary.com/v2.0/global/all.js"></script>
-  <script type="module" src=".js"></script>
+  <script type="module" src="donate.js"></script>
 </body>
 </html>

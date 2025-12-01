@@ -7,7 +7,8 @@
 <style>
   :root{
     /* Primary palette */
-    --brand:#38bdf8; --brand-2:#38bdf8;
+    --brand:#0f172a;
+    --brand-2:#0f172a;
     --ink:#0f172a; /* main text color requested */
     --muted:#64748b; --line:#e2e8f0;
     --bg:#f8fafc; --card:#ffffff; --shadow:0 8px 22px rgba(2,6,23,.06);
@@ -15,25 +16,25 @@
   }
   *{margin:0;padding:0;box-sizing:border-box}
   body{
-  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
-  line-height:1.5;
-  color:var(--ink); /* GLOBAL text color #0f172a */
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+    line-height:1.5;
+    color:var(--ink); /* GLOBAL text color #0f172a */
 
-  /* Background image */
-  background-image:url("hospital background2.jpg"); /* change to your file name */
-  background-size:cover;
-  background-position:center;
-  background-repeat:no-repeat;
-  background-attachment:fixed; /* nice subtle parallax effect */
+    /* Background image */
+    background-image:url("hospital background2.jpg");
+    background-size:cover;
+    background-position:center;
+    background-repeat:no-repeat;
+    background-attachment:fixed;
 
-  min-height:100vh;
-}
+    min-height:100vh;
+  }
 
-  /* =========== NAV (match Donate page) =========== */
+  /* =========== NAV (match request.html) =========== */
   header.site{
     position:sticky;top:0;z-index:40;
     background:#0f172a;
-    border-bottom:1px solid rgba(226,232,240,.15);
+    border-bottom:1px solid #0b1220;
     box-shadow:0 2px 10px rgba(2,6,23,.25);
   }
   .header-container{
@@ -45,16 +46,29 @@
     gap:.9rem;
   }
   .logo{
-    font:800 1.35rem ui-rounded,system-ui,sans-serif;
-    letter-spacing:.2px;
+    display:flex;
+    align-items:center;
+    gap:.6rem;
     color:#fff;
-    display:flex;align-items:center;gap:.5rem;
+    text-decoration:none;
+    font-weight:900;
+    font-size:1.3rem;
+    letter-spacing:.2px;
   }
-  .logo .mark{
-    width:34px;height:34px;border-radius:8px;
+  .logo-img{
+    width:42px;
+    height:42px;
+    object-fit:cover;
+    border-radius:10px;
+    box-shadow:0 2px 8px rgba(0,0,0,.12);
+    flex:0 0 42px;
     background:transparent;
-    display:inline-grid;place-items:center;
-    border:1px solid rgba(255,255,255,.12);
+  }
+  .logo-text{
+    color:#fff;
+    font-weight:900;
+    font-size:1.32rem;
+    line-height:1;
   }
 
   nav.nav{
@@ -76,12 +90,8 @@
     transition:all .15s;
   }
   .nav-link svg{
-    width:18px;height:18px;
-    fill:none;
-    stroke:currentColor;
-    stroke-width:1.6;
-    stroke-linecap:round;
-    stroke-linejoin:round;
+    width:18px;
+    height:18px;
   }
   .nav-link:hover{
     background:#ffffff;
@@ -97,11 +107,10 @@
     display:flex;
     gap:.5rem;
     align-items:center;
+    position:relative;
   }
 
-  /* bell styled like donate's .bell-btn but keep class .bell */
-  .bell{
-    position:relative;
+  .bell-btn{
     border:none;
     background:transparent;
     color:#fff;
@@ -109,15 +118,23 @@
     border-radius:10px;
     cursor:pointer;
     transition:background .15s;
+    position:relative;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
   }
-  .bell:hover{
+  .bell-btn:hover{
     background:rgba(255,255,255,.12);
+  }
+  .bell-btn svg{
+    width:20px;
+    height:20px;
   }
 
   .badge{
     position:absolute;
-    top:-4px;
-    right:-4px;
+    top:4px;
+    right:52px; /* aligned relative to bell in header-actions */
     background:#ef4444;
     color:#fff;
     border:2px solid #0f172a;
@@ -149,7 +166,7 @@
     transform:translateY(-1px);
   }
 
-  /* Responsive nav alignment (same as donate) */
+  /* Responsive nav alignment (same pattern as request) */
   @media(max-width:720px){
     .header-container{
       grid-template-columns:1fr auto;
@@ -158,14 +175,15 @@
     .logo{grid-column:1/2;grid-row:1}
     .header-actions{grid-column:2/3;grid-row:1;justify-self:end}
     nav.nav{grid-column:1/3;grid-row:2;justify-content:center;margin-top:.5rem}
+    .badge{right:16px;}
   }
 
-  /* Top announcement bar (kept) */
+  /* Top announcement bar */
   .announce{
     position:sticky;top:56px;z-index:35;
     background:#ecfdf5;
     border-bottom:1px solid #bbf7d0;
-    color:#38bdf8;
+    color:#0f172a;
     font-weight:700;
     display:none;
   }
@@ -178,7 +196,7 @@
   }
   .announce button{
     border:1px dashed #bbf7d0;
-    background:#fff;color:#38bdf8;
+    background:#fff;color:#0f172a;
     border-radius:999px;
     padding:4px 10px;
     cursor:pointer;
@@ -211,16 +229,62 @@
   .name{font-size:1.4rem;font-weight:800;color:var(--ink)}
   .location{color:var(--muted);margin-top:2px}
   .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:8px}
-  .bio{margin:10px 0 14px;color:#334155}
+  .bio{margin:10px 0 8px;color:#334155}
+
+  /* NEW – badges under bio */
+  .badge-row{
+    display:flex;
+    justify-content:flex-start;   /* left: verified, right: donor tier */
+    align-items:center;
+    gap:5px;
+    flex-wrap:wrap;
+    margin:2px 0 12px;
+  }
+  .badge-pill{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding:4px 10px;
+    border-radius:999px;
+    font-size:.78rem;
+    font-weight:800;
+    border:1px solid transparent;
+    white-space:nowrap;
+  }
+  .badge-pill .icon{
+    width:16px;
+    height:16px;
+    border-radius:999px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    font-size:.7rem;
+  }
+  .badge-verified{
+    background:#ecfdf5;
+    border-color:#bbf7d0;
+    color:#166534;
+  }
+  .badge-not-verified{
+    background:#fef2f2;
+    border-color:#fecaca;
+    color:#991b1b;
+  }
+  .badge-tier{
+    background:#eff6ff;
+    border-color:#bfdbfe;
+    color:#1e3a8a;
+  }
+
   .metrics{
     display:grid;
     grid-template-columns:repeat(3,1fr);
     gap:8px;
     text-align:center;
-    margin-top:8px;
+    margin-top:4px;
   }
   .metrics .n{
-    color:#38bdf8;
+    color:#0f172a;
     font-weight:800;
     font-size:1.4rem;
   }
@@ -228,6 +292,7 @@
   @media (max-width:720px){
     .profile{grid-template-columns:1fr}
     .metrics{grid-template-columns:1fr 1fr}
+    .badge-row{justify-content:flex-start}
   }
 
   /* Tabs */
@@ -257,7 +322,7 @@
   .tab--active{
     background:#f1fbf7;
     border-color:#cbeee3;
-    color:#38bdf8;
+    color:#0f172a;
   }
   .sections{display:grid;gap:16px;padding:14px}
   .card{
@@ -280,7 +345,7 @@
     display:grid;place-items:center;
     background:#ecfdf5;
     border:1px solid #bbf7d0;
-    color:#38bdf8;
+    color:#0f172a;
   }
 
   /* Lists + chips */
@@ -329,7 +394,7 @@
     text-transform:lowercase;
     border:1px solid;
   }
-  .status--donated{background:#dcfce7;color:#38bdf8;border-color:#bbf7d0}
+  .status--donated{background:#dcfce7;color:#0f172a;border-color:#bbf7d0}
   .status--available{background:#eef2ff;color:black;border-color:#dbe2ff}
   .status--reserved{background:#842806;color:#92400e;border-color:#bc5858}
   .btn-del{
@@ -345,13 +410,12 @@
   .btn-open{
     border:1px dashed #bbf7d0;
     background:#fff;
-    color:#38bdf8;
+    color:#0f172a;
     border-radius:10px;
     padding:8px 10px;
     cursor:pointer;
   }
   .btn-open:hover{background:#ecfdf5}
-
   .btn-open:active{transform:translateY(1px)}
 
   /* SETTINGS — polished design */
@@ -363,7 +427,7 @@
   }
   #section-settings .lg-icon{
     width:28px; height:28px; border-radius:10px; display:inline-grid; place-items:center;
-    background:#ecfdf5; border:1px solid #cbeee3; color:#38bdf8; box-shadow:0 1px 2px rgba(2,6,23,.04);
+    background:#ecfdf5; border:1px solid #cbeee3; color:#0f172a; box-shadow:0 1px 2px rgba(2,6,23,.04);
   }
   #section-settings .grid-2{display:grid; grid-template-columns:1fr 1fr; gap:14px 18px}
   @media (max-width:720px){#section-settings .grid-2{grid-template-columns:1fr}}
@@ -374,7 +438,7 @@
     transition:border-color .15s ease, box-shadow .15s ease;
   }
   #section-settings .field:focus-within{border-color:#86efac; box-shadow:0 0 0 3px rgba(16, 185, 174, 0.18)}
-  #section-settings .f-icon{width:18px; height:18px; color:#38bdf8; opacity:.9; flex:0 0 18px}
+  #section-settings .f-icon{width:18px; height:18px; color:#0f172a; opacity:.9; flex:0 0 18px}
   #section-settings input[type=text],
   #section-settings input[type=email],
   #section-settings textarea{
@@ -396,7 +460,7 @@
   #section-settings .toggle-row + .toggle-row{margin-top:10px}
   #section-settings .tr-left{display:flex; align-items:center; gap:12px}
   #section-settings .tr-icon{
-    width:28px; height:28px; border-radius:8px; display:grid; place-items:center; background:#f1fbf7; border:1px solid #cbeee3; color:#38bdf8;
+    width:28px; height:28px; border-radius:8px; display:grid; place-items:center; background:#f1fbf7; border:1px solid #cbeee3; color:#0f172a;
   }
   #section-settings .toggle{
     position:relative; width:44px; height:24px; border-radius:999px;
@@ -412,7 +476,7 @@
   }
   #section-settings #profCustomWrap{background:#fcfdfd; border:1px dashed #dbeafe}
 
-  /* Notification Modal (kept) */
+  /* Notification Modal */
   .nm-wrap{position:fixed;inset:0;display:none;z-index:70}
   .nm-wrap.open{display:block}
   .nm-backdrop{position:absolute;inset:0;background:rgba(15,23,42,.45);backdrop-filter:blur(2px)}
@@ -430,9 +494,9 @@
   .nm-head h3{font-size:1.05rem; font-weight:800; color:#0f172a}
   .nm-tabs{display:inline-flex; gap:6px; background:#fff; padding:4px; border:1px solid var(--line); border-radius:999px}
   .nm-tab{padding:6px 12px; border-radius:999px; border:0; background:transparent; cursor:pointer; font-weight:800; color:#0f172a}
-  .nm-tab.active{background:#ecfdf5; color:#38bdf8; box-shadow:inset 0 0 0 1px #bbf7d0}
+  .nm-tab.active{background:#ecfdf5; color:#0f172a; box-shadow:inset 0 0 0 1px #bbf7d0}
   .nm-close{
-    border:1px dashed #bbf7d0; background:#fff; color:#38bdf8; border-radius:10px; padding:6px 10px; cursor:pointer
+    border:1px dashed #bbf7d0; background:#fff; color:#0f172a; border-radius:10px; padding:6px 10px; cursor:pointer
   }
   .nm-body{overflow:auto; max-height:60vh}
   .nm-pane .dd-item{padding:12px 14px; border-bottom:1px solid var(--line)}
@@ -442,50 +506,55 @@
     padding:10px 12px; border-top:1px solid var(--line); background:#fff
   }
   .nm-clear{
-    background:#fff; border:1px dashed #cfe8e6; color:#38bdf8; border-radius:10px; padding:8px 12px; font-weight:800; cursor:pointer
+    background:#fff; border:1px dashed #cfe8e6; color:#0f172a; border-radius:10px; padding:8px 12px; font-weight:800; cursor:pointer
   }
   .nm-dismiss{background:var(--brand-2); border:1px solid var(--brand-2); color:#fff; border-radius:10px; padding:8px 12px; font-weight:800; cursor:pointer}
 
   /* ============ Footer (bigger gaps) ============ */
-.footer{
-  background:#0f172a;
-  color:#cbd5e1;
-  padding:3.25rem 1rem 1.25rem;
-}
-.footer .wrap{max-width:1100px;margin:0 auto}
-.footer-top{
-  display:flex;flex-wrap:wrap;justify-content:space-between;
-  column-gap:4rem;row-gap:3rem;
-}
-.footer-about{flex:1 1 320px}
-.footer-logo{font-size:1.6rem;color:#f8fafc;font-weight:900}
-.footer-logo span{color:#38bdf8}
-.footer-about p{margin:10px 0 14px;color:#e2e8f0}
-.social{display:flex;gap:12px}
-.social a{
-  display:inline-flex;align-items:center;justify-content:center;
-  width:38px;height:38px;border-radius:10px;background:#0b1220;color:#e2e8f0;
-  text-decoration:none;transition:.2s;border:1px solid #1e293b;
-}
-.social a:hover{background:#111827}
-.footer-cols{
-  display:flex;flex:2 1 600px;flex-wrap:wrap;
-  column-gap:5rem;row-gap:2rem;
-}
-.footer h3{font-size:1rem;color:#f8fafc;margin-bottom:.75rem}
-.footer ul{list-style:none;padding:0;margin:0}
-.footer li+li{margin-top:.5rem}
-.footer a{color:#cbd5e1;text-decoration:none}
-.footer a:hover{color:#38bdf8}
-.footer hr{border:none;border-top:1px solid #1e293b;margin:2rem 0 1.25rem}
-.footer-bottom{
-  display:flex;justify-content:space-between;flex-wrap:wrap;color:#94a3b8;font-size:.9rem;
-  gap:0;
-}
-@media(max-width:768px){
-  .footer-bottom{flex-direction:column;gap:.5rem;align-items:center;text-align:center}
-}
-
+  .footer{
+    background:#0f172a;
+    color:#cbd5e1;
+    padding:3.25rem 1rem 1.25rem;
+  }
+  .footer .wrap{max-width:1100px;margin:0 auto}
+  .footer-top{
+    display:flex;flex-wrap:wrap;justify-content:space-between;
+    column-gap:4rem;row-gap:3rem;
+  }
+  .footer-about{flex:1 1 320px}
+  .footer-logo{font-size:1.6rem;color:#f8fafc;font-weight:900}
+  .footer-logo span{color:#0f172a}
+  .footer-about p{margin:10px 0 14px;color:#e2e8f0}
+  .social{display:flex;gap:12px}
+  .social a{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:38px;height:38px;border-radius:10px;background:#0b1220;color:#e2e8f0;
+    text-decoration:none;transition:.2s;border:1px solid #1e293b;
+  }
+  .social a:hover{background:#111827}
+  .footer-cols{
+    display:flex;flex:2 1 600px;flex-wrap:wrap;
+    column-gap:5rem;row-gap:2rem;
+  }
+  .footer h3{font-size:1rem;color:#f8fafc;margin-bottom:.75rem}
+  .footer ul{list-style:none;padding:0;margin:0}
+  .footer li+li{margin-top:.5rem}
+  .footer a{color:#cbd5e1;text-decoration:none}
+  .footer a:hover{color:#38bdf8}
+  .footer hr{border:none;border-top:1px solid #1e293b;margin:2rem 0 1.25rem}
+  .footer-bottom{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    flex-wrap:wrap;
+    color:#94a3b8;
+    font-size:.9rem;
+    gap:.5rem;
+  }
+  @media(max-width:768px){
+    .footer-bottom{flex-direction:column;gap:.5rem;align-items:center;text-align:center}
+  }
 </style>
 
 </head>
@@ -494,16 +563,10 @@
   <!-- Sticky site nav -->
   <header class="site">
     <div class="header-container">
-      <div class="logo" title="DonorMedix home">
-        <span class="mark" aria-hidden="true" style="color:#fff">
-          <!-- small brand SVG mark -->
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block">
-            <rect x="2" y="2" width="20" height="20" rx="5" stroke="rgba(255,255,255,.22)" fill="none"></rect>
-            <path d="M7 12c1.5-3 6-3 7.5 0" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path>
-          </svg>
-        </span>
-        DonorMedix
-      </div>
+      <a class="logo" href="home.html" aria-label="DonorMedix Home">
+        <img class="logo-img" src="donormedix.logo.png" alt="DonorMedix logo">
+        <span class="logo-text">DonorMedix</span>
+      </a>
 
       <nav class="nav">
         <a href="home.html" class="nav-link" title="Home">
@@ -532,15 +595,16 @@
         </a>
       </nav>
 
-
       <div class="header-actions">
-        <!-- 🔔 Notification bell (kept same IDs for your JS, styled like donate) -->
-        <button id="btnBell" class="bell" type="button" aria-haspopup="dialog" aria-controls="notifModal" title="Notifications">
-          🔔
+        <!-- Notification bell -->
+        <button id="btnBell" class="bell-btn" type="button" aria-haspopup="dialog" aria-controls="notifModal" title="Notifications">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M12 22a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22Zm6-6V11a6 6 0 1 0-12 0v5l-2 2v1h16v-1l-2-2Z"/>
+          </svg>
         </button>
         <div id="bellBadge" class="badge hidden">0</div>
 
-        <!-- SIMPLE NOTIFICATION MODAL (kept) -->
+        <!-- SIMPLE NOTIFICATION MODAL -->
         <div id="notifModal" class="nm-wrap" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="nmTitle">
           <div class="nm-backdrop" data-nm-close></div>
           <div class="nm-card">
@@ -589,13 +653,22 @@
         <div class="name" id="nameDisplay">Anonymous User</div>
         <div class="location" id="professionLine">Add your profession</div>
 
-        <div class="row">
-          <span class="muted" style="color:var(--muted)">
-            <span id="donationsDisplay">0</span> donations
-          </span>
-        </div>
-
         <p class="bio" id="bioPreview">Default</p>
+
+        <!-- NEW BADGE ROW -->
+        <div class="badge-row" aria-label="Verification and donor tier">
+          <!-- verification badge (left) -->
+          <div id="verifyBadge" class="badge-pill badge-not-verified">
+            <span class="icon">!</span>
+            <span id="verifyText">Not verified</span>
+          </div>
+
+          <!-- donor tier badge (right) -->
+          <div id="tierBadge" class="badge-pill badge-tier">
+            <span class="icon">🏅</span>
+            <span id="tierText">Bronze donor</span>
+          </div>
+        </div>
 
         <div class="metrics" aria-label="User metrics">
           <div><div class="n" id="donationsDisplay">0</div><div class="label">Total Donations</div></div>
@@ -607,8 +680,8 @@
       <!-- Col 3: inline edit controls -->
       <div class="profile-actions">
         <input id="uploadPic" type="file" accept="image/*" class="hidden" />
-        <button id="editProfileBtn" class="sign-in-btn" type="button"> Edit</button>
-        <button id="saveProfileBtn" class="sign-in-btn hidden" type="button" style="background:#0bc367;border-color:#0ea5e9">Save</button>
+        <button id="editProfileBtn" class="sign-in-btn" type="button">Edit</button>
+        <button id="saveProfileBtn" class="sign-in-btn hidden" type="button" style="background:white;border-color:#0f172a">Save</button>
       </div>
     </section>
 
@@ -636,7 +709,7 @@
           <div class="donation-list" id="donationsList"></div>
         </div>
 
-        <!-- Requests (real-time) -->
+        <!-- Requests -->
         <div class="card tab-panel" id="section-requests" style="display:none">
           <div class="toolbar">
             <h3 style="margin:0">My Requests</h3>
@@ -645,11 +718,11 @@
           <div class="request-list" id="requestsList"></div>
         </div>
 
-        <!-- SETTINGS (FULL + FUNCTIONS KEPT) -->
+        <!-- SETTINGS -->
         <div class="card tab-panel" id="section-settings" style="display:none">
           <form class="settings-form">
             <fieldset>
-              <legend> Profile Information</legend>
+              <legend>Profile Information</legend>
               <div class="grid-2">
                 <div>
                   <label for="name">Full Name</label>
@@ -695,7 +768,7 @@
                   </div>
                 </div>
 
-                <!-- LOCATION: Cascading selects -->
+                <!-- LOCATION -->
                 <div style="grid-column:1/-1">
                   <label>Location</label>
                   <div class="field" style="flex-direction:column;align-items:stretch;gap:10px">
@@ -759,87 +832,85 @@
   </main>
 
   <footer class="footer">
-  <div class="wrap">
-    <div class="footer-top">
-      <div class="footer-about">
-        <h2 class="footer-logo">Donor<span>Medix</span></h2>
-        <p>Connecting communities to share life-saving medicines and reduce healthcare waste.</p>
+    <div class="wrap">
+      <div class="footer-top">
+        <div class="footer-about">
+          <h2 class="footer-logo">Donor<span>Medix</span></h2>
+          <p>Connecting communities to share life-saving medicines and reduce healthcare waste.</p>
 
-        <div class="social" aria-label="DonorMedix social links">
-          <!-- Facebook -->
-          <a href="#" aria-label="Facebook">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-              <path d="M22 12a10 10 0 1 0-11.6 9.9v-7h-2.2V12h2.2V9.8c0-2.2 1.3-3.5 3.3-3.5.95 0 1.95.17 1.95.17v2.15h-1.1c-1.08 0-1.42.67-1.42 1.36V12h2.42l-.39 2.9h-2.03v7A10 10 0 0 0 22 12Z"/>
-            </svg>
-          </a>
+          <div class="social" aria-label="DonorMedix social links">
+            <!-- Facebook -->
+            <a href="#" aria-label="Facebook">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M22 12a10 10 0 1 0-11.6 9.9v-7h-2.2V12h2.2V9.8c0-2.2 1.3-3.5 3.3-3.5.95 0 1.95.17 1.95.17v2.15h-1.1c-1.08 0-1.42.67-1.42 1.36V12h2.42l-.39 2.9h-2.03v7A10 10 0 0 0 22 12Z"/>
+              </svg>
+            </a>
 
-          <!-- Telegram -->
-          <a href="#" aria-label="Telegram">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-              <path d="M9.04 15.28 8.9 19c.41 0 .59-.18.8-.4l1.93-1.86 4 2.93c.74.41 1.27.2 1.46-.69l2.65-12.44c.27-1.23-.45-1.71-1.17-1.41L3.86 10.4c-1.2.47-1.18 1.14-.2 1.44l3.73 1.16 8.65-5.46c.4-.26.77-.12.47.16"/>
-            </svg>
-          </a>
+            <!-- Telegram -->
+            <a href="#" aria-label="Telegram">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M9.04 15.28 8.9 19c.41 0 .59-.18.8-.4l1.93-1.86 4 2.93c.74.41 1.27.2 1.46-.69l2.65-12.44c.27-1.23-.45-1.71-1.17-1.41L3.86 10.4c-1.2.47-1.18 1.14-.2 1.44l3.73 1.16 8.65-5.46c.4-.26.77-.12.47.16"/>
+              </svg>
+            </a>
 
-          <!-- Instagram -->
-          <a href="#" aria-label="Instagram">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-              <path d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5Zm0 2a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V7a3 3 0 0 0-3-3H7Zm5 3a5 5 0 1 1 0 10 5 5 0 0 1 0-10Zm6.5-.75a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5Z"/>
-            </svg>
-          </a>
+            <!-- Instagram -->
+            <a href="#" aria-label="Instagram">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5Zm0 2a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V7a3 3 0 0 0-3-3H7Zm5 3a5 5 0 1 1 0 10 5 5 0 0 1 0-10Zm6.5-.75a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5Z"/>
+              </svg>
+            </a>
 
-          <!-- LinkedIn -->
-          <a href="#" aria-label="LinkedIn">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-              <path d="M6.94 7.5A2.44 2.44 0 1 1 7 2.63a2.44 2.44 0 0 1-.06 4.87ZM3.5 8.87h3.88V21H3.5V8.87Zm6.31 0h3.72v1.66h.05c.52-.98 1.78-2.02 3.67-2.02 3.92 0 4.64 2.58 4.64 5.93V21H18.7v-5.38c0-1.28-.03-2.91-1.78-2.91-1.78 0-2.05 1.39-2.05 2.82V21H9.81V8.87Z"/>
-            </svg>
-          </a>
+            <!-- LinkedIn -->
+            <a href="#" aria-label="LinkedIn">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M6.94 7.5A2.44 2.44 0 1 1 7 2.63a2.44 2.44 0 0 1-.06 4.87ZM3.5 8.87h3.88V21H3.5V8.87Zm6.31 0h3.72v1.66h.05c.52-.98 1.78-2.02 3.67-2.02 3.92 0 4.64 2.58 4.64 5.93V21H18.7v-5.38c0-1.28-.03-2.91-1.78-2.91-1.78 0-2.05 1.39-2.05 2.82V21H9.81V8.87Z"/>
+              </svg>
+            </a>
+          </div>
+        </div>
+
+        <div class="footer-cols">
+          <div>
+            <h3>Quick Links</h3>
+            <ul>
+              <li><a href="#">How It Works</a></li>
+              <li><a href="#">Browse Medicines</a></li>
+              <li><a href="#">Donate Medicine</a></li>
+              <li><a href="#">Health Blog</a></li>
+            </ul>
+          </div>
+
+          <div>
+            <h3>Support</h3>
+            <ul>
+              <li><a href="#">Help Center</a></li>
+              <li><a href="#">Safety Guidelines</a></li>
+              <li><a href="#">Community Guidelines</a></li>
+              <li><a href="#">Report Issue</a></li>
+            </ul>
+          </div>
+
+          <div>
+            <h3>Legal</h3>
+            <ul>
+              <li><a href="#">Privacy Policy</a></li>
+              <li><a href="#">Terms of Service</a></li>
+              <li><a href="#">Cookie Policy</a></li>
+              <li><a href="#">Disclaimer</a></li>
+            </ul>
+          </div>
         </div>
       </div>
 
-      <div class="footer-cols">
-        <div>
-          <h3>Quick Links</h3>
-          <ul>
-            <li><a href="#">How It Works</a></li>
-            <li><a href="#">Browse Medicines</a></li>
-            <li><a href="#">Donate Medicine</a></li>
-            <li><a href="#">Health Blog</a></li>
-          </ul>
-        </div>
+      <hr>
 
-        <div>
-          <h3>Support</h3>
-          <ul>
-            <li><a href="#">Help Center</a></li>
-            <li><a href="#">Safety Guidelines</a></li>
-            <li><a href="#">Community Guidelines</a></li>
-            <li><a href="#">Report Issue</a></li>
-          </ul>
-        </div>
-
-        <div>
-          <h3>Legal</h3>
-          <ul>
-            <li><a href="#">Privacy Policy</a></li>
-            <li><a href="#">Terms of Service</a></li>
-            <li><a href="#">Cookie Policy</a></li>
-            <li><a href="#">Disclaimer</a></li>
-          </ul>
-        </div>
+      <div class=".footer-bottom">
+        <p style="margin:0">© 2025 DonorMedix. All rights reserved.</p>
       </div>
     </div>
-
-    <hr>
-
-    <div class="footer-bottom">
-      <p style="margin:0">© 2025 DonorMedix. All rights reserved.</p>
-    </div>
-  </div>
-</footer>
+  </footer>
 
   <script src="https://widget.cloudinary.com/v2.0/global/all.js"></script>
-
   <script type="module" src="profile.js"></script>
-
 </body>
 </html>
