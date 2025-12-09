@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DonorMedix · Requests (Admin)</title>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --brand:#3472a1;
+      --brand-2:#0b90ab;
+      --ink:#0f172a;
+      --muted:#64748b;
+      --line:#e2e8f0;
+      --bg:#f8fafc;
+      --card:#ffffff;
+      --shadow:0 8px 22px rgba(2,6,23,.06);
+      --radius:14px;
+      --danger:#ef4444;
+      --warning:#f59e0b;
+      --info:#3b82f6;
+      --success:#22c55e;
+    }
+
+    body {
+      min-height: 100vh;
+      font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+      background: radial-gradient(circle at top left, #ecfeff 0, #f8fafc 45%, #e2fbe8 100%);
+      color: var(--ink);
+      transition: background .15s ease, color .15s ease;
+    }
+
+    body.dark { background:#020617; color:#e5e7eb; }
+    body.dark .card { background:#020617; border-color:#1f2937; }
+    body.dark table { background:#020617; }
+    body.dark th { background:#111827; color:#e5e7eb; }
+    body.dark td { border-color:#1f2937; }
+    body.dark .brand-text-main { color:#e5e7eb; }
+    body.dark .brand-text-sub,
+    body.dark .card-subtitle,
+    body.dark .footer-note { color:#9ca3af; }
+
+    .app { display: flex; min-height: 100vh; align-items: stretch; }
+
+    .sidebar {
+      width: 230px;
+      background: linear-gradient(160deg, #020617, #0b1120, #1e293b);
+      color: #e2e8f0;
+      padding: 20px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      box-shadow: 8px 0 24px rgba(15,23,42,.4);
+    }
+
+    .sidebar-brand { display:flex; align-items:center; gap:10px; }
+    .sidebar-mark {
+      width:34px;height:34px;border-radius:999px;
+      background:conic-gradient(from 140deg,var(--brand),var(--brand-2));
+      display:flex;align-items:center;justify-content:center;
+      font-weight:700;color:#ecfdf5;
+    }
+
+    .nav { display:flex; flex-direction:column; gap:6px; }
+    .nav-link {
+      display:flex; align-items:center; gap:8px;
+      padding:8px 10px; border-radius:999px;
+      text-decoration:none; color:#e5e7eb;
+      font-size:13px; border:1px solid transparent; opacity:.9;
+    }
+    .nav-link .icon{
+      width:18px; display:inline-flex; align-items:center; justify-content:center;
+    }
+    .nav-link.active {
+      background: linear-gradient(135deg,var(--brand),var(--brand-2));
+      color:#ecfdf5;
+    }
+    .nav-link:hover {
+      background:rgba(148,163,184,0.2);
+      border-color:rgba(148,163,184,0.6);
+    }
+
+    .main { flex:1; padding:16px 14px 24px; }
+    .shell { max-width:1180px; margin:0 auto; }
+
+    /* Topbar compact (if you add later) */
+    .topbar { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:18px; padding:6px 0; }
+    .brand { display:flex; align-items:center; gap:10px; }
+    .brand-mark {
+      width:32px;height:32px;border-radius:999px;
+      background:conic-gradient(from 140deg,var(--brand),var(--brand-2));
+      display:flex;align-items:center;justify-content:center;
+      color:#ecfdf5;font-weight:700;font-size:14px;
+    }
+
+    .last-request {
+      font-size:12px;
+      color:var(--muted);
+      padding:6px 10px;
+      border-radius:8px;
+      background: rgba(242, 251, 249, .75);
+      border:1px solid rgba(226,232,240,.7);
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      min-width:150px;
+      justify-content:center;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius:var(--radius);
+      border:1px solid rgba(148,163,184,.3);
+      box-shadow:var(--shadow);
+      padding:12px 14px;
+      margin-bottom:14px;
+    }
+    .card-header {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:8px;
+      gap:8px;
+    }
+    .card-title { font-size:14px; font-weight:600; color:var(--ink); }
+    .card-subtitle { font-size:12px; color:var(--muted); }
+
+    /* table styles compact admin */
+    .table-wrap{
+      width:100%;
+      margin-top:8px;
+      border-radius:10px;
+      background:#fff;
+      overflow-x:auto;
+      -webkit-overflow-scrolling:touch;
+    }
+    table {
+      width:100%;
+      border-collapse:collapse;
+      border-radius:10px;
+      font-size:12px;
+      background:#fff;
+      table-layout:fixed;
+      min-width:650px; /* keep columns readable, allow horizontal scroll on phones */
+    }
+    th, td {
+      padding:8px 10px;
+      border-bottom:1px solid #e5e7eb;
+      text-align:left;
+      vertical-align:middle;
+    }
+    th {
+      background:#e5f7ef;
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:.12em;
+      color:var(--muted);
+      white-space:nowrap;
+    }
+    tr:last-child td { border-bottom:none; }
+
+    .status {
+      display:inline-block;
+      padding:4px 10px;
+      border-radius:999px;
+      color:#fff;
+      font-size:12px;
+    }
+    .status.pending { background: #f59e0b; }
+    .status.approved { background: #2266c5; }
+    .status.rejected { background: #ef4444; }
+
+    .btn-row {
+      padding:6px 10px;
+      border-radius:999px;
+      border:none;
+      cursor:pointer;
+      margin-right:6px;
+      font-size:12px;
+    }
+    .btn-row.approve { background:#0b61d1;color:#fff; }
+    .btn-row.reject { background:#ef4444;color:#fff; }
+    .btn-row.view { background:#e5e7eb;color:var(--ink); }
+
+    /* Action group */
+    .action-group {
+      display:inline-flex;
+      gap:6px;
+      align-items:center;
+      justify-content:flex-end;
+      flex-wrap:wrap;
+    }
+    .action-btn {
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:6px 8px;
+      border-radius:10px;
+      border:1px solid rgba(15,23,42,.06);
+      background:#fff;
+      cursor:pointer;
+      font-size:12px;
+      min-width:40px;
+      white-space:nowrap;
+    }
+    .action-btn[aria-disabled="true"],
+    .action-btn:disabled {
+      opacity:0.6;
+      cursor:default;
+    }
+    .action-btn.approve {
+      background: linear-gradient(90deg,#1e6bd6,#0b61d1);
+      color:#fff; border:none;
+    }
+    .action-btn.reject {
+      background: linear-gradient(90deg,#ef4444,#dc2626);
+      color:#fff; border:none;
+    }
+    .action-btn.view {
+      background: transparent;
+      color:var(--ink);
+      border:1px solid #e6eef8;
+    }
+
+    .spinner-text { font-weight:700; font-size:12px; }
+
+    .meta-row {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:8px;
+      font-size:11px;
+      color:var(--muted);
+      margin-top:6px;
+    }
+
+    .footer-note {
+      margin-top:12px;
+      font-size:11px;
+      color:var(--muted);
+      text-align:center;
+    }
+
+    /* Modal & viewer basics */
+    .modal-backdrop {
+      position:fixed;
+      inset:0;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      background:rgba(2,6,23,.6);
+      z-index:1200;
+    }
+    .modal-panel {
+      width:720px;
+      max-width:96%;
+      background:#fff;
+      border-radius:12px;
+      padding:16px;
+      max-height:90vh;
+      overflow:auto;
+    }
+    .modal-hide { display:none !important; }
+
+    .modal-row { display:flex; gap:12px; align-items:flex-start; }
+    .modal-image { width:160px; height:120px; background:#f3f4f6; border-radius:8px; object-fit:cover; }
+    .modal-actions { display:flex; gap:8px; margin-top:12px; flex-wrap:wrap; }
+    .detail-grid {
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:8px;
+      margin-top:8px;
+    }
+
+    /* ---------- Responsive ---------- */
+    @media (max-width:880px) {
+      .app { flex-direction:column; }
+      .sidebar {
+        width:100%;
+        flex-direction:row;
+        align-items:center;
+        gap:12px;
+        padding:10px 12px;
+      }
+      .nav {
+        flex-direction:row;
+        flex-wrap:wrap;
+        gap:6px;
+      }
+      .nav-link { font-size:12px; padding:6px 8px; }
+      .main { padding:14px 10px 20px; }
+      .shell { max-width:100%; }
+      th, td { padding:6px 8px; }
+      .modal-panel { width:96%; padding:12px; }
+      .detail-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width:640px) {
+      .card { padding:12px 12px; }
+      .card-header {
+        flex-direction:column;
+        align-items:flex-start;
+        gap:4px;
+      }
+      .meta-row {
+        flex-direction:column;
+        align-items:flex-start;
+        gap:4px;
+      }
+      .action-group {
+        flex-wrap:wrap;
+        justify-content:flex-end;
+      }
+      table { font-size:11px; }
+      th, td { padding:6px 6px; }
+      /* Optional: hide labels to save space, keep icons */
+      .action-label { display:none; }
+    }
+
+    @media (max-width:400px) {
+      body { background:#f1f5f9; }
+      .sidebar-brand div div:first-child { font-size:13px; }
+      .sidebar-brand div div:last-child { font-size:10px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="sidebar-mark">DM</div>
+        <div>
+          <div style="font-weight:700; font-size:15px;">DONORMEDIX</div>
+          <div style="font-size:11px;color:#9ca3af;">ADMIN PANEL</div>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <a href="admin-dashboard.html" class="nav-link">
+          <span class="icon"><i class="fa-solid fa-gauge"></i></span> Dashboard
+        </a>
+        <a href="admin-users.html" class="nav-link">
+          <span class="icon"><i class="fa-solid fa-users"></i></span> User Management
+        </a>
+        <a href="admin-requests.html" class="nav-link active">
+          <span class="icon"><i class="fa-solid fa-list-check"></i></span> Requests
+        </a>
+        <a href="admin-donations.html" class="nav-link">
+          <span class="icon"><i class="fa-solid fa-hand-holding-heart"></i></span> Donations
+        </a>
+        <a href="admin-settings.html" class="nav-link">
+          <span class="icon"><i class="fa-solid fa-gear"></i></span> Settings
+        </a>
+      </nav>
+
+      <div style="margin-top:auto;">
+        <a
+          href="home.html"
+          class="nav-link home"
+          style="border:1px solid rgba(148,163,184,.6);background:rgba(15,23,42,.7);"
+        >
+          <span style="width:18px;display:inline-flex;align-items:center;justify-content:center;">
+            <i class="fa-solid fa-house"></i>
+          </span>
+          Home
+        </a>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="shell">
+        <section class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Manage Medicine Requests</div>
+              <div class="card-subtitle">
+                Live admin table — Patient, Medicine, Category separated for clarity.
+              </div>
+            </div>
+            <span
+              style="font-size:10px;padding:4px 8px;border-radius:999px;background:rgba(248,250,252,.8);border:1px solid rgba(148,163,184,.55);"
+            >
+              Admin
+            </span>
+          </div>
+
+          <div class="meta-row">
+            <div id="requestsMetaText">Loading requests…</div>
+            <div>Sort by <strong>Newest</strong></div>
+          </div>
+
+          <div class="table-wrap">
+            <table aria-label="Requests admin table">
+              <colgroup>
+                <col style="width:22%">
+                <col style="width:34%">
+                <col style="width:18%">
+                <col style="width:12%">
+                <col style="width:14%">
+              </colgroup>
+              <thead>
+                <tr>
+                  <th>Patient</th>
+                  <th>Medicine</th>
+                  <th>Category</th>
+                  <th>Status</th>
+                  <th style="text-align:right;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="requestTable">
+                <!-- rows injected by the merged admin logic -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <p class="footer-note">
+          Requests page (admin). This file contains merged request logic and admin helpers.
+        </p>
+      </div>
+    </main>
+  </div>
+
+  <!-- Request detail modal (used by openRequestModal) -->
+  <div id="requestModal" class="modal-backdrop" aria-hidden="true">
+    <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="modalName">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <div>
+          <h3 id="modalName" style="margin:0;font-size:1.1rem;">Request</h3>
+          <div id="modalSubtitle" style="font-size:.9rem;color:var(--muted);">Details</div>
+        </div>
+        <button
+          id="modalCloseBtn"
+          aria-label="Close"
+          style="background:transparent;border:none;font-size:1.1rem;cursor:pointer;"
+        >
+          ✕
+        </button>
+      </div>
+
+      <div class="modal-row" style="align-items:flex-start;">
+        <img id="modalImage" class="modal-image" src="" alt="Medicine image" />
+        <div style="flex:1;min-width:0;">
+          <div class="detail-grid">
+            <div>
+              <strong>Patient</strong>
+              <div id="modalPatient" style="color:var(--muted);margin-top:4px;">—</div>
+            </div>
+            <div>
+              <strong>Medicine</strong>
+              <div id="modalMedicine" style="color:var(--muted);margin-top:4px;">—</div>
+            </div>
+
+            <div>
+              <strong>Category</strong>
+              <div id="modalCategory" style="color:var(--muted);margin-top:4px;">—</div>
+            </div>
+            <div>
+              <strong>Quantity</strong>
+              <div id="modalQuantity" style="color:var(--muted);margin-top:4px;">—</div>
+            </div>
+
+            <div>
+              <strong>Urgency</strong>
+              <div id="modalUrgency" style="color:var(--muted);margin-top:4px;">—</div>
+            </div>
+            <div>
+              <strong>Location</strong>
+              <div id="modalLocation" style="color:var(--muted);margin-top:4px;">—</div>
+            </div>
+          </div>
+
+          <div style="margin-top:10px;">
+            <strong>Description</strong>
+            <div
+              id="modalDescription"
+              style="color:var(--muted);line-height:1.4;margin-top:6px;"
+            >
+              —
+            </div>
+          </div>
+
+          <div id="modalActions" class="modal-actions"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Full image viewer -->
+  <div id="imageViewer" class="modal-backdrop" hidden aria-hidden="true">
+    <div class="modal-panel" style="max-width:900px;padding:6px;">
+      <div style="display:flex;justify-content:flex-end;">
+        <button
+          id="imageViewerClose"
+          style="border:none;background:transparent;font-size:1.1rem;cursor:pointer;"
+        >
+          ✕
+        </button>
+      </div>
+      <div style="display:flex;justify-content:center;">
+        <img
+          id="imageViewerImage"
+          src=""
+          style="max-width:100%;max-height:75vh;border-radius:8px;object-fit:contain;"
+          alt="Full view"
+        />
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    /*****************************************************************
+     * Merged Admin Requests + request.js logic (actions structured)
+     *****************************************************************/
+
+    /* ========= Utilities ========= */
+    function escapeHtml(s = "") {
+      return String(s)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;");
+    }
+
+    function asUsername(value) {
+      if (!value) return null;
+      const s = String(value).trim();
+      if (!s) return null;
+      const at = s.indexOf("@");
+      if (at > 0) return s.slice(0, at);
+      return s;
+    }
+
+    const timeFmt = new Intl.RelativeTimeFormat(undefined, { numeric: "auto" });
+    function timeAgo(value) {
+      if (!value) return "";
+      const d = value instanceof Date ? value : new Date(value);
+      const diff = (d.getTime() - Date.now()) / 1000; // past -> negative
+
+      const ranges = [
+        ["year", 60 * 60 * 24 * 365],
+        ["month", 60 * 60 * 24 * 30],
+        ["week", 60
+          * 60 * 24 * 7],
+        ["day", 60 * 60 * 24],
+        ["hour", 60 * 60],
+        ["minute", 60],
+        ["second", 1],
+      ];
+
+      for (const [unit, sec] of ranges) {
+        if (Math.abs(diff) >= sec || unit === "second") {
+          return timeFmt.format(Math.round(diff / sec), unit);
+        }
+      }
+      return "";
+    }
+
+    function formatDateShort(ms) {
+      if (!ms) return "—";
+      const d = new Date(ms);
+      return d.toLocaleDateString(undefined, {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      });
+    }
+
+    /* ========= Firebase ========= */
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      query,
+      orderBy,
+      onSnapshot,
+      doc,
+      getDoc,
+      updateDoc,
+      deleteDoc,
+    } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAaWN2gj3VJxT6kwOvCX4LIXkWlbt0LTHQ",
+      authDomain: "donormedix.firebaseapp.com",
+      projectId: "donormedix",
+      storageBucket: "donormedix.appspot.com",
+      messagingSenderId: "627472172279",
+      appId: "1:627472172279:web:9bf645b54d33075a0d7ff2",
+      measurementId: "G-NTNPR4FPT7",
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    /* ========= Modal elements ========= */
+    const modalEl = document.getElementById("requestModal");
+    const modalName = document.getElementById("modalName");
+    const modalPatient = document.getElementById("modalPatient");
+    const modalMedicine = document.getElementById("modalMedicine");
+    const modalCategory = document.getElementById("modalCategory");
+    const modalQuantity = document.getElementById("modalQuantity");
+    const modalUrgency = document.getElementById("modalUrgency");
+    const modalLocation = document.getElementById("modalLocation");
+    const modalDescription = document.getElementById("modalDescription");
+    const modalImage = document.getElementById("modalImage");
+    const modalActions = document.getElementById("modalActions");
+    const modalCloseBtn = document.getElementById("modalCloseBtn");
+
+    const imageViewerEl = document.getElementById("imageViewer");
+    const imageViewerImageEl = document.getElementById("imageViewerImage");
+    const imageViewerCloseBtn = document.getElementById("imageViewerClose");
+
+    function svgIcon(pathD) {
+      return '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style="width:14px;height:14px;"><path d="' + pathD + '"/></svg>';
+    }
+    const ICON_CATEGORY_PATH = "M7 3h10a2 2 0 0 1 2 2v6H5V5a2 2 0 0 1 2-2Zm-2 9h14v5a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-5Z";
+
+    function setModalField(el, text) {
+      if (!el) return;
+      el.textContent = text || "—";
+    }
+
+    function openImageViewerFromModal() {
+      if (!modalImage || !imageViewerEl || !imageViewerImageEl) return;
+      imageViewerImageEl.src = modalImage.src;
+      imageViewerImageEl.alt = modalImage.alt || "Medicine full view";
+      imageViewerEl.removeAttribute("hidden");
+      imageViewerEl.style.display = "flex";
+    }
+
+    function closeImageViewer() {
+      if (!imageViewerEl) return;
+      if (!imageViewerEl.hasAttribute("hidden")) {
+        imageViewerEl.setAttribute("hidden", "hidden");
+        imageViewerEl.style.display = "none";
+        if (imageViewerImageEl) {
+          imageViewerImageEl.src = "";
+          imageViewerImageEl.alt = "";
+        }
+      }
+    }
+
+    function closeModal() {
+      if (!modalEl) return;
+      modalEl.style.display = "none";
+      modalEl.setAttribute("aria-hidden", "true");
+      if (modalActions) modalActions.innerHTML = "";
+    }
+
+    function openRequestModal(data, id) {
+      if (!modalEl) return;
+      const title = data.title || data.medicineName || "Medicine Request";
+      const patient = data.patientName || data.requesterName || data.name || data.requesterId || "Unnamed";
+      const medicine = data.medicineName || data.title || "—";
+      const category = data.category || "—";
+      const quantity = data.quantity || (data.qty ? data.qty : "—");
+      const urgencyRaw = (data.urgency || "").toString().toLowerCase();
+      const urgencyLabel =
+        urgencyRaw === "high"
+          ? "High"
+          : urgencyRaw === "medium"
+          ? "Medium"
+          : urgencyRaw === "low"
+          ? "Low"
+          : data.urgency || "—";
+      const location = data.location || "Not specified";
+      const description = (data.description && String(data.description).trim()) || "No description provided.";
+      const imgSrc = data.imageUrl || "";
+
+      modalName.textContent = title;
+      setModalField(modalPatient, asUsername(patient) || patient);
+      setModalField(modalMedicine, medicine);
+      setModalField(modalCategory, category);
+      setModalField(modalQuantity, quantity);
+      setModalField(modalUrgency, urgencyLabel);
+      setModalField(modalLocation, location);
+      setModalField(modalDescription, description);
+      modalImage.src = imgSrc || "";
+      modalImage.alt = title || "";
+
+      // actions (admin controls)
+      modalActions.innerHTML = "";
+
+      const btnApprove = document.createElement("button");
+      btnApprove.type = "button";
+      btnApprove.className = "btn-row approve";
+      btnApprove.textContent = "Approve";
+      btnApprove.addEventListener("click", async () => {
+        if (!id) return;
+        if (!confirm("Approve this request?")) return;
+        setButtonLoading(btnApprove, true);
+        try {
+          await updateDoc(doc(db, "requests", id), { status: "Approved" });
+          closeModal();
+        } catch (e) {
+          console.error(e);
+          alert("Approve failed: " + (e.message || e));
+        } finally {
+          setButtonLoading(btnApprove, false);
+        }
+      });
+
+      const btnReject = document.createElement("button");
+      btnReject.type = "button";
+      btnReject.className = "btn-row reject";
+      btnReject.textContent = "Reject";
+      btnReject.addEventListener("click", async () => {
+        if (!id) return;
+        if (!confirm("Reject this request?")) return;
+        setButtonLoading(btnReject, true);
+        try {
+          await updateDoc(doc(db, "requests", id), { status: "Rejected" });
+          closeModal();
+        } catch (e) {
+          console.error(e);
+          alert("Reject failed: " + (e.message || e));
+        } finally {
+          setButtonLoading(btnReject, false);
+        }
+      });
+
+      const btnDelete = document.createElement("button");
+      btnDelete.type = "button";
+      btnDelete.className = "btn-row reject";
+      btnDelete.textContent = "Delete";
+      btnDelete.addEventListener("click", async () => {
+        if (!id) return;
+        if (!confirm("Delete this request? This cannot be undone.")) return;
+        setButtonLoading(btnDelete, true);
+        try {
+          await deleteDoc(doc(db, "requests", id));
+          closeModal();
+        } catch (e) {
+          console.error(e);
+          alert("Delete failed: " + (e.message || e));
+        } finally {
+          setButtonLoading(btnDelete, false);
+        }
+      });
+
+      const btnViewImage = document.createElement("button");
+      btnViewImage.type = "button";
+      btnViewImage.className = "btn-row view";
+      btnViewImage.textContent = "View Image";
+      btnViewImage.addEventListener("click", () => {
+        openImageViewerFromModal();
+      });
+
+      modalActions.appendChild(btnApprove);
+      modalActions.appendChild(btnReject);
+      modalActions.appendChild(btnDelete);
+      modalActions.appendChild(btnViewImage);
+
+      modalEl.style.display = "flex";
+      modalEl.removeAttribute("aria-hidden");
+    }
+
+    // modal global handlers
+    document.addEventListener("click", function (e) {
+      if (modalEl && modalEl.style.display !== "none") {
+        if (e.target === modalCloseBtn) closeModal();
+      }
+    });
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") {
+        if (imageViewerEl && !imageViewerEl.hasAttribute("hidden")) closeImageViewer();
+        else if (modalEl && modalEl.style.display !== "none") closeModal();
+      }
+    });
+    if (modalImage) modalImage.addEventListener("click", openImageViewerFromModal);
+    if (imageViewerCloseBtn) imageViewerCloseBtn.addEventListener("click", closeImageViewer);
+
+    /* ========= Button loading helper ========= */
+    function setButtonLoading(btn, loading, loadingText = "…") {
+      if (!btn) return;
+      if (loading) {
+        btn.setAttribute("aria-disabled", "true");
+        btn.disabled = true;
+        btn._origText = btn._origText || btn.textContent;
+        btn.innerHTML = `<span class="spinner-text">${escapeHtml(loadingText)}</span>`;
+      } else {
+        btn.removeAttribute("aria-disabled");
+        btn.disabled = false;
+        if (btn._origText) {
+          btn.textContent = btn._origText;
+          delete btn._origText;
+        }
+      }
+    }
+
+    /* ========= Admin attach table ========= */
+    function attachAdminTable(tableEl, metaEl) {
+      if (!tableEl) {
+        console.warn("attachAdminTable: missing tableEl");
+        return () => {};
+      }
+
+      const qAdmin = query(collection(db, "requests"), orderBy("createdAt", "desc"));
+
+      const unsub = onSnapshot(
+        qAdmin,
+        (snap) => {
+          if (snap.empty) {
+            tableEl.innerHTML =
+              '<tr><td colspan="5" style="text-align:center;color:#94a3b8;padding:14px;">No requests found.</td></tr>';
+            if (metaEl) metaEl.textContent = "0 requests";
+
+            const lastEl = document.getElementById("lastRequestDate");
+            if (lastEl) lastEl.textContent = "Last request: —";
+            return;
+          }
+
+          const rows = [];
+          let newestMs = null;
+          snap.forEach((d) => {
+            const data = d.data() || {};
+            const id = d.id;
+            const ms =
+              data.createdAt && data.createdAt.toMillis
+                ? data.createdAt.toMillis()
+                : data.createdAt && data.createdAt.seconds
+                ? data.createdAt.seconds * 1000
+                : Date.now();
+
+            if (!newestMs || ms > newestMs) newestMs = ms;
+
+            const when = timeAgo(ms);
+
+            const patientRaw = data.patientName || data.requesterName || data.name || "";
+            const patient =
+              asUsername(patientRaw) ||
+              patientRaw ||
+              (data.requesterId ? "User " + String(data.requesterId).slice(0, 6) : "Unnamed");
+
+            const medicine = data.medicineName || data.title || "—";
+            const category = data.category || "—";
+            const status = (data.status || "Pending").toString();
+            const statusClass =
+              status.toLowerCase() === "approved"
+                ? "status approved"
+                : status.toLowerCase() === "rejected"
+                ? "status rejected"
+                : "status pending";
+
+            rows.push(`
+              <tr data-id="${escapeHtml(id)}">
+                <td>
+                  <div style="font-weight:600;">${escapeHtml(patient)}</div>
+                  <div style="font-size:11px;color:var(--muted);margin-top:6px;">
+                    Requested ${escapeHtml(when)}
+                  </div>
+                </td>
+
+                <td>
+                  <div style="font-weight:600;">${escapeHtml(medicine)}</div>
+                  ${
+                    data.quantity
+                      ? `<div style="font-size:11px;color:var(--muted);margin-top:6px;">Qty: ${escapeHtml(
+                          String(data.quantity)
+                        )}</div>`
+                      : ""
+                  }
+                  ${
+                    data.reason
+                      ? `<div style="font-size:11px;color:var(--muted);margin-top:6px;">${escapeHtml(
+                          String(data.reason)
+                        )}</div>`
+                      : ""
+                  }
+                </td>
+
+                <td>
+                  <div style="font-weight:600;">${escapeHtml(category)}</div>
+                </td>
+
+                <td style="vertical-align:middle;">
+                  <span class="${statusClass}">${escapeHtml(status)}</span>
+                </td>
+
+                <td style="text-align:right;vertical-align:middle;">
+                  <div class="action-group" role="group" aria-label="Row actions">
+                    <button
+                      class="action-btn approve"
+                      data-action="approve"
+                      data-id="${escapeHtml(id)}"
+                      title="Approve request"
+                      aria-label="Approve request"
+                    >
+                      <span class="action-icon"><i class="fa-solid fa-check"></i></span>
+                      <span class="action-label">Approve</span>
+                    </button>
+                    <button
+                      class="action-btn reject"
+                      data-action="reject"
+                      data-id="${escapeHtml(id)}"
+                      title="Reject request"
+                      aria-label="Reject request"
+                    >
+                      <span class="action-icon"><i class="fa-solid fa-xmark"></i></span>
+                      <span class="action-label">Reject</span>
+                    </button>
+                    <button
+                      class="action-btn view"
+                      data-action="view"
+                      data-id="${escapeHtml(id)}"
+                      title="View details"
+                      aria-label="View details"
+                    >
+                      <span class="action-icon"><i class="fa-solid fa-eye"></i></span>
+                      <span class="action-label">View</span>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            `);
+          });
+
+          tableEl.innerHTML = rows.join("");
+          if (metaEl) metaEl.textContent = `${snap.size} request${snap.size !== 1 ? "s" : ""}`;
+
+          const lastEl = document.getElementById("lastRequestDate");
+          if (lastEl) {
+            lastEl.textContent = newestMs
+              ? `Last request: ${formatDateShort(newestMs)}`
+              : "Last request: —";
+          }
+        },
+        (err) => {
+          console.error("attachAdminTable snapshot error:", err);
+          if (tableEl)
+            tableEl.innerHTML =
+              '<tr><td colspan="5" style="text-align:center;color:#94a3b8;padding:14px;">Failed to load requests.</td></tr>';
+          if (metaEl) metaEl.textContent = "Failed to load";
+          const lastEl = document.getElementById("lastRequestDate");
+          if (lastEl) lastEl.textContent = "Last request: —";
+        }
+      );
+
+      async function onTableClick(e) {
+        const btn = e.target.closest("[data-action]");
+        if (!btn) return;
+        const action = btn.dataset.action;
+        const id = btn.dataset.id;
+        if (!action || !id) return;
+
+        if (btn.disabled || btn.getAttribute("aria-disabled") === "true") return;
+
+        if (action === "approve" || action === "reject") {
+          const newStatus = action === "approve" ? "Approved" : "Rejected";
+          if (!confirm(`${newStatus} this request?`)) return;
+          setButtonLoading(btn, true, "…");
+          try {
+            await updateDoc(doc(db, "requests", id), { status: newStatus });
+          } catch (err) {
+            console.error("admin status update failed", err);
+            alert("Failed to update status. Check Firestore rules/console.");
+          } finally {
+            setButtonLoading(btn, false);
+          }
+          return;
+        }
+
+        if (action === "view") {
+          setButtonLoading(btn, true, "…");
+          try {
+            const snap = await getDoc(doc(db, "requests", id));
+            if (!snap.exists()) {
+              alert("Request not found.");
+              return;
+            }
+            const data = snap.data() || {};
+            openRequestModal(data, id);
+          } catch (err) {
+            console.error("admin view fetch failed", err);
+            alert("Failed to fetch request details.");
+          } finally {
+            setButtonLoading(btn, false);
+          }
+        }
+      }
+
+      tableEl.addEventListener("click", onTableClick);
+
+      return function detach() {
+        try { unsub(); } catch (e) {}
+        try { tableEl.removeEventListener("click", onTableClick); } catch (e) {}
+      };
+    }
+
+    /* ========= Initialize on load ========= */
+    document.addEventListener("DOMContentLoaded", () => {
+      const tableBody = document.getElementById("requestTable");
+      const metaText = document.getElementById("requestsMetaText");
+      const detach = attachAdminTable(tableBody, metaText);
+      window._dmx_detachAdminRequests = detach;
+
+      const themeToggle = document.getElementById("themeToggle");
+      if (themeToggle) {
+        themeToggle.addEventListener("click", () => {
+          document.body.classList.toggle("dark");
+          themeToggle.textContent = document.body.classList.contains("dark")
+            ? "☀️ Light Mode"
+            : "🌙 Dark Mode";
+        });
+      }
+    });
+
+    window.openRequestModal = openRequestModal;
+  </script>
+</body>
+</html>

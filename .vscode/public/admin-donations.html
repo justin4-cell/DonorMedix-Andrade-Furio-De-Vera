@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DonorMedix · Donations</title>
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+  <style>
+/* ===========================
+   DonorMedix — Unified Admin Layout
+   - Same sidebar/mobile behavior as admin-dashboard & admin-users
+   =========================== */
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --brand:#3472a1;
+  --brand-2:#0b90ab;
+  --ink:#0f172a;
+  --muted:#64748b;
+  --line:#e2e8f0;
+  --bg:#f8fafc;
+  --card:#ffffff;
+  --shadow:0 8px 22px rgba(2,6,23,.06);
+  --radius:14px;
+  --danger:#ef4444;
+  --success:#22c55e;
+  --sidebar-width:230px;
+  --topbar-height:64px;
+}
+
+html, body { height: 100%; }
+
+body {
+  min-height:100vh;
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+  background:radial-gradient(circle at top left,#ecfeff 0,#f8fafc 45%,#e2fbe8 100%);
+  color:var(--ink);
+}
+
+/* App layout */
+.app{
+  display:flex;
+  min-height:100vh;
+  align-items:stretch;
+}
+
+/* Sidebar fixed on desktop */
+.sidebar{
+  position:fixed;
+  left:0;
+  top:0;
+  height:100vh;
+  width:var(--sidebar-width);
+  min-width:var(--sidebar-width);
+  max-width:var(--sidebar-width);
+  background:linear-gradient(160deg,#020617,#0b1120,#1e293b);
+  color:#e2e8f0;
+  padding:20px 18px;
+  display:flex;
+  flex-direction:column;
+  gap:24px;
+  box-shadow:8px 0 24px rgba(15,23,42,.4);
+  box-sizing:border-box;
+  z-index:1200;
+  overflow:auto;
+}
+
+/* Main aware of sidebar */
+.main{
+  margin-left:var(--sidebar-width);
+  flex:1 1 auto;
+  padding:20px 16px 32px;
+  min-height:100vh;
+  box-sizing:border-box;
+}
+.shell{
+  max-width:1120px;
+  margin:0 auto;
+}
+
+/* Sidebar brand */
+.sidebar-brand{ display:flex; align-items:center; gap:10px; }
+.sidebar-mark{
+  width:34px;height:34px;border-radius:999px;
+  background:conic-gradient(from 140deg,var(--brand),var(--brand-2));
+  display:flex;align-items:center;justify-content:center;
+  font-weight:700;color:#ecfdf5;
+}
+.sidebar-title{ font-size:15px;font-weight:700;text-transform:uppercase; }
+.sidebar-sub{ font-size:11px;color:#9ca3af;text-transform:uppercase; }
+
+/* Nav */
+.nav{ display:flex; flex-direction:column; gap:6px; }
+.nav-link{
+  display:flex; align-items:center; gap:8px;
+  padding:8px 10px; border-radius:999px;
+  color:#e5e7eb; text-decoration:none;
+  border:1px solid transparent; opacity:.9; cursor:pointer;
+  transition:background .12s ease,border-color .12s ease,color .12s ease,transform .06s ease;
+}
+.nav-link .icon{
+  font-size:14px; width:18px; min-width:18px;
+  display:inline-flex; justify-content:center; align-items:center;
+}
+.nav-link.active{
+  background:linear-gradient(135deg,var(--brand),var(--brand-2));
+  color:#ecfdf5;
+  box-shadow:0 10px 25px rgba(15,23,42,.6);
+  opacity:1;
+}
+.nav-link:hover{
+  background:rgba(148,163,184,0.22);
+  border-color:rgba(148,163,184,0.6);
+}
+
+/* Sidebar footer */
+.nav-footer{
+  margin-top:auto; font-size:11px; color:#6b7280;
+  display:flex; flex-direction:column; gap:10px;
+}
+.home-link{
+  display:flex; align-items:center; gap:8px;
+  padding:8px 10px; border-radius:999px;
+  color:#e5e7eb; text-decoration:none;
+  border:1px solid transparent; opacity:.9; cursor:pointer;
+}
+.home-link:hover{
+  background:rgba(148,163,184,0.22);
+  border-color:rgba(148,163,184,0.6);
+}
+
+/* Cards */
+.card{
+  background:var(--card);
+  border-radius:var(--radius);
+  border:1px solid rgba(148,163,184,.3);
+  box-shadow:var(--shadow);
+  padding:16px 18px; margin-bottom:18px;
+}
+.card-header{
+  display:flex; justify-content:space-between;
+  align-items:center; margin-bottom:12px;
+  gap:8px;
+}
+.card-title{ font-size:15px; font-weight:600; color:var(--ink); }
+.card-subtitle{ font-size:12px; color:var(--muted); }
+.card-tag{
+  font-size:10px; padding:4px 9px; border-radius:999px;
+  border:1px solid rgba(148,163,184,.55);
+  background:rgba(248,250,252,.7); color:var(--muted);
+  text-transform:uppercase; letter-spacing:.14em;
+  white-space:nowrap;
+}
+
+/* Filters */
+.filters{
+  display:flex; flex-wrap:wrap; gap:8px;
+  margin:8px 0 14px;
+}
+.input{
+  border-radius:999px; padding:6px 11px;
+  border:1px solid rgba(148,163,184,.7);
+  background:#f9fafb;
+  display:inline-flex; align-items:center; gap:6px;
+}
+.input input{
+  border:none; background:transparent; outline:none;
+  min-width:120px; font-size:12px;
+}
+select{
+  border-radius:999px; padding:6px 11px;
+  border:1px solid rgba(148,163,184,.7);
+  background:#f9fafb; font-size:12px;
+}
+
+/* Meta row */
+.meta-row{
+  display:flex; justify-content:space-between;
+  align-items:center; gap:8px;
+  font-size:11px; color:var(--muted);
+  margin-top:4px;
+  flex-wrap:wrap;
+}
+
+/* table + wrapper */
+.table-wrap{
+  width:100%;
+  margin-top:8px;
+  border-radius:12px;
+  background:#ffffff;
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+}
+table{
+  width:100%; border-collapse:collapse;
+  background:#ffffff; font-size:12px;
+  min-width:650px; /* prevents columns from squashing on mobile, scroll instead */
+}
+th,td{
+  padding:10px; text-align:left;
+  border-bottom:1px solid #e5e7eb;
+}
+th{
+  background:#e5f7ef; font-size:11px;
+  text-transform:uppercase; letter-spacing:.12em;
+  color:var(--muted);
+  white-space:nowrap;
+}
+
+/* Status */
+.status{
+  display:inline-block; padding:4px 10px;
+  border-radius:999px; color:#fff; font-size:12px;
+}
+.status.completed{ background:var(--success); }
+.status.pending{ background:#f97316; }
+
+/* Notice */
+.notice {
+  margin-bottom:12px; padding:10px;
+  border-radius:8px; font-size:13px; display:none;
+}
+.notice.info {
+  background:#ecfdf5;
+  border:1px solid #bbf7d0;
+  color:#065f46;
+  display:block;
+}
+.notice.error {
+  background:#fee2e2;
+  border:1px solid #fecaca;
+  color:#7f1d1d;
+  display:block;
+}
+
+/* Delete button */
+.btn-delete {
+  padding:5px 10px;
+  border-radius:999px;
+  border:1px solid rgba(248,113,113,.9);
+  background:#fef2f2;
+  color:#b91c1c;
+  font-size:11px;
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  white-space:nowrap;
+}
+.btn-delete:hover {
+  background:#fee2e2;
+}
+
+/* Footer note */
+.footer-note{
+  font-size:12px;
+  color:var(--muted);
+  margin-top:6px;
+}
+
+/* --------- Responsive: match dashboard behavior --------- */
+@media (max-width:880px){
+  .app{
+    flex-direction:column;
+  }
+  .sidebar{
+    position:relative;
+    height:auto;
+    width:100%;
+    min-width:auto;
+    max-width:none;
+    flex-direction:row;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    padding:12px 14px;
+    box-shadow:none;
+    overflow-x:auto;
+  }
+  .nav{
+    flex-direction:row;
+    flex-wrap:nowrap;
+    gap:8px;
+  }
+  .nav-footer{
+    display:none;
+  }
+  .main{
+    margin-left:0;
+    padding:14px 10px 22px;
+    min-height:calc(100vh - var(--topbar-height));
+  }
+  .shell{
+    max-width:100%;
+  }
+}
+
+@media (max-width:640px){
+  .card{ padding:12px 12px; }
+  .card-header{
+    flex-direction:column;
+    align-items:flex-start;
+    gap:6px;
+  }
+  .filters{
+    flex-direction:column;
+    align-items:stretch;
+  }
+  .input,
+  select{
+    width:100%;
+  }
+  .meta-row{
+    flex-direction:column;
+    align-items:flex-start;
+    gap:4px;
+  }
+  table{
+    font-size:11px;
+  }
+  th,td{
+    padding:8px 6px;
+  }
+}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div>
+        <div class="sidebar-brand">
+          <div class="sidebar-mark">DM</div>
+          <div>
+            <div class="sidebar-title">DonorMedix</div>
+            <div class="sidebar-sub">Admin Panel</div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <nav class="nav">
+          <a href="admin-dashboard.html" class="nav-link">
+            <span class="icon"><i class="fa-solid fa-gauge"></i></span> Dashboard
+          </a>
+          <a href="admin-users.html" class="nav-link">
+            <span class="icon"><i class="fa-solid fa-users"></i></span> User Management
+          </a>
+          <a href="admin-requests.html" class="nav-link">
+            <span class="icon"><i class="fa-solid fa-list-check"></i></span> Requests
+          </a>
+          <a href="admin-donations.html" class="nav-link active">
+            <span class="icon"><i class="fa-solid fa-hand-holding-heart"></i></span> Donations
+          </a>
+          <a href="admin-settings.html" class="nav-link">
+            <span class="icon"><i class="fa-solid fa-gear"></i></span> Settings
+          </a>
+        </nav>
+      </div>
+
+      <div class="nav-footer">
+        <a href="home.html" class="home-link">
+          <span class="icon"><i class="fa-solid fa-house"></i></span> Home
+        </a>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="shell">
+
+        <!-- Notice area for migration & permission messages -->
+        <div id="migrationNotice" class="notice info" style="display:none;">Migration running...</div>
+
+        <section class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Donations Overview</div>
+              <div class="card-subtitle">Track incoming medicine donations and their statuses.</div>
+            </div>
+            <span class="card-tag">Donations</span>
+          </div>
+
+          <div class="filters">
+            <div class="input">
+              🔍 <input id="searchInput" type="text" placeholder="Search donor or medicine…" />
+            </div>
+            <select id="statusFilter">
+              <option value="">All Status</option>
+              <option value="completed">Completed</option>
+              <option value="pending">Pending</option>
+            </select>
+          </div>
+
+          <div class="meta-row">
+            <div id="donationsCount">Total donations: <strong>—</strong></div>
+            <div>Sort by <strong>Newest</strong></div>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Donor</th>
+                  <th>Medicine</th>
+                  <th>Quantity</th>
+                  <th>Date</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="donationsTbody">
+                <tr>
+                  <td colspan="6" style="text-align:center;padding:14px;color:var(--muted)">
+                    Loading donations…
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <p class="footer-note">
+          Donations page. This page will attempt to normalize missing
+          <code>createdAt</code> fields for donations when loaded by an admin.
+        </p>
+      </div>
+    </main>
+  </div>
+
+<script type="module">
+/* -------------------------------------------------------------
+  Client-side normalization of donations.createdAt
+-------------------------------------------------------------- */
+
+import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+import {
+  getFirestore,
+  collection,
+  query,
+  orderBy,
+  limit,
+  startAfter,
+  getDocs,
+  writeBatch,
+  doc,
+  updateDoc,
+  serverTimestamp,
+  where,
+  deleteDoc,
+  onSnapshot,
+  getDoc
+} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+
+// Firebase config (same as your project)
+const firebaseConfig = {
+  apiKey: "AIzaSyAaWN2gj3VJxT6kwOvCX4LIXkWlbt0LTHQ",
+  authDomain: "donormedix.firebaseapp.com",
+  projectId: "donormedix",
+  storageBucket: "donormedix.appspot.com",
+  messagingSenderId: "627472172279",
+  appId: "1:627472172279:web:9bf645b54d33075a0d7ff2",
+  measurementId: "G-NTNPR4FPT7"
+};
+
+const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+// DOM refs
+const migrationNotice = document.getElementById("migrationNotice");
+const donationsTbody = document.getElementById("donationsTbody");
+const donationsCount = document.getElementById("donationsCount");
+const forceMigrateBtn = document.getElementById("forceMigrateBtn");
+const searchInput = document.getElementById("searchInput");
+const statusFilter = document.getElementById("statusFilter");
+
+// Controls
+const LOCAL_FLAG = "donationsCreatedAtNormalized_v1";
+const PAGE_LIMIT = 500;
+const BATCH_SIZE = 200;
+
+// notice helpers
+function showNotice(msg, isError = false) {
+  migrationNotice.textContent = msg;
+  migrationNotice.className = "notice " + (isError ? "error" : "info");
+  migrationNotice.style.display = "block";
+}
+function hideNotice() {
+  migrationNotice.style.display = "none";
+}
+
+// date helpers
+function toDateFromCandidate(val) {
+  if (!val) return null;
+  if (typeof val === "object") {
+    if (val._seconds || val.seconds) {
+      const seconds = val._seconds || val.seconds;
+      return new Date(seconds * 1000);
+    }
+    if (val instanceof Date) return val;
+  }
+  if (typeof val === "number") {
+    if (val > 1e12) return new Date(val);
+    return new Date(val * 1000);
+  }
+  if (typeof val === "string") {
+    const n = Number(val);
+    if (!Number.isNaN(n)) return toDateFromCandidate(n);
+    const d = new Date(val);
+    if (!isNaN(d.getTime())) return d;
+  }
+  return null;
+}
+
+function deriveTimestampFromDocData(data) {
+  if (!data || typeof data !== "object") return null;
+  const candidates = [
+    "createdAt","created_at","created","timestamp","time","createdOn","created_on",
+    "createdAtSeconds","createdAtMillis","created_at_seconds","created_at_millis","created_date",
+    "updatedAt","updated_at","date","postedAt"
+  ];
+  for (const k of candidates) {
+    if (k in data && data[k] != null) {
+      const d = toDateFromCandidate(data[k]);
+      if (d) return d;
+    }
+  }
+  return null;
+}
+
+async function normalizeCreatedAtForDonations({ onProgress } = {}) {
+  if (localStorage.getItem(LOCAL_FLAG)) {
+    console.log("Normalization already run in this browser; skipping.");
+    return { skipped: true };
+  }
+
+  showNotice("Preparing donation normalization — checking admin role…");
+
+  const user = auth.currentUser;
+  if (!user) {
+    showNotice("Not signed in. Sign in as admin to run normalization.", true);
+    return { error: "not-signed-in" };
+  }
+
+  try {
+    const profileRef = doc(db, "users", user.uid);
+    const profileSnap = await getDoc(profileRef);
+    if (!profileSnap.exists()) {
+      showNotice(
+        "Admin profile missing in users/" + user.uid + ". Set role:'admin' to allow migration.",
+        true
+      );
+      return { error: "no-profile" };
+    }
+    const profile = profileSnap.data() || {};
+    if (profile.role !== "admin") {
+      showNotice("Access denied — your account is not an admin. Migration aborted.", true);
+      return { error: "not-admin" };
+    }
+  } catch (err) {
+    console.error("Admin check failed:", err);
+    showNotice("Failed to verify admin role (see console).", true);
+    return { error: "admin-check-failed" };
+  }
+
+  showNotice("Admin verified — scanning donations collection (this may take a few moments)...");
+
+  let lastDoc = null;
+  let totalUpdated = 0;
+  let totalInspected = 0;
+  let page = 0;
+
+  outer: while (true) {
+    page++;
+    let q;
+    if (lastDoc) {
+      q = query(
+        collection(db, "donations"),
+        orderBy("__name__"),
+        startAfter(lastDoc),
+        limit(PAGE_LIMIT)
+      );
+    } else {
+      q = query(collection(db, "donations"), orderBy("__name__"), limit(PAGE_LIMIT));
+    }
+
+    let snap;
+    try {
+      snap = await getDocs(q);
+    } catch (err) {
+      console.error("Failed to read donations page:", err);
+      showNotice("Failed to read donations. Check console for details.", true);
+      return { error: "read-failed", details: err.message };
+    }
+
+    if (!snap || snap.size === 0) break;
+
+    const toUpdate = [];
+    snap.forEach((docSnap) => {
+      totalInspected++;
+      const data = docSnap.data() || {};
+      if (data.createdAt === undefined || data.createdAt === null) {
+        const derived = deriveTimestampFromDocData(data);
+        toUpdate.push({
+          id: docSnap.id,
+          ref: docSnap.ref,
+          derivedDate: derived
+        });
+      }
+    });
+
+    for (let i = 0; i < toUpdate.length; i += BATCH_SIZE) {
+      const batchSlice = toUpdate.slice(i, i + BATCH_SIZE);
+      const batch = writeBatch(db);
+      for (const item of batchSlice) {
+        if (item.derivedDate) {
+          batch.update(item.ref, { createdAt: item.derivedDate });
+        } else {
+          batch.update(item.ref, { createdAt: serverTimestamp() });
+        }
+      }
+      try {
+        await batch.commit();
+        totalUpdated += batchSlice.length;
+        if (onProgress) {
+          onProgress({ totalInspected, totalUpdated, page });
+        }
+        showNotice(
+          "Normalization: inspected " +
+            totalInspected +
+            ", updated " +
+            totalUpdated +
+            " (page " +
+            page +
+            ")"
+        );
+      } catch (err) {
+        console.error("Batch commit failed:", err);
+        showNotice("Batch commit failed — see console for details.", true);
+      }
+    }
+
+    lastDoc = snap.docs[snap.docs.length - 1];
+    if (snap.size < PAGE_LIMIT) break outer;
+  }
+
+  localStorage.setItem(LOCAL_FLAG, String(Date.now()));
+  hideNotice();
+  if (totalUpdated === 0) {
+    showNotice(
+      "Normalization complete — no missing createdAt fields were found (inspected " +
+        totalInspected +
+        ")."
+    );
+  } else {
+    showNotice(
+      "Normalization complete — updated " +
+        totalUpdated +
+        " documents (inspected " +
+        totalInspected +
+        ")."
+    );
+  }
+  setTimeout(hideNotice, 8000);
+
+  return { inspected: totalInspected, updated: totalUpdated };
+}
+
+// simple escape
+function escapeHtml(s = "") {
+  return String(s || "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;");
+}
+
+// Attach click handlers for delete buttons
+function attachDeleteHandlers() {
+  if (!donationsTbody) return;
+  const buttons = donationsTbody.querySelectorAll(".btn-delete-donation");
+
+  buttons.forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const donationId = btn.getAttribute("data-id");
+      if (!donationId) return;
+
+      const confirmed = window.confirm(
+        "Are you sure you want to delete this donation? This action cannot be undone."
+      );
+      if (!confirmed) return;
+
+      try {
+        await deleteDoc(doc(db, "donations", donationId));
+        // onSnapshot will refresh table automatically
+        alert("Donation deleted successfully.");
+      } catch (err) {
+        console.error("Failed to delete donation:", err);
+        alert("Failed to delete donation. Check console for details.");
+      }
+    });
+  });
+}
+
+function renderDonationsTable(snap) {
+  const tbody = donationsTbody;
+  tbody.innerHTML = "";
+
+  if (!snap || snap.empty) {
+    tbody.innerHTML =
+      '<tr><td colspan="6" style="text-align:center;padding:12px;color:var(--muted)">No donations found</td></tr>';
+    donationsCount.innerHTML = "Total donations: <strong>0</strong>";
+    return;
+  }
+
+  const rows = [];
+  snap.forEach((docSnap) => {
+    const d = docSnap.data() || {};
+    const donor = d.donorName || d.name || "Anonymous";
+    const med = d.medicineName || d.medicine || "—";
+    const qty = d.quantity ?? d.qty ?? 1;
+    const date =
+      d.createdAt && typeof d.createdAt.toDate === "function"
+        ? d.createdAt.toDate().toISOString().slice(0, 10)
+        : d.createdAt
+        ? String(d.createdAt)
+        : d.expiryDate
+        ? new Date(d.expiryDate).toISOString().slice(0, 10)
+        : "—";
+
+    const status = (d.status || "").toString().toLowerCase();
+    const badge =
+      status === "completed" || status === "available"
+        ? '<span class="status completed">Completed</span>'
+        : '<span class="status pending">Pending</span>';
+
+    rows.push(
+      "<tr>" +
+        "<td>" +
+        escapeHtml(donor) +
+        "</td>" +
+        "<td>" +
+        escapeHtml(med) +
+        "</td>" +
+        "<td>" +
+        escapeHtml(String(qty)) +
+        "</td>" +
+        "<td>" +
+        escapeHtml(date) +
+        "</td>" +
+        "<td>" +
+        badge +
+        "</td>" +
+        '<td><button class="btn-delete btn-delete-donation" data-id="' +
+        docSnap.id +
+        '" title="Delete donation"><i class="fa-solid fa-trash-can"></i> Delete</button></td>' +
+        "</tr>"
+    );
+  });
+
+  tbody.innerHTML = rows.join("");
+  donationsCount.innerHTML = "Total donations: <strong>" + snap.size + "</strong>";
+
+  // wire delete buttons
+  attachDeleteHandlers();
+}
+
+let unsubListener = null;
+function attachDonationsListener() {
+  try {
+    const q = query(collection(db, "donations"), orderBy("createdAt", "desc"));
+    unsubListener = onSnapshot(
+      q,
+      (snap) => {
+        renderDonationsTable(snap);
+      },
+      (err) => {
+        console.error("Donations snapshot error:", err);
+        const q2 = query(collection(db, "donations"), orderBy("__name__"));
+        if (unsubListener) {
+          try {
+            unsubListener();
+          } catch (e) {}
+        }
+        onSnapshot(q2, (snap2) => renderDonationsTable(snap2));
+      }
+    );
+  } catch (err) {
+    console.error("Failed to attach donations listener:", err);
+    showNotice("Failed to attach donations listener. See console.", true);
+  }
+}
+
+// auth + migration + listener
+onAuthStateChanged(auth, async (user) => {
+  if (!user) {
+    donationsTbody.innerHTML =
+      '<tr><td colspan="6" style="text-align:center;padding:12px;color:var(--muted)">Not signed in. Please sign in as admin to view donations.</td></tr>';
+    return;
+  }
+
+  const already = localStorage.getItem(LOCAL_FLAG);
+  try {
+    if (!already) {
+      const result = await normalizeCreatedAtForDonations({
+        onProgress: ({ totalInspected, totalUpdated, page }) => {
+          showNotice(
+            "Normalizing donations — inspected " +
+              totalInspected +
+              ", updated " +
+              totalUpdated +
+              " (page " +
+              page +
+              ")"
+          );
+        }
+      });
+      console.log("Normalization result:", result);
+    } else {
+      console.log(
+        "Normalization previously performed in this browser; skipping migration run."
+      );
+    }
+  } catch (err) {
+    console.error("Normalization error:", err);
+  } finally {
+    attachDonationsListener();
+
+    // Only attach force migration logic if the button exists
+    if (forceMigrateBtn) {
+      forceMigrateBtn.style.display = "inline-flex";
+      forceMigrateBtn.addEventListener("click", async () => {
+        localStorage.removeItem(LOCAL_FLAG);
+        showNotice("Force-running normalization now...");
+        await normalizeCreatedAtForDonations();
+        if (unsubListener) {
+          try {
+            unsubListener();
+          } catch (e) {}
+        }
+        attachDonationsListener();
+      });
+    }
+  }
+});
+</script>
+
+</body>
+</html>

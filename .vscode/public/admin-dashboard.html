@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DonorMedix · Admin Dashboard</title>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <style>
+/* ===========================
+   DonorMedix — Unified CSS (updated)
+   - Sidebar fixed full-height on desktop
+   - Sidebar becomes top nav on small screens
+   - Responsive main content & charts
+   =========================== */
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root{
+  --brand: #3472a1;
+  --brand-2: #0b90ab;
+  --ink: #0f172a;
+  --muted: #64748b;
+  --line: #e2e8f0;
+  --bg: #f8fafc;
+  --card: #ffffff;
+  --shadow: 0 8px 22px rgba(2,6,23,0.06);
+  --radius: 14px;
+  --danger: #ef4444;
+  --warning: #f59e0b;
+  --info: #3b82f6;
+  --success: #22c55e;
+  --sidebar-width: 230px; /* single source of truth */
+  --topbar-height: 64px;
+}
+
+html,body { height: 100%; }
+
+body {
+  min-height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background: radial-gradient(circle at top left, #ecfeff 0, #f8fafc 45%, #e2fbe8 100%);
+  color: var(--ink);
+  transition: background .15s ease, color .15s ease;
+}
+body.dark {
+  background: #020617;
+  color: #e5e7eb;
+}
+
+/* App layout: sidebar is fixed on desktop, main has left margin */
+.app { display: flex; min-height: 100vh; align-items: stretch; }
+
+/* ---------------------------
+   Sidebar — fixed width + full-height
+   --------------------------- */
+.sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  height: 100vh;
+  width: var(--sidebar-width);
+  min-width: var(--sidebar-width);
+  max-width: var(--sidebar-width);
+  background: linear-gradient(160deg, #020617, #0b1120, #1e293b);
+  color: #e2e8f0;
+  padding: 20px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  box-shadow: 8px 0 24px rgba(15,23,42,0.4);
+  box-sizing: border-box;
+  z-index: 1200;
+  transition: transform .18s ease, width .12s ease;
+  overflow: auto;
+}
+
+/* Make main content aware of the fixed sidebar */
+.main {
+  margin-left: var(--sidebar-width);
+  flex: 1 1 auto;
+  padding: 18px;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+/* Sidebar branding */
+.sidebar-brand { display:flex; align-items:center; gap:10px; margin-bottom:2px; }
+.sidebar-mark {
+  width:34px; height:34px; border-radius:999px;
+  background: conic-gradient(from 140deg, var(--brand), var(--brand-2));
+  display:flex; align-items:center; justify-content:center;
+  font-weight:700; font-size:14px; color:#ecfdf5;
+  box-shadow: 0 10px 25px rgba(37,99,235,0.15);
+}
+.sidebar-title { font-size:15px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; }
+.sidebar-sub { font-size:11px; color:#9ca3af; text-transform:uppercase; letter-spacing:.12em; }
+
+/* Navigation links */
+.nav { display:flex; flex-direction:column; gap:6px; }
+.nav-link {
+  display:flex; align-items:center; gap:8px;
+  padding:8px 10px; border-radius:999px;
+  text-decoration:none; font-size:13px;
+  color:#e5e7eb; border:1px solid transparent;
+  opacity:.95; cursor:pointer;
+  transition: background .12s ease, border-color .12s ease, transform .06s ease, color .12s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.nav-link span.icon { font-size:14px; width:18px; min-width:18px; text-align:center; display:inline-flex; justify-content:center; align-items:center; }
+.nav-link .icon i { display:inline-block; width:18px; text-align:center; color:currentColor; }
+
+/* hover / focus */
+.nav-link:hover,
+.nav-link:focus,
+.home-link:hover,
+.home-link:focus {
+  background: rgba(148,163,184,0.18) !important;
+  border-color: rgba(148,163,184,0.5) !important;
+  color: #ffffff !important;
+  transform: translateY(0) !important;
+  outline: none !important;
+}
+
+/* Active state */
+.nav-link.active {
+  background: linear-gradient(135deg, var(--brand), var(--brand-2)) !important;
+  border-color: rgba(129,140,248,0.22) !important;
+  color: #ecfdf5 !important;
+  box-shadow: 0 10px 25px rgba(15,23,42,0.45) !important;
+  opacity: 1 !important;
+}
+
+/* Footer / logout area */
+.nav-footer { margin-top: auto; display:flex; flex-direction:column; gap:8px; }
+.home-link {
+  display:flex; align-items:center; gap:8px; padding:8px 10px;
+  border-radius:999px; text-decoration:none; color:#94a3b8;
+  font-size:13px; border:1px solid transparent; transition: background .12s;
+}
+
+/* -------------------------
+   small screens: convert sidebar to top nav
+   ------------------------- */
+@media (max-width: 880px) {
+  /* Stack sidebar on top of main content */
+  .app {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    position: relative;
+    height: auto;
+    width: 100%;
+    min-width: auto;
+    max-width: none;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 14px;
+    box-shadow: none;
+    overflow-x: auto; /* allow horizontal scroll if nav gets too wide */
+  }
+
+  .nav {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 8px;
+  }
+
+  .main {
+    margin-left: 0;
+    padding: 12px;
+    min-height: calc(100vh - 64px);
+  }
+
+  .nav-footer {
+    display:none;
+  }
+}
+
+/* Cards, table & charts */
+.card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: var(--shadow);
+  border: 1px solid rgba(2,6,23,0.04);
+  margin-bottom: 18px;
+}
+table { width:100%; border-collapse:collapse; background:var(--card); border-radius:12px; overflow:hidden; font-size:13px; }
+th, td { padding:10px; border-bottom:1px solid #e5e7eb; }
+th { background: #eef7ff; font-size:11px; text-transform:uppercase; letter-spacing:.12em; color:var(--muted); }
+
+/* status badges */
+.status { display:inline-flex; align-items:center; gap:8px; padding:6px 10px; border-radius:999px; font-size:12px; }
+.status.completed { background:#dcfce7; color:#166534; }
+.status.pending { background:#fff7ed; color:#92400e; }
+
+/* metric tiles & charts (unchanged layout) */
+.metric-tiles { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:18px; }
+.metric-tile{ padding:18px; border-radius:12px; color:white; cursor:pointer; display:flex; flex-direction:column; gap:8px; box-shadow:0 8px 18px rgba(2,6,23,.08); transition:transform .08s ease; }
+.metric-tile:hover{ transform: translateY(-4px); box-shadow:0 14px 30px rgba(2,6,23,.12); }
+.metric-tile .label{ font-size:14px; font-weight:600; display:flex; align-items:center; gap:8px; }
+.metric-tile .value{ font-size:38px; font-weight:800; line-height:1; }
+.metric-tile .more{ font-size:13px; opacity:.95; display:flex; align-items:center; gap:8px; }
+
+.tile-blue{ background:linear-gradient(135deg,#0ea5e9,#0369a1); }
+.tile-green{ background:linear-gradient(135deg,#16a34a,#0f7a3a); }
+.tile-yellow{ background:linear-gradient(135deg,#f59e0b,#d97706); }
+.tile-red{ background:linear-gradient(135deg,#ef4444,#b91c1c); }
+
+.recent-users-list { display:flex; flex-direction:column; gap:10px; margin-top:6px; }
+.recent-user { display:flex; gap:12px; align-items:center; padding:8px; border-radius:10px; border:1px solid rgba(2,6,23,0.04); }
+.recent-user .avatar { width:44px; height:44px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-weight:700; color:#fff; }
+.recent-user .meta { display:flex; flex-direction:column; min-width:0; }
+.recent-user .name { font-weight:700; font-size:14px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.recent-user .sub { font-size:12px; color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+/* charts */
+.charts-row { display:flex; gap:14px; margin-top:18px; margin-bottom:18px; flex-wrap:wrap; }
+.chart-card { flex:1; min-height:300px; padding:12px; border-radius:12px; background:var(--card); border:1px solid rgba(148,163,184,.18); box-shadow:var(--shadow); display:flex; flex-direction:column; }
+.chart-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+.chart-canvas-wrap { flex:1; display:flex; align-items:center; justify-content:center; padding:10px; }
+
+/* responsiveness */
+@media (max-width:1200px) { 
+  .metric-tiles{ grid-template-columns:repeat(2,1fr);}
+  .charts-row { flex-direction:column; } 
+}
+@media (max-width:520px) { 
+  .metric-tiles{ grid-template-columns:1fr; } 
+  .sidebar {
+    padding: 8px 10px;
+  }
+  .main {
+    padding: 10px;
+  }
+}
+
+/* dark mode tweaks */
+body.dark .card { background: #020617; border-color: #1f2937; color: #e5e7eb; }
+body.dark table { background: #020617; color:#e5e7eb; }
+body.dark th { background: #0b1220; color:#e5e7eb; }
+body.dark td { border-color: #1f2937; }
+
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" aria-label="Admin navigation">
+      <div class="sidebar-brand">
+        <div class="sidebar-mark">DM</div>
+        <div>
+          <div class="sidebar-title">DonorMedix</div>
+          <div class="sidebar-sub">Admin Panel</div>
+        </div>
+      </div>
+
+      <nav class="nav" role="navigation" aria-label="Main">
+        <a href="admin-dashboard.html" class="nav-link active" aria-current="page"><span class="icon"><i class="fa-solid fa-gauge"></i></span> Dashboard</a>
+        <a href="admin-users.html" class="nav-link"><span class="icon"><i class="fa-solid fa-users"></i></span> User Management</a>
+        <a href="admin-requests.html" class="nav-link"><span class="icon"><i class="fa-solid fa-list-check"></i></span> Requests</a>
+        <a href="admin-donations.html" class="nav-link"><span class="icon"><i class="fa-solid fa-hand-holding-heart"></i></span> Donations</a>
+        <a href="admin-settings.html" class="nav-link"><span class="icon"><i class="fa-solid fa-gear"></i></span> Settings</a>
+      </nav>
+
+      <div class="nav-footer" style="margin-top:auto">
+        <a href="home.html" class="nav-link home-link"><span class="icon"><i class="fa-solid fa-house"></i></span> Home</a>
+
+        <!-- LOGOUT BUTTON -->
+        <a href="#" id="logoutBtn" class="nav-link" aria-label="Sign out">
+          <span class="icon"><i class="fa-solid fa-right-from-bracket"></i></span> Logout
+        </a>
+      </div>
+    </aside>
+
+    <main class="main" role="main">
+
+        <!-- BIG FOUR METRIC TILES -->
+        <div class="metric-tiles" role="list">
+          <div class="metric-tile tile-blue" id="tileDonations" title="View donations" role="listitem">
+            <div class="label"><i class="fa-solid fa-hand-holding-heart"></i> Donations</div>
+            <div class="value" id="tileDonationsValue">0</div>
+            <div class="more">More info <i class="fa-solid fa-arrow-right"></i></div>
+          </div>
+
+          <div class="metric-tile tile-green" id="tileRequests" title="View requests" role="listitem">
+            <div class="label"><i class="fa-solid fa-list-check"></i> Requests</div>
+            <div class="value" id="tileRequestsValue">0</div>
+            <div class="more">More info <i class="fa-solid fa-arrow-right"></i></div>
+          </div>
+
+          <div class="metric-tile tile-yellow" id="tileUsers" title="View users" role="listitem">
+            <div class="label"><i class="fa-solid fa-users"></i> Users</div>
+            <div class="value" id="tileUsersValue">0</div>
+            <div class="more">More info <i class="fa-solid fa-arrow-right"></i></div>
+          </div>
+
+          <div class="metric-tile tile-red" id="tileFulfilled" title="View fulfilled requests" role="listitem">
+            <div class="label"><i class="fa-solid fa-check-double"></i> Fulfilled Requests</div>
+            <div class="value" id="tileFulfilledValue">0</div>
+            <div class="more">More info <i class="fa-solid fa-arrow-right"></i></div>
+          </div>
+        </div>
+
+        <!-- RECENT USERS CARD (added) -->
+        <section class="card" id="recentUsersCard" aria-label="Recent users">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <div style="font-weight:600">Recent users</div>
+            <div style="font-size:12px;color:var(--muted)">Latest 5 · realtime</div>
+          </div>
+          <div id="recentUsersList" class="recent-users-list">
+            <!-- populated by JS -->
+            <div style="color:var(--muted)">Loading users…</div>
+          </div>
+        </section>
+
+        <!-- CHARTS: placed BELOW the metric tiles -->
+        <div class="charts-row" role="region" aria-label="Charts">
+          <div class="chart-card card" aria-hidden="false">
+            <div class="chart-header">
+              <div style="font-weight:600">Doughnut Chart — Most donated medicines</div>
+              <div style="font-size:12px;color:var(--muted)">Realtime · donations</div>
+            </div>
+            <div class="chart-canvas-wrap">
+              <canvas id="doughnutChart" style="max-width:100%; max-height:320px;"></canvas>
+            </div>
+          </div>
+
+          <div class="chart-card card">
+            <div class="chart-header">
+              <div style="font-weight:600">Line Chart — Monthly activity</div>
+              <div style="font-size:12px;color:var(--muted)">Realtime · donations / requests / users</div>
+            </div>
+            <div class="chart-canvas-wrap">
+              <canvas id="barChart" style="width:100%; height:320px"></canvas>
+            </div>
+          </div>
+        </div>
+
+    </main>
+  </div>
+
+<script type="module">
+/* ====== Real-time admin dashboard wiring (updated)
+   - Bar chart replaced with a Line chart (same datasets)
+   - Sidebar fixed on desktop, responsive on mobile (handled in CSS)
+   - Added Recent Users card and render function
+===================================================================== */
+
+import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+import {
+  getFirestore, collection, doc, getDoc, onSnapshot, query, orderBy
+} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+
+// --- Firebase config (keep same values) ---
+const firebaseConfig = {
+  apiKey: "AIzaSyAaWN2gj3VJxT6kwOvCX4LIXkWlbt0LTHQ",
+  authDomain: "donormedix.firebaseapp.com",
+  projectId: "donormedix",
+  storageBucket: "donormedix.appspot.com",
+  messagingSenderId: "627472172279",
+  appId: "1:627472172279:web:9bf645b54d33075a0d7ff2",
+  measurementId: "G-NTNPR4FPT7"
+};
+
+// init app (reuse if already initialized)
+const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+// DOM refs
+const tileDonationsVal = document.getElementById('tileDonationsValue');
+const tileRequestsVal  = document.getElementById('tileRequestsValue');
+const tileUsersVal     = document.getElementById('tileUsersValue');
+const tileFulfilledVal = document.getElementById('tileFulfilledValue');
+
+const doughnutCanvas = document.getElementById('doughnutChart');
+const barCanvas = document.getElementById('barChart'); // kept id for compatibility
+
+const recentUsersList = document.getElementById('recentUsersList');
+
+// NOTICE area
+const NOTICE_ID = 'adminNotice';
+(function ensureNotice() {
+  if (document.getElementById(NOTICE_ID)) return;
+  const shell = document.querySelector('.main') || document.body;
+  const div = document.createElement('div');
+  div.id = NOTICE_ID;
+  div.style.margin = '8px 0';
+  shell.insertBefore(div, shell.firstChild);
+})();
+function showNotice(msg, isError = false) {
+  const el = document.getElementById(NOTICE_ID);
+  if (!el) return;
+  el.innerHTML = msg;
+  el.style.padding = '10px';
+  el.style.borderRadius = '8px';
+  el.style.fontSize = '13px';
+  el.style.background = isError ? '#fee2e2' : '#ecfdf5';
+  el.style.border = isError ? '1px solid #fecaca' : '1px solid #bbf7d0';
+  el.style.color = isError ? '#7f1d1d' : '#065f46';
+}
+function clearNotice(){ const el=document.getElementById(NOTICE_ID); if(el) el.innerHTML=''; }
+
+// Utility: parse Firestore timestamps / strings / numbers to Date
+function parseToDate(value) {
+  if (!value) return null;
+  if (typeof value.toDate === 'function') {
+    try { return value.toDate(); } catch (e) { /* fallthrough */ }
+  }
+  if (value && typeof value === 'object' && value._seconds) {
+    return new Date(value._seconds * 1000);
+  }
+  if (typeof value === 'string') {
+    const d = new Date(value);
+    if (!isNaN(d)) return d;
+  }
+  if (typeof value === 'number') {
+    if (value > 1e12) return new Date(value);
+    return new Date(value * 1000);
+  }
+  return null;
+}
+
+// Utility: extract numeric quantity from a doc (candidates)
+function extractQuantity(data = {}) {
+  const candidates = ['quantity','qty','amount','count','total'];
+  for (const k of candidates) {
+    if (data[k] !== undefined && data[k] !== null) {
+      const v = data[k];
+      if (typeof v === 'number' && !Number.isNaN(v)) return v;
+      if (typeof v === 'string') {
+        const p = parseFloat(String(v).replace(/[, ]+/g,'')); 
+        if (!isNaN(p)) return p;
+      }
+    }
+  }
+  // fallback to 1 when no numeric field provided
+  return 1;
+}
+
+// Chart.js instances (if canvases exist)
+// DONUT (unchanged)
+let donutChart = null;
+// LINE chart (replaces bar)
+let lineChart = null;
+
+if (doughnutCanvas) {
+  donutChart = new Chart(doughnutCanvas.getContext('2d'), {
+    type: 'doughnut',
+    data: { labels: ['Loading'], datasets: [{ data: [1], backgroundColor: ['#f97316'] }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } } }
+  });
+}
+if (barCanvas) {
+  // create a Line chart instead of a bar chart, reusing the same canvas id
+  lineChart = new Chart(barCanvas.getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: [],
+      datasets: [
+        {
+          label: 'Donations (qty sum)',
+          data: [],
+          borderColor: '#f97316',
+          backgroundColor: 'rgba(249,115,22,0.08)',
+          tension: 0.35,
+          fill: true,
+          pointRadius: 3,
+          pointHoverRadius: 5,
+          borderWidth: 2
+        },
+        {
+          label: 'Requests (qty sum)',
+          data: [],
+          borderColor: '#16a34a',
+          backgroundColor: 'rgba(22,163,74,0.08)',
+          tension: 0.35,
+          fill: true,
+          pointRadius: 3,
+          pointHoverRadius: 5,
+          borderWidth: 2
+        },
+        {
+          label: 'New Users (count)',
+          data: [],
+          borderColor: '#06b6d4',
+          backgroundColor: 'rgba(6,182,212,0.08)',
+          tension: 0.35,
+          fill: true,
+          pointRadius: 3,
+          pointHoverRadius: 5,
+          borderWidth: 2
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      scales: {
+        x: { display: true, title: { display: false } },
+        y: { display: true, beginAtZero: true }
+      },
+      plugins: { legend: { position: 'top' } }
+    }
+  });
+}
+
+// Caches used for aggregation
+let donationsCache = []; // array of {id, data}
+let requestsCache = [];
+let usersCache = [];
+
+// Helpers for monthly keys/labels
+function lastNMonthKeys(n = 7) {
+  const arr = [];
+  const now = new Date();
+  for (let i = n - 1; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    arr.push(`${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}`);
+  }
+  return arr;
+}
+function getLastNMonthsLabels(n = 7) {
+  const res = [];
+  const now = new Date();
+  for (let i = n - 1; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    res.push(d.toLocaleString(undefined, { month: 'short', year: 'numeric' }));
+  }
+  return res;
+}
+function monthKeyFromDate(d) {
+  if (!d) return null;
+  return `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}`;
+}
+
+// Chart + tile update functions (use caches)
+function updateTilesFromCache() {
+  const totalDonQty = donationsCache.reduce((s, it) => s + extractQuantity(it.data || {}), 0);
+  tileDonationsVal && (tileDonationsVal.textContent = totalDonQty);
+
+  const totalReqQty = requestsCache.reduce((s, it) => s + extractQuantity(it.data || {}), 0);
+  tileRequestsVal && (tileRequestsVal.textContent = totalReqQty);
+
+  tileUsersVal && (tileUsersVal.textContent = usersCache.length);
+
+  const fulfilled = requestsCache.reduce((acc, it) => {
+    const s = ((it.data && (it.data.status || it.data.state)) || '').toString().toLowerCase();
+    return acc + ((s === 'fulfilled' || s === 'done' || s === 'completed') ? 1 : 0);
+  }, 0);
+  tileFulfilledVal && (tileFulfilledVal.textContent = fulfilled);
+}
+
+function updateDoughnutFromCache() {
+  if (!donutChart) return;
+  const counts = {};
+  donationsCache.forEach(it => {
+    const d = it.data || {};
+    const med = (d.medicineName || d.medicine || d.medicine_name || 'Unknown').toString().trim() || 'Unknown';
+    counts[med] = (counts[med] || 0) + extractQuantity(d);
+  });
+  const entries = Object.entries(counts).sort((a,b)=> b[1]-a[1]);
+  const top = entries.slice(0,6);
+  const others = entries.slice(6);
+  const labels = top.map(e => e[0]);
+  const data = top.map(e => e[1]);
+  if (others.length) {
+    const otherSum = others.reduce((s,e)=> s + e[1], 0);
+    labels.push('Other'); data.push(otherSum);
+  }
+  if (!labels.length) { labels.push('No donations'); data.push(1); }
+  const palette = ['#f87171','#fb923c','#f59e0b','#f97316','#34d399','#60a5fa','#a78bfa','#f472b6'];
+  donutChart.data = { labels, datasets: [{ data, backgroundColor: palette.slice(0, labels.length) }] };
+  donutChart.update();
+}
+
+function updateLineFromCache(months = 7) {
+  if (!lineChart) return;
+  const monthKeys = lastNMonthKeys(months);
+  const labels = getLastNMonthsLabels(months);
+
+  const donationsCounts = monthKeys.map(()=>0);
+  const requestsCounts = monthKeys.map(()=>0);
+  const usersCounts = monthKeys.map(()=>0);
+
+  donationsCache.forEach(it => {
+    const d = it.data || {};
+    const dt = parseToDate(d.createdAt || d.created_at || d.timestamp);
+    const key = monthKeyFromDate(dt);
+    const idx = monthKeys.indexOf(key);
+    if (idx >= 0) donationsCounts[idx] += extractQuantity(d);
+  });
+
+  requestsCache.forEach(it => {
+    const d = it.data || {};
+    const dt = parseToDate(d.createdAt || d.created_at || d.timestamp);
+    const key = monthKeyFromDate(dt);
+    const idx = monthKeys.indexOf(key);
+    if (idx >= 0) requestsCounts[idx] += extractQuantity(d);
+  });
+
+  usersCache.forEach(it => {
+    const d = it.data || {};
+    const dt = parseToDate(d.createdAt || d.created_at || d.joined || d.created);
+    const key = monthKeyFromDate(dt);
+    const idx = monthKeys.indexOf(key);
+    if (idx >= 0) usersCounts[idx] += 1;
+  });
+
+  lineChart.data.labels = labels;
+  lineChart.data.datasets[0].data = donationsCounts;
+  lineChart.data.datasets[1].data = requestsCounts;
+  lineChart.data.datasets[2].data = usersCounts;
+  lineChart.update();
+}
+
+// Render recent users into the card
+function renderRecentUsers() {
+  if (!recentUsersList) return;
+  recentUsersList.innerHTML = '';
+  if (!usersCache || !usersCache.length) {
+    recentUsersList.innerHTML = '<div style="color:var(--muted)">No users yet.</div>';
+    return;
+  }
+  // sort users by createdAt desc (fallback to null treated as epoch)
+  const arr = usersCache.slice().map(u => ({ id: u.id, data: u.data || {} }))
+    .sort((a,b) => {
+      const da = parseToDate(a.data.createdAt || a.data.created_at || a.data.joined || a.data.created) || new Date(0);
+      const db = parseToDate(b.data.createdAt || b.data.created_at || b.data.joined || b.data.created) || new Date(0);
+      return db - da;
+    })
+    .slice(0,5);
+
+  for (const u of arr) {
+    const d = u.data || {};
+    const name = d.name || d.displayName || d.fullName || d.email || 'Unnamed';
+    const role = (d.role || 'user').toString();
+    const joined = (parseToDate(d.createdAt || d.created_at || d.joined || d.created) || null);
+    const joinedStr = joined ? joined.toLocaleDateString(undefined, { month:'short', day:'numeric', year:'numeric' }) : '—';
+    const initial = (name && typeof name === 'string' && name.trim().length) ? name.trim()[0].toUpperCase() : '?';
+    // color palette for avatars (cycle)
+    const colors = ['linear-gradient(135deg,#60a5fa,#7dd3fc)', 'linear-gradient(135deg,#86efac,#60a5fa)', 'linear-gradient(135deg,#fca5a5,#fb923c)', 'linear-gradient(135deg,#c4b5fd,#f472b6)', 'linear-gradient(135deg,#fde68a,#f59e0b)'];
+    const color = colors[Math.abs(hashCode(u.id || name)) % colors.length];
+
+    const el = document.createElement('div');
+    el.className = 'recent-user';
+    el.innerHTML = `
+      <div class="avatar" style="background:${color}">${escapeHtml(initial)}</div>
+      <div class="meta">
+        <div class="name">${escapeHtml(name)}</div>
+        <div class="sub">${escapeHtml(role)} · ${escapeHtml(joinedStr)}</div>
+      </div>
+    `;
+    recentUsersList.appendChild(el);
+  }
+}
+
+// simple hash for color selection
+function hashCode(s='') {
+  let h = 0;
+  for (let i=0;i<s.length;i++) h = (h<<5) - h + s.charCodeAt(i) | 0;
+  return h;
+}
+
+// simple escape for innerHTML usage
+function escapeHtml(str = '') {
+  return String(str)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#39;');
+}
+
+// Real-time snapshot attach — called only after admin verification
+let unsubDonations = null;
+let unsubRequests = null;
+let unsubUsers = null;
+function attachRealtimeListeners() {
+  try { unsubDonations && unsubDonations(); } catch(e){}
+  try { unsubRequests && unsubRequests(); } catch(e){}
+  try { unsubUsers && unsubUsers(); } catch(e){}
+
+  // donations
+  try {
+    unsubDonations = onSnapshot(collection(db, 'donations'), snap => {
+      donationsCache = [];
+      snap.forEach(d => {
+        const data = d.data ? d.data() : d;
+        donationsCache.push({ id: d.id || data.id || null, data });
+      });
+      updateTilesFromCache();
+      updateDoughnutFromCache();
+      updateLineFromCache(7);
+    }, err => {
+      console.error('donations onSnapshot error', err);
+      showNotice('Permission denied reading donations. Ensure you are signed in as admin and rules allow access.', true);
+    });
+  } catch (err) {
+    console.error('attach donations error', err);
+  }
+
+  // requests
+  try {
+    unsubRequests = onSnapshot(collection(db, 'requests'), snap => {
+      requestsCache = [];
+      snap.forEach(d => {
+        const data = d.data ? d.data() : d;
+        requestsCache.push({ id: d.id || data.id || null, data });
+      });
+      updateTilesFromCache();
+      updateLineFromCache(7);
+    }, err => {
+      console.error('requests onSnapshot error', err);
+      showNotice('Permission denied reading requests. Ensure you are signed in as admin and rules allow access.', true);
+    });
+  } catch (err) {
+    console.error('attach requests error', err);
+  }
+
+  // users
+  try {
+    const qUsers = query(collection(db, 'users'), orderBy('createdAt', 'desc'));
+    unsubUsers = onSnapshot(qUsers, snap => {
+      usersCache = [];
+      snap.forEach(d => {
+        const data = d.data ? d.data() : d;
+        usersCache.push({ id: d.id || data.id || null, data });
+      });
+      updateTilesFromCache();
+      updateLineFromCache(7);
+      renderRecentUsers(); // <-- update recent users card when users snapshot changes
+    }, err => {
+      console.error('users onSnapshot error', err);
+      showNotice('Permission denied reading users. Ensure you are signed in as admin and rules allow access.', true);
+    });
+  } catch (err) {
+    console.error('attach users error', err);
+  }
+}
+
+// AUTH guard: wait for sign-in & verify users/{uid}.role === 'admin'
+onAuthStateChanged(auth, async (user) => {
+  if (!user) {
+    showNotice('Not signed in. Sign in as admin to view dashboard.', true);
+    try { unsubDonations && unsubDonations(); } catch(e){}
+    try { unsubRequests && unsubRequests(); } catch(e){}
+    try { unsubUsers && unsubUsers(); } catch(e){}
+    donationsCache = requestsCache = usersCache = [];
+    updateTilesFromCache();
+    renderRecentUsers();
+    return;
+  }
+
+  try {
+    const profileRef = doc(db, 'users', user.uid);
+    const profileSnap = await getDoc(profileRef);
+    if (!profileSnap.exists()) {
+      showNotice(`Admin profile document users/${user.uid} is missing. Set role:"admin" in that document.`, true);
+      return;
+    }
+    const profile = profileSnap.data() || {};
+    if (profile.role === 'admin') {
+      clearNotice();
+      attachRealtimeListeners();
+    } else {
+      showNotice('Access denied — your account is not an admin. Contact an administrator to set role:"admin".', true);
+      try { unsubDonations && unsubDonations(); } catch(e){}
+      try { unsubRequests && unsubRequests(); } catch(e){}
+      try { unsubUsers && unsubUsers(); } catch(e){}
+    }
+  } catch (err) {
+    console.error('Admin verification failed:', err);
+    showNotice('Failed to verify admin role. See console for details.', true);
+  }
+});
+
+// Tile clickable behavior (navigate to appropriate pages)
+document.getElementById('tileDonations')?.addEventListener('click', () => window.location.href = 'admin-donations.html');
+document.getElementById('tileRequests')?.addEventListener('click', () => window.location.href = 'admin-requests.html');
+document.getElementById('tileUsers')?.addEventListener('click', () => window.location.href = 'admin-users.html');
+document.getElementById('tileFulfilled')?.addEventListener('click', () => window.location.href = 'admin-requests.html?filter=fulfilled');
+
+/* Logout */
+const logoutBtn = document.getElementById('logoutBtn');
+if (logoutBtn) {
+  logoutBtn.addEventListener('click', async (ev) => {
+    ev.preventDefault();
+    try {
+      await signOut(auth);
+      try { unsubDonations && unsubDonations(); } catch(e){}
+      try { unsubRequests && unsubRequests(); } catch(e){}
+      try { unsubUsers && unsubUsers(); } catch(e){}
+      window.location.href = 'home.html';
+    } catch (err) {
+      console.error('Sign out failed', err);
+      showNotice('Sign out failed. Check console for details.', true);
+    }
+  });
+}
+</script>
+
+</body>
+</html>
